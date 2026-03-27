@@ -1,0 +1,1646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Chatty — AI Native Inbox</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { font-family:'Inter',system-ui,sans-serif; background:#e8e6e2; display:flex; justify-content:center; align-items:center; min-height:100vh; overflow:hidden; }
+  #root { width:393px; height:852px; position:relative; overflow:hidden; border-radius:44px; box-shadow:0 25px 80px rgba(0,0,0,.25); }
+
+  /* Animations */
+  @keyframes fadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+  @keyframes slideUp { from { opacity:0; transform:translateY(40px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes slideOut { from { opacity:1; transform:translateY(0); } to { opacity:0; transform:translateY(-30px); } }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.4; } }
+  @keyframes typing { 0% { content:''; } 33% { content:'.'; } 66% { content:'..'; } 100% { content:'...'; } }
+  .fade-up { animation: fadeUp .4s ease-out both; }
+  .fade-in { animation: fadeIn .3s ease both; }
+  .slide-up { animation: slideUp .35s ease-out both; }
+
+  /* Scrollbar hide */
+  ::-webkit-scrollbar { display:none; }
+
+  /* Mobile responsive */
+  @media (max-width:420px) {
+    body { background:#FAFAF8; align-items:flex-start; }
+    #root { width:100vw; height:100vh; height:100dvh; border-radius:0; box-shadow:none; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+/* ─── Design Tokens ─── */
+const T = {
+  paper: '#FAFAF8',
+  ink: '#1A1A1A',
+  gray: '#999',
+  lightGray: '#E8E6E2',
+  cardBg: '#fff',
+  accent: '#2D5BFF',
+  darkBg: '#0A0A0A',
+  darkSurface: '#161618',
+  darkBorder: '#2A2A2C',
+  mint: '#4FFFB0',
+  mintDim: '#2a8a60',
+  warmGray: '#F3F1ED',
+};
+
+/* ─── Mock Data ─── */
+const REVIEWS = [
+  { id:1, user:'@jayrunz', type:'Lead Qual', source:'Comment on "My 12-week results"',
+    msg:"I've been struggling for 2 years. Is it too late to start?",
+    draft:"It's never too late — 2 years tells me you're serious. Want me to share what week 1 looks like?",
+    batch: false },
+  { id:2, user:'@sara.j', type:'FAQ', source:'Instagram DM',
+    msg:"I'm postpartum, 8 months out. Would this work for me?",
+    draft:"Yes! I have a dedicated postpartum module — 8 months out is a great time to start. DM me for the full details",
+    batch: 'faq-group' },
+  { id:3, user:'@maya.runs', type:'FAQ', source:'Instagram DM',
+    msg:"Do you offer discounts for students?",
+    draft:"Hey! I don't do discounts, but I do have a payment plan that makes it super manageable. Want me to send the details?",
+    batch: 'faq-group' },
+  { id:4, user:'@carlos.m', type:'FAQ', source:'Instagram DM',
+    msg:"How quickly can I see results?",
+    draft:"Most people notice changes within 2-3 weeks. Consistency is key — and I'll be here to keep you on track!",
+    batch: 'faq-group' },
+  { id:5, user:'@lena.fit', type:'Lead Qual', source:'Comment on "Client transformation"',
+    msg:"You seem real. I've tried everything. I'm scared to spend more money.",
+    draft:"I totally get that — and honestly, the fact that you're still looking means you haven't given up. Want me to share some results from people who felt the same?",
+    batch: false },
+];
+
+/* ─── V2 Inbox Data ─── */
+const IMPORTANT_DATA = {
+  services: [
+    { user:'@jayrunz', msg:"I've been struggling for 2 years. Is it too late to start?", source:'Comment', time:'2h', draft:"It's never too late — 2 years tells me you're serious. Want to see what week 1 looks like?" },
+    { user:'@mike.coach', msg:"What's included in the premium program?", source:'DM', time:'3h', draft:"Great question! The premium includes 12 weeks of coaching, weekly check-ins, and a custom meal plan." },
+    { user:'@emma.k', msg:"I want to sign up but nervous about the cost", source:'DM', time:'4h', draft:"Totally understand — I have a payment plan that breaks it into manageable chunks. Want details?" },
+  ],
+  sensitive: [
+    { user:'@lena.fit', msg:"You seem real. I've tried everything. I'm scared to spend more money.", source:'Comment', time:'1h', flag:'emotional' },
+    { user:'@ana.healing', msg:"I'm going through a really hard time and need something to focus on", source:'DM', time:'5h', flag:'personal' },
+  ],
+  collabs: [
+    { user:'@fitbrand.co', msg:"Would love to explore a partnership. We have 200k followers", source:'DM', time:'6h' },
+    { user:'@wellness.mag', msg:"We'd like to feature you in our next issue", source:'DM', time:'1d' },
+  ],
+};
+
+const ENGAGEMENT_DATA = {
+  groups: [
+    {
+      type: 'stack',
+      emotion: 'Gratitude & motivation',
+      summary: "Thank you, you're amazing, keep going!",
+      items: [
+        { user:'@user18', post:'My 12-week results', comment:"Just finished week 4, feeling amazing!", draft:"That's incredible progress! Keep going — week 4 is where the magic starts", time:'10m' },
+        { user:'@user45', post:'My 12-week results', comment:"This is so inspiring, you changed my life", draft:"Messages like this make everything worth it. So proud of you!", time:'15m' },
+        { user:'@user22', post:'Client transformation', comment:"Love your content! Keep it up", draft:"Thank you so much! More coming this week", time:'20m' },
+        { user:'@user56', post:'Morning routine', comment:"Needed this today. Thank you!", draft:"So glad it hit home! That's exactly why I share these", time:'25m' },
+      ]
+    },
+    { type:'single', user:'@user9', post:'Morning routine', comment:"What time do you wake up?", draft:"5:30am! It took some getting used to, but now I can't imagine starting any other way", time:'30m' },
+    { type:'single', user:'@user31', post:'Client transformation', comment:"Do you work with beginners?", draft:"Absolutely! Everyone starts somewhere. DM me and I'll share what week 1 looks like", time:'35m' },
+    {
+      type: 'stack',
+      emotion: 'Curiosity about pricing',
+      summary: "How much does it cost? Any deals?",
+      items: [
+        { user:'@user41', post:'My 12-week results', comment:"How much is the program?", draft:"DM me and I'll send you all the details and pricing options!", time:'40m' },
+        { user:'@user52', post:'Client transformation', comment:"Is there a payment plan?", draft:"Yes! I have flexible payment options. DM me and I'll walk you through it", time:'45m' },
+        { user:'@user60', post:'My 12-week results', comment:"Price?", draft:"DM me! I'll share everything including the payment plan options", time:'50m' },
+      ]
+    },
+    { type:'single', user:'@user14', post:'Client transformation', comment:"Where are you based?", draft:"I'm based in LA but work with people worldwide — everything is online!", time:'55m' },
+    { type:'single', user:'@user27', post:'Morning routine', comment:"What app do you use to track workouts?", draft:"I use a custom tracker I built! DM me if you want my template", time:'1h' },
+    {
+      type: 'stack',
+      emotion: 'Personal stories',
+      summary: "I started because of you, here's my journey",
+      items: [
+        { user:'@user33', post:'Client transformation', comment:"I started 3 weeks ago because of this post!", draft:"That makes my day! How's it going so far? Would love to hear your progress", time:'1h' },
+        { user:'@user48', post:'My 12-week results', comment:"You inspired me to finally start. Day 1 done!", draft:"Day 1 is the hardest and you crushed it! Keep me posted on your journey", time:'1h' },
+      ]
+    },
+    { type:'single', user:'@user38', post:'Morning routine', comment:"Can you do a video on stretching?", draft:"Great idea! I've been thinking about that. Adding it to my content plan", time:'2h' },
+    { type:'single', user:'@user44', post:'Client transformation', comment:"How long until you see results?", draft:"Most people notice changes within 2-3 weeks. Consistency is everything!", time:'2h' },
+    { type:'single', user:'@user50', post:'My 12-week results', comment:"Do you do group coaching?", draft:"Yes! I run group sessions every quarter. DM me to get on the waitlist", time:'2h' },
+    { type:'single', user:'@user55', post:'Morning routine', comment:"This is goals", draft:"You got this! Start small — even 10 minutes in the morning changes everything", time:'3h' },
+    { type:'single', user:'@user61', post:'Client transformation', comment:"Wow the difference is insane", draft:"Right?! She put in so much work. Results like this keep me motivated too", time:'3h' },
+    { type:'single', user:'@user63', post:'My 12-week results', comment:"Sharing this with my friend who needs it", draft:"Please do! The more the merrier. Tag them and I'll say hi", time:'3h' },
+    { type:'single', user:'@user67', post:'Morning routine', comment:"Love your energy", draft:"Thank you! Mornings are my thing. Sending you some of that energy!", time:'4h' },
+    { type:'single', user:'@user70', post:'Client transformation', comment:"Been following you for a year, finally ready", draft:"A year of watching means you already know what's possible. Let's go! DM me", time:'4h' },
+  ]
+};
+
+const OTHER_DATA = [
+  { user:'@carlos.m', msg:"Do you ship internationally?", source:'DM', time:'2h', topic:'Shipping' },
+  { user:'@maria.v', msg:"Can I reschedule my session to next week?", source:'DM', time:'3h', topic:'Scheduling' },
+  { user:'@alex.j', msg:"Is there a refund policy?", source:'DM', time:'5h', topic:'Refunds' },
+];
+
+const HANDLED_DATA = {
+  stats: { dms: 34, comments: 126, avgTime: '2m', accuracy: 91 },
+  inProgress: [
+    { user:'@newlead.k', msg:"Interested in the 12-week program", type:'Lead qualification', step:'Qualifying interests' },
+    { user:'@fit.sarah', msg:"How much does coaching cost?", type:'Lead qualification', step:'Sharing pricing' },
+  ],
+  completed: [
+    { user:'@user3', msg:"How long are the workouts?", type:'FAQ', status:'sent' },
+    { user:'@user7', msg:"Is this beginner-friendly?", type:'FAQ', status:'sent' },
+    { user:'@user10', msg:"How quickly can I see results?", type:'FAQ', status:'sent' },
+    { user:'@user15', msg:"Amazing transformation!", type:'Comment', status:'replied' },
+    { user:'@user19', msg:"You're so inspiring", type:'Comment', status:'replied' },
+    { user:'@user21', msg:"Love this post!", type:'Comment', status:'replied' },
+  ],
+};
+
+const AI_HANDLED = [
+  { user:'@user18', msg:"Just finished week 4, feeling amazing!", type:'Positive', status:'auto-sent ✓' },
+  { user:'@user3', msg:"How long are the workouts?", type:'FAQ', status:'auto-sent ✓', draft:"Each workout is 30-45 minutes — designed to fit into even the busiest schedule!" },
+  { user:'@user10', msg:"How quickly can I see results?", type:'FAQ', status:'auto-sent ✓', draft:"Most people notice changes within 2-3 weeks. Consistency is key!" },
+  { user:'@user22', msg:"Love your content! Keep it up 🔥", type:'Positive', status:'auto-sent ✓' },
+  { user:'@user7', msg:"Is this beginner-friendly?", type:'FAQ', status:'auto-sent ✓', draft:"Absolutely! The program adapts to your level. We start slow and build." },
+];
+
+/* ═══════════════════════════════════════════
+   COMPONENTS
+   ═══════════════════════════════════════════ */
+
+/* ─── Shared: Option Card ─── */
+function OptCard({ title, desc, emoji, selected, onClick, small }) {
+  return (
+    <div onClick={onClick}
+      style={{ padding: small ? '14px 18px' : '18px 20px', background:T.cardBg, borderRadius:14,
+        border: selected ? `2px solid ${T.ink}` : `1px solid ${T.lightGray}`,
+        cursor:'pointer', transition:'all .15s ease', display:'flex', alignItems:'flex-start', gap:14 }}>
+      {emoji && <span style={{ fontSize:24, flexShrink:0, marginTop:small?0:2 }}>{emoji}</span>}
+      <div>
+        <div style={{ fontSize: small ? 14 : 15, fontWeight:600, color:T.ink }}>{title}</div>
+        {desc && <div style={{ fontSize:13, color:T.gray, marginTop:3, lineHeight:1.4 }}>{desc}</div>}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Shared: Black CTA Button ─── */
+function BlackBtn({ label, onClick, disabled }) {
+  return (
+    <button onClick={onClick} disabled={disabled}
+      style={{ width:'100%', padding:'16px 0', background: disabled ? '#ccc' : T.ink, color:'#fff',
+        border:'none', borderRadius:50, fontSize:16, fontWeight:600, cursor: disabled ? 'default' : 'pointer',
+        transition:'background .2s' }}>
+      {label}
+    </button>
+  );
+}
+
+/* ═════════════════════════════════════
+   ONBOARDING — 9-STEP CONVERSATIONAL FLOW
+   ═════════════════════════════════════ */
+
+/* Typewriter component */
+function TypeWriter({ text, speed = 18, onDone, delay = 0 }) {
+  const [displayed, setDisplayed] = useState('');
+  const [started, setStarted] = useState(false);
+
+  useEffect(() => {
+    const startTimer = setTimeout(() => setStarted(true), delay);
+    return () => clearTimeout(startTimer);
+  }, [delay]);
+
+  useEffect(() => {
+    if (!started) return;
+    if (displayed.length < text.length) {
+      const timer = setTimeout(() => setDisplayed(text.slice(0, displayed.length + 1)), speed);
+      return () => clearTimeout(timer);
+    } else if (onDone) {
+      onDone();
+    }
+  }, [displayed, started, text, speed]);
+
+  return <span>{displayed}<span style={{ opacity: displayed.length < text.length ? 1 : 0, transition:'opacity .3s' }}>|</span></span>;
+}
+
+/* Sequential typewriter messages */
+function ChattyMessages({ messages, onAllDone }) {
+  const [currentMsg, setCurrentMsg] = useState(0);
+  const [doneMessages, setDoneMessages] = useState([]);
+
+  const handleMsgDone = () => {
+    setDoneMessages(d => [...d, currentMsg]);
+    if (currentMsg < messages.length - 1) {
+      setTimeout(() => setCurrentMsg(c => c + 1), 400);
+    } else if (onAllDone) {
+      setTimeout(onAllDone, 300);
+    }
+  };
+
+  return (
+    <div>
+      {messages.map((msg, i) => (
+        <div key={i} style={{ marginBottom: 10, opacity: i > currentMsg ? 0 : 1, transition: 'opacity .3s' }}>
+          {i === 0 && (
+            <div style={{ fontSize: 11, color: T.gray, marginBottom: 5, fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+              · Chatty
+            </div>
+          )}
+          <div style={{ background: T.warmGray, borderRadius: 14, borderTopLeftRadius: i === 0 ? 14 : 4, padding: '13px 17px', maxWidth: '88%', display: 'inline-block' }}>
+            <div style={{ fontSize: 15, color: T.ink, lineHeight: 1.55 }}>
+              {i <= currentMsg ? (
+                doneMessages.includes(i) ? msg : <TypeWriter text={msg} onDone={handleMsgDone} delay={i === 0 ? 300 : 0} />
+              ) : null}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* Progress bar */
+function ProgressBar({ step, total }) {
+  return (
+    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: T.lightGray, zIndex: 10 }}>
+      <div style={{ height: '100%', background: T.ink, width: `${(step / total) * 100}%`, transition: 'width .4s ease' }} />
+    </div>
+  );
+}
+
+/* ─── Step 1: Welcome ─── */
+function ObWelcome({ onNext }) {
+  const [showBtn, setShowBtn] = useState(false);
+
+  return (
+    <div style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      <ProgressBar step={1} total={10} />
+      <div style={{ padding: '60px 28px 0' }}>
+        {/* Profile card */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 18px', background: T.warmGray, borderRadius: 14, marginBottom: 32 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 44, height: 44, borderRadius: 22, background: T.ink, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 14, fontWeight: 600 }}>SR</div>
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: T.ink }}>Sofia Reyes</div>
+              <div style={{ fontSize: 12, color: T.gray }}>@sofiafit · 84k followers</div>
+            </div>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: 24, fontWeight: 700, color: T.ink }}>143</div>
+            <div style={{ fontSize: 10, color: T.gray, display: 'flex', alignItems: 'center', gap: 4 }}>
+              <span style={{ width: 6, height: 6, borderRadius: 3, background: T.ink, display: 'inline-block' }}></span> unread DMs
+            </div>
+          </div>
+        </div>
+
+        <ChattyMessages
+          messages={[
+            "Hi Sofia.",
+            "84,000 people follow you. A lot of them are trying to reach you right now.",
+            "I'm going to make sure none of them get ignored.",
+            "Takes about 2 minutes."
+          ]}
+          onAllDone={() => setShowBtn(true)}
+        />
+      </div>
+
+      <div style={{ marginTop: 'auto', padding: '0 28px 50px', opacity: showBtn ? 1 : 0, transform: showBtn ? 'translateY(0)' : 'translateY(12px)', transition: 'all .4s ease' }}>
+        <BlackBtn label="Let's set it up →" onClick={onNext} />
+        {/* skip removed */}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Step 2: Workflow Priority ─── */
+function ObWorkflow({ onNext }) {
+  const [selected, setSelected] = useState([]);
+  const priorities = [
+    { id: 'deals', label: 'Answer interested people', desc: 'People asking about your services' },
+    { id: 'leads', label: 'Re-engage leads', desc: 'People who went quiet' },
+    { id: 'comments', label: 'Answer post comments', desc: 'Build engagement with your audience' },
+    { id: 'questions', label: 'Answer questions', desc: 'Pricing, dates, how it works' },
+    { id: 'partnerships', label: 'Review partnerships', desc: 'Brand deals and collabs' },
+  ];
+
+  const toggle = (id) => {
+    setSelected(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
+  };
+
+  return (
+    <div className="fade-up" style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      <ProgressBar step={2} total={10} />
+      <div style={{ padding: '60px 28px 0', flex: 1, overflowY: 'auto' }}>
+        <div style={{ fontSize: 11, color: T.gray, marginBottom: 6, fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase' }}>· Chatty</div>
+        <h1 style={{ fontSize: 26, fontWeight: 700, color: T.ink, lineHeight: 1.15, marginBottom: 8 }}>
+          If you had 10 minutes, what would you check first?
+        </h1>
+        <p style={{ fontSize: 14, color: T.gray, marginBottom: 28 }}>Tap in order of priority — your inbox will follow this order.</p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {priorities.map((p) => {
+            const idx = selected.indexOf(p.id);
+            const isSelected = idx >= 0;
+            return (
+              <div key={p.id} onClick={() => toggle(p.id)}
+                style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px', borderRadius: 12, border: `1.5px solid ${isSelected ? T.ink : T.lightGray}`, background: '#fff', cursor: 'pointer', transition: 'all .15s ease' }}>
+                <div style={{ width: 28, height: 28, borderRadius: 14, border: `1.5px solid ${isSelected ? T.ink : T.lightGray}`, background: isSelected ? T.ink : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 12, fontWeight: 600, flexShrink: 0, transition: 'all .15s ease' }}>
+                  {isSelected ? idx + 1 : ''}
+                </div>
+                <div>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: T.ink }}>{p.label}</div>
+                  <div style={{ fontSize: 12, color: T.gray }}>{p.desc}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div style={{ padding: '16px 28px 50px' }}>
+        <BlackBtn label="Next →" onClick={onNext} disabled={selected.length === 0} />
+      </div>
+    </div>
+  );
+}
+
+/* ─── Step 3: Analyzing ─── */
+function ObAnalyzing({ onNext }) {
+  const [lines, setLines] = useState([]);
+  const allLines = [
+    'Syncing your messages...',
+    'Analyzing your leads...',
+    'Analyzing your FAQs...',
+    'Analyzing your comments...',
+    'Learning your tone of voice...',
+  ];
+
+  useEffect(() => {
+    allLines.forEach((line, i) => {
+      setTimeout(() => setLines(l => [...l, line]), 1200 * (i + 1));
+    });
+    setTimeout(onNext, 1200 * (allLines.length + 1) + 800);
+  }, []);
+
+  return (
+    <div className="fade-up" style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', position: 'relative' }}>
+      <ProgressBar step={3} total={10} />
+      <div style={{ padding: '0 36px' }}>
+        <div style={{ fontSize: 11, color: T.gray, marginBottom: 12, fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase' }}>· Chatty</div>
+        {lines.map((line, i) => (
+          <div key={i} className="fade-up" style={{ fontSize: 16, color: i === lines.length - 1 ? T.ink : T.gray, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10, transition: 'color .3s' }}>
+            <span style={{ width: 16, height: 16, borderRadius: 8, border: `1.5px solid ${i < lines.length - 1 ? T.ink : T.gray}`, background: i < lines.length - 1 ? T.ink : 'transparent', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              {i < lines.length - 1 && <span style={{ color: '#fff', fontSize: 9 }}>&#10003;</span>}
+            </span>
+            {line}
+          </div>
+        ))}
+        {lines.length < allLines.length && (
+          <div style={{ marginLeft: 26, animation: 'pulse 1s infinite', fontSize: 14, color: T.gray }}>...</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Step 4: Things I noticed ─── */
+function ObInsights({ onNext }) {
+  const [showBtn, setShowBtn] = useState(false);
+
+  return (
+    <div className="fade-up" style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      <ProgressBar step={4} total={10} />
+      <div style={{ padding: '60px 28px 0', flex: 1 }}>
+        <ChattyMessages
+          messages={[
+            "A few things I noticed about you.",
+            "You reply fast to lead inquiries. People trust you because of it.",
+            "Your tone is warm but never vague. You always give a clear next step.",
+            "Your positive replies feel genuine, not copy-paste. That's rare.",
+            "I'll make sure none of that changes."
+          ]}
+          onAllDone={() => setShowBtn(true)}
+        />
+      </div>
+      <div style={{ padding: '0 28px 50px', opacity: showBtn ? 1 : 0, transform: showBtn ? 'translateY(0)' : 'translateY(12px)', transition: 'all .4s ease' }}>
+        <BlackBtn label="Show me how we work together →" onClick={onNext} />
+      </div>
+    </div>
+  );
+}
+
+/* ─── Step 5: How do you feel about AI ─── */
+function ObTrustFeel({ onNext, setConfidence }) {
+  const [selected, setSelected] = useState(null);
+  const [showResponse, setShowResponse] = useState(false);
+  const [showBtn, setShowBtn] = useState(false);
+
+  const options = [
+    { id: 'low', icon: '?!', label: 'I barely trust autocorrect', desc: 'No judgment — we\'ll go slow' },
+    { id: 'mid', icon: '~', label: 'I\'ve dabbled. Cautiously optimistic', desc: 'You know the drill, just need proof' },
+    { id: 'high', icon: '>>', label: 'I already talk to my toaster', desc: 'You\'re ready to let AI cook' },
+  ];
+
+  const responses = {
+    low: "Totally fair. Here's what I'm thinking:\n\nI'll summarize your messages and draft replies, but you'll always review before anything gets sent. Nothing goes out without you.",
+    mid: "Love the open mind. Here's what I'm thinking:\n\nI'll handle your FAQs and qualify leads automatically. For everything else, I'll draft and you review.",
+    high: "Let's go. Here's what I'm thinking:\n\nI'll answer your comments, qualify your leads, and after some draft reviews, I'll start answering on your behalf."
+  };
+
+  const pick = (id) => {
+    setSelected(id);
+    setConfidence(id);
+    setShowResponse(true);
+    setShowBtn(true);
+  };
+
+  return (
+    <div className="fade-up" style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      <ProgressBar step={5} total={10} />
+      <div style={{ padding: '60px 28px 0', flex: 1, overflowY: 'auto' }}>
+        <div style={{ fontSize: 11, color: T.gray, marginBottom: 6, fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase' }}>· Chatty</div>
+        <h1 style={{ fontSize: 26, fontWeight: 700, color: T.ink, lineHeight: 1.15, marginBottom: 6 }}>
+          Real talk — how do you feel about AI?
+        </h1>
+        <p style={{ fontSize: 14, color: T.gray, marginBottom: 24 }}>This helps me know where to start.</p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {options.map(o => (
+            <div key={o.id} onClick={() => pick(o.id)}
+              style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px', borderRadius: 12, border: `1.5px solid ${selected === o.id ? T.ink : T.lightGray}`, background: selected === o.id ? T.warmGray : '#fff', cursor: 'pointer', opacity: selected && selected !== o.id ? 0.45 : 1, transition: 'all .25s ease' }}>
+              <div style={{ width: 36, height: 36, borderRadius: 8, background: selected === o.id ? T.ink : T.lightGray, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, color: selected === o.id ? '#fff' : T.ink, flexShrink: 0, transition: 'all .2s ease' }}>{o.icon}</div>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: T.ink }}>{o.label}</div>
+                <div style={{ fontSize: 12, color: T.gray }}>{o.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {showResponse && (
+          <div className="fade-up" style={{ marginTop: 24 }}>
+            <div style={{ fontSize: 11, color: T.gray, marginBottom: 5, fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase' }}>· Chatty</div>
+            <div style={{ background: T.warmGray, borderRadius: 14, padding: '14px 18px' }}>
+              <div style={{ fontSize: 14, color: T.ink, lineHeight: 1.6, whiteSpace: 'pre-line' }}>{responses[selected]}</div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div style={{ padding: '16px 28px 50px', opacity: showBtn ? 1 : 0, transform: showBtn ? 'translateY(0)' : 'translateY(12px)', transition: 'all .4s ease' }}>
+        <BlackBtn label="Sounds good, next →" onClick={onNext} />
+        <div style={{ textAlign: 'center', marginTop: 10, fontSize: 12, color: '#bbb' }}>You can always change this later</div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Step 5.5: Setting up loading ─── */
+function ObSettingUp({ onNext }) {
+  useEffect(() => {
+    setTimeout(onNext, 2200);
+  }, []);
+
+  return (
+    <div style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
+      <ProgressBar step={6} total={10} />
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ animation: 'pulse 1.2s infinite', fontSize: 15, color: T.gray, marginBottom: 8 }}>Setting up your inbox...</div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Step 6: Show examples ─── */
+function ObExamples({ onNext }) {
+  const [idx, setIdx] = useState(0);
+  const examples = [
+    { from: '@user5', msg: 'Do you offer refunds?', draft: 'Yes, 7-day no-questions refund policy. No questions asked.', tag: 'FAQ' },
+    { from: '@user16', msg: "I'm interested but nervous. Is this really for someone like me?", draft: "Especially for someone like you. Let's chat.", tag: 'Lead Qual' },
+    { from: '@user18', msg: 'Just finished week 4, feeling amazing!', draft: 'YES! Week 4 is a turning point. So proud of you!', tag: 'Positive' },
+  ];
+
+  const handleLike = () => {
+    if (idx < examples.length - 1) setIdx(i => i + 1);
+    else onNext();
+  };
+
+  const ex = examples[idx];
+
+  return (
+    <div className="fade-up" style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      <ProgressBar step={7} total={10} />
+      <div style={{ padding: '60px 28px 0', flex: 1 }}>
+        <div style={{ fontSize: 11, color: T.gray, marginBottom: 6, fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase' }}>· Chatty</div>
+        <div style={{ background: T.warmGray, borderRadius: 14, padding: '12px 17px', marginBottom: 20, display: 'inline-block' }}>
+          <div style={{ fontSize: 15, color: T.ink }}>Here's how I'd handle this one.</div>
+        </div>
+
+        <div key={idx} className="fade-up">
+          <div style={{ fontSize: 11, color: T.gray, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>From {ex.from}</div>
+          <div style={{ background: T.warmGray, borderRadius: 12, padding: '13px 17px', marginBottom: 16 }}>
+            <div style={{ fontSize: 15, color: T.ink, lineHeight: 1.5 }}>{ex.msg}</div>
+          </div>
+
+          <div style={{ fontSize: 11, color: T.gray, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>· AI draft</div>
+          <div style={{ background: '#fff', border: `1.5px solid ${T.ink}`, borderRadius: 12, padding: '13px 17px', marginBottom: 12 }}>
+            <div style={{ fontSize: 15, color: T.ink, lineHeight: 1.5 }}>{ex.draft}</div>
+          </div>
+
+          <div style={{ display: 'inline-block', padding: '4px 12px', border: `1px solid ${T.ink}`, borderRadius: 6, fontSize: 11, fontWeight: 600, color: T.ink, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{ex.tag}</div>
+        </div>
+
+        <div style={{ textAlign: 'center', marginTop: 8, fontSize: 12, color: '#bbb' }}>{idx + 1} of {examples.length}</div>
+      </div>
+
+      <div style={{ padding: '16px 28px 50px', display: 'flex', gap: 10 }}>
+        <button onClick={handleLike} style={{ flex: 1, padding: '15px 0', borderRadius: 50, border: `1.5px solid ${T.lightGray}`, background: 'transparent', fontSize: 14, fontWeight: 500, cursor: 'pointer', color: T.ink }}>
+          &#10007; Different
+        </button>
+        <button onClick={handleLike} style={{ flex: 1, padding: '15px 0', borderRadius: 50, border: 'none', background: T.ink, color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+          &#10003; Like it
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Step 8: Inbox preview (sorted) ─── */
+function ObInboxPreview({ onNext }) {
+  const [showBtn, setShowBtn] = useState(false);
+
+  return (
+    <div className="fade-up" style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      <ProgressBar step={8} total={10} />
+      <div style={{ padding: '60px 28px 0', flex: 1 }}>
+        <ChattyMessages
+          messages={[
+            "This is what your inbox looks like.",
+            "Four sections. Each one tells you exactly what to do."
+          ]}
+          onAllDone={() => setShowBtn(true)}
+        />
+
+        <div className="fade-up" style={{ marginTop: 24, border: `1.5px solid ${T.ink}`, borderRadius: 14, overflow: 'hidden' }}>
+          {/* Act Now */}
+          <div style={{ padding: '14px 18px', borderBottom: `1px solid ${T.lightGray}` }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: T.ink, marginBottom: 2 }}>Act Now</div>
+            <div style={{ fontSize: 11, color: T.gray, marginBottom: 10 }}>AI paused — needs your call</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 14, color: T.ink }}>@lena.fit</span>
+              <span style={{ fontSize: 10, padding: '3px 10px', border: `1px solid ${T.ink}`, borderRadius: 10, fontWeight: 600 }}>Important</span>
+            </div>
+          </div>
+          {/* Review & Approve */}
+          <div style={{ padding: '14px 18px', borderBottom: `1px solid ${T.lightGray}` }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: T.ink, marginBottom: 2 }}>Review & Approve</div>
+            <div style={{ fontSize: 11, color: T.gray, marginBottom: 10 }}>Draft ready — just approve it</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 14, color: T.ink }}>@maya.runs</span>
+              <span style={{ fontSize: 10, padding: '3px 10px', background: T.warmGray, borderRadius: 10, fontWeight: 600 }}>Engagement</span>
+            </div>
+          </div>
+          {/* Teach Me */}
+          <div style={{ padding: '14px 18px', borderBottom: `1px solid ${T.lightGray}` }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: T.ink, marginBottom: 2 }}>Teach Me</div>
+            <div style={{ fontSize: 11, color: T.gray, marginBottom: 10 }}>Repetitive questions I could learn to handle</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 14, color: T.ink }}>@carlos.m</span>
+              <span style={{ fontSize: 10, padding: '3px 10px', background: T.warmGray, borderRadius: 10, fontWeight: 600 }}>Questions</span>
+            </div>
+          </div>
+          {/* Handled */}
+          <div style={{ padding: '14px 18px' }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: T.ink, marginBottom: 2 }}>Handled</div>
+            <div style={{ fontSize: 11, color: T.gray, marginBottom: 10 }}>AI took care of it — nothing to do</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 14, color: T.ink }}>@danielm</span>
+              <span style={{ fontSize: 10, color: T.gray }}>handled &#10003;</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ padding: '16px 28px 50px', opacity: showBtn ? 1 : 0, transform: showBtn ? 'translateY(0)' : 'translateY(12px)', transition: 'all .4s ease' }}>
+        <BlackBtn label="Got it →" onClick={onNext} />
+      </div>
+    </div>
+  );
+}
+
+/* ─── Step 9: You're set — Stats ─── */
+function ObStats({ onNext }) {
+  const [showBtn, setShowBtn] = useState(false);
+
+  return (
+    <div className="fade-up" style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      <ProgressBar step={9} total={10} />
+      <div style={{ padding: '60px 28px 0', flex: 1 }}>
+        <ChattyMessages
+          messages={[
+            "You're set, Sofia.",
+            "I sorted 142 messages and learned how you talk to people."
+          ]}
+          onAllDone={() => setShowBtn(true)}
+        />
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 24 }}>
+          {[
+            { n: '142', label: 'messages sorted' },
+            { n: '8', label: 'need your review' },
+            { n: '89', label: 'FAQ handled' },
+            { n: '34', label: 'hot leads found' },
+          ].map((s, i) => (
+            <div key={i} className="fade-up" style={{ padding: '20px 18px', border: `1.5px solid ${T.ink}`, borderRadius: 12, animationDelay: `${i * 0.1 + 0.3}s` }}>
+              <div style={{ fontSize: 28, fontWeight: 700, color: T.ink }}>{s.n}</div>
+              <div style={{ fontSize: 12, color: T.gray, marginTop: 2 }}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ padding: '16px 28px 50px', opacity: showBtn ? 1 : 0, transform: showBtn ? 'translateY(0)' : 'translateY(12px)', transition: 'all .4s ease' }}>
+        <BlackBtn label="Open my inbox →" onClick={onNext} />
+      </div>
+    </div>
+  );
+}
+
+/* ─── Step 10: Loading transition ─── */
+function ObLoading({ onNext }) {
+  useEffect(() => {
+    setTimeout(onNext, 2000);
+  }, []);
+
+  return (
+    <div style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
+      <ProgressBar step={10} total={10} />
+      <div style={{ animation: 'pulse 1.2s infinite', fontSize: 15, color: T.gray }}>Loading your inbox...</div>
+    </div>
+  );
+}
+
+/* ─── Toggle: Focus / Stacked ─── */
+function ModeToggle({ mode, setMode }) {
+  return (
+    <div style={{ display:'flex', background:T.cardBg, borderRadius:10, border:`1px solid ${T.lightGray}`, overflow:'hidden' }}>
+      {['Focus','Stacked'].map(m => (
+        <div key={m} onClick={() => setMode(m.toLowerCase())}
+          style={{ padding:'8px 18px', fontSize:13, fontWeight:mode===m.toLowerCase()?600:400,
+            color:mode===m.toLowerCase()?T.ink:T.gray,
+            background:mode===m.toLowerCase()?T.warmGray:'transparent',
+            cursor:'pointer', transition:'all .15s ease', borderRadius:8 }}>
+          {m}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ─── AI Button ─── */
+function AIButton({ onClick }) {
+  return (
+    <div onClick={onClick}
+      style={{ width:38, height:38, borderRadius:12, background:T.ink, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'transform .1s', position:'relative' }}>
+      <span style={{ color:'#fff', fontSize:11, fontWeight:700, letterSpacing:'0.03em' }}>AI</span>
+      <div style={{ position:'absolute', top:-2, right:-2, width:8, height:8, borderRadius:4, background:T.mint, border:`2px solid ${T.paper}` }} />
+    </div>
+  );
+}
+
+/* ─── Chatty Message Bubble ─── */
+function ChattyMsg({ children, delay=0 }) {
+  const [show, setShow] = useState(delay===0);
+  useEffect(() => { if(delay>0) { const t=setTimeout(()=>setShow(true),delay); return ()=>clearTimeout(t); } }, []);
+  if(!show) return null;
+  return (
+    <div className="fade-up" style={{ marginBottom:16 }}>
+      <div style={{ fontSize:11, color:T.gray, marginBottom:6, display:'flex', alignItems:'center', gap:5 }}>
+        <span style={{ fontSize:13 }}>💬</span> Chatty
+      </div>
+      <div style={{ background:T.warmGray, borderRadius:16, borderTopLeftRadius:4, padding:'14px 18px', maxWidth:'88%', fontSize:15, lineHeight:1.5, color:T.ink }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Sent Bubble (completed task in the chat) ─── */
+function SentBubble({ item }) {
+  return (
+    <div className="fade-in" style={{ padding:'10px 16px', background:'#E8F5E8', borderRadius:12, marginBottom:12 }}>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+        <span style={{ fontSize:13, fontWeight:500, color:'#2d7a2d' }}>✓ Sent to {item.user}</span>
+        <span style={{ fontSize:10, color:'#6aaa6a' }}>{item.type}</span>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Chatty context narration for a task ─── */
+const NARRATIONS = {
+  1: "This person commented on your 12-week results post. They've been trying for 2 years — sounds like they need encouragement. Classic lead qualification moment.",
+  2: "Quick FAQ from a DM. She's postpartum and wondering if it's right for her — your module covers this perfectly.",
+  3: "Another FAQ — asking about student discounts. You don't do discounts but you have a payment plan.",
+  4: "One more FAQ — they want to know about results timeline. Pretty standard question.",
+  5: "This one feels more personal. She says she's tried everything and is scared to spend more. Definitely needs a human touch — but I drafted something warm.",
+};
+
+/* ═══════════════════════════════════════════
+   V2 INBOX LAYOUT
+   ═══════════════════════════════════════════ */
+
+/* ─── Collapsible Daily Report ─── */
+function DailyReport({ collapsed, onToggle }) {
+  return (
+    <div onClick={onToggle} style={{ background:T.warmGray, borderRadius:14, padding: collapsed ? '12px 18px' : '18px 20px', marginBottom:16, cursor:'pointer', transition:'all .3s ease' }}>
+      {collapsed ? (
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+          <span style={{ fontSize:13, fontWeight:600, color:T.ink }}>Today's report</span>
+          <div style={{ display:'flex', gap:12, alignItems:'center' }}>
+            <span style={{ fontSize:12, color:T.gray }}>34 DMs · 126 comments</span>
+            <span style={{ fontSize:14, color:'#bbb' }}>+</span>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
+            <span style={{ fontSize:13, fontWeight:600, color:T.ink }}>Today's report</span>
+            <span style={{ fontSize:14, color:'#bbb' }}>-</span>
+          </div>
+          <div style={{ display:'flex', gap:20, marginBottom:14 }}>
+            <div><span style={{ fontSize:22, fontWeight:700, color:T.ink }}>34</span><span style={{ fontSize:11, color:T.gray, marginLeft:4 }}>DMs</span></div>
+            <div><span style={{ fontSize:22, fontWeight:700, color:T.ink }}>126</span><span style={{ fontSize:11, color:T.gray, marginLeft:4 }}>comments</span></div>
+            <div><span style={{ fontSize:22, fontWeight:700, color:T.ink }}>2m</span><span style={{ fontSize:11, color:T.gray, marginLeft:4 }}>avg</span></div>
+          </div>
+          <div style={{ height:3, background:'#e0deda', borderRadius:2, overflow:'hidden', marginBottom:8 }}>
+            <div style={{ width:'91%', height:'100%', background:T.ink, borderRadius:2 }} />
+          </div>
+          <div style={{ fontSize:11, color:T.gray }}>91% handled automatically · 4 corrections today</div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/* ─── Tab bar ─── */
+function TabBar({ active, setActive, counts }) {
+  const tabs = [
+    { id:'important', label:'Important', count: counts.important },
+    { id:'engagement', label:'Engagement', count: counts.engagement },
+    { id:'other', label:'Questions', count: counts.other },
+    { id:'handled', label:'Handled', count: null },
+  ];
+  return (
+    <div style={{ display:'flex', gap:0, borderBottom:`1px solid ${T.lightGray}`, marginBottom:16 }}>
+      {tabs.map(tab => (
+        <div key={tab.id} onClick={() => setActive(tab.id)}
+          style={{ flex:1, textAlign:'center', padding:'10px 0 10px', cursor:'pointer', position:'relative',
+            fontSize:12, fontWeight: active === tab.id ? 600 : 400,
+            color: active === tab.id ? T.ink : T.gray, transition:'all .2s' }}>
+          {tab.label}
+          {tab.count !== null && tab.count > 0 && (
+            <span style={{ fontSize:9, fontWeight:600, background: active === tab.id ? T.ink : '#ddd', color: active === tab.id ? '#fff' : T.gray,
+              padding:'1px 6px', borderRadius:10, marginLeft:4, verticalAlign:'top' }}>{tab.count}</span>
+          )}
+          {active === tab.id && <div style={{ position:'absolute', bottom:-1, left:'20%', right:'20%', height:2, background:T.ink, borderRadius:1 }} />}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ─── Section header inside tabs ─── */
+function SectionLabel({ icon, label, count }) {
+  return (
+    <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:10, marginTop:16 }}>
+      <span style={{ fontSize:14 }}>{icon}</span>
+      <span style={{ fontSize:11, fontWeight:600, letterSpacing:'0.06em', color:T.ink, textTransform:'uppercase' }}>{label}</span>
+      {count !== undefined && <span style={{ fontSize:11, color:T.gray }}>· {count}</span>}
+    </div>
+  );
+}
+
+/* ─── Message row (Superhuman-style) ─── */
+function MsgRow({ user, msg, time, badge, badgeColor, onClick }) {
+  return (
+    <div onClick={onClick} style={{ padding:'13px 16px', background:T.cardBg, borderRadius:10, border:`1px solid ${T.lightGray}`, marginBottom:6, cursor:'pointer', transition:'background .15s' }}>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:4 }}>
+        <span style={{ fontSize:14, fontWeight:600, color:T.ink }}>{user}</span>
+        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+          {badge && <span style={{ fontSize:9, fontWeight:600, color: badgeColor || T.gray, background: badgeColor ? badgeColor + '18' : T.warmGray, padding:'2px 8px', borderRadius:10, textTransform:'uppercase', letterSpacing:'0.04em' }}>{badge}</span>}
+          <span style={{ fontSize:11, color:'#ccc' }}>{time}</span>
+        </div>
+      </div>
+      <div style={{ fontSize:13, color:T.gray, lineHeight:1.4, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{msg}</div>
+    </div>
+  );
+}
+
+/* ─── Important Tab ─── */
+function ImportantTab() {
+  const [expanded, setExpanded] = useState(null);
+  return (
+    <div>
+      <div style={{ fontSize:12, color:T.gray, lineHeight:1.5, marginBottom:16, padding:'0 4px' }}>
+        Conversations that need your personal touch. Chatty flagged these for you.
+      </div>
+      <SectionLabel icon="→" label="Interested in your services" count={IMPORTANT_DATA.services.length} />
+      {IMPORTANT_DATA.services.map((item,i) => (
+        <div key={`s${i}`}>
+          <MsgRow user={item.user} msg={item.msg} time={item.time} badge="lead" badgeColor="#E85D04"
+            onClick={() => setExpanded(expanded===`s${i}` ? null : `s${i}`)} />
+          {expanded===`s${i}` && (
+            <div className="fade-in" style={{ padding:'12px 16px', background:'#fff', borderRadius:'0 0 10px 10px', border:`1px solid ${T.lightGray}`, borderTop:'none', marginTop:-6, marginBottom:6 }}>
+              <div style={{ fontSize:11, color:T.gray, marginBottom:6, fontWeight:500 }}>Draft reply</div>
+              <div style={{ fontSize:13, color:T.ink, lineHeight:1.5, marginBottom:12 }}>{item.draft}</div>
+              <div style={{ display:'flex', gap:8 }}>
+                <button style={{ padding:'8px 20px', background:T.ink, color:'#fff', border:'none', borderRadius:20, fontSize:12, fontWeight:600, cursor:'pointer' }}>Approve</button>
+                <button style={{ padding:'8px 16px', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:20, fontSize:12, cursor:'pointer', color:T.ink }}>Edit</button>
+              </div>
+            </div>
+          )}
+        </div>
+      ))}
+
+      <SectionLabel icon="◇" label="Needs a human" count={IMPORTANT_DATA.sensitive.length} />
+      <div style={{ fontSize:11, color:T.gray, marginBottom:8, padding:'0 4px', lineHeight:1.4 }}>Sensitive messages. People going through something. Chatty thinks you should handle these personally.</div>
+      {IMPORTANT_DATA.sensitive.map((item,i) => (
+        <MsgRow key={`h${i}`} user={item.user} msg={item.msg} time={item.time} badge={item.flag} badgeColor="#6B21A8" />
+      ))}
+
+      <SectionLabel icon="⬡" label="May want to collaborate" count={IMPORTANT_DATA.collabs.length} />
+      {IMPORTANT_DATA.collabs.map((item,i) => (
+        <MsgRow key={`c${i}`} user={item.user} msg={item.msg} time={item.time} badge="collab" badgeColor="#0369A1" />
+      ))}
+    </div>
+  );
+}
+
+/* ─── Engagement Tab (mixed stacks + singles, load more) ─── */
+function EngagementTab() {
+  const [expandedGroups, setExpandedGroups] = useState({});
+  const [approvedGroups, setApprovedGroups] = useState({});
+  const [approvedItems, setApprovedItems] = useState({});
+  const [visibleCount, setVisibleCount] = useState(8); // show first 8, then load more
+
+  const allEntries = ENGAGEMENT_DATA.groups;
+  const visibleEntries = allEntries.slice(0, visibleCount);
+  const hasMore = visibleCount < allEntries.length;
+  const totalCount = allEntries.reduce((sum, e) => sum + (e.type === 'stack' ? e.items.length : 1), 0);
+
+  const handleApproveGroup = (gi) => setApprovedGroups(a => ({ ...a, [gi]: true }));
+  const handleExpandGroup = (gi) => setExpandedGroups(e => ({ ...e, [gi]: true }));
+  const handleApproveItem = (key) => setApprovedItems(a => ({ ...a, [key]: true }));
+
+  /* ── Render a single comment card ── */
+  const renderSingle = (item, key, isApproved) => {
+    if (isApproved) {
+      return (
+        <div key={key} className="fade-in" style={{ padding:'10px 16px', background:'#f0fdf4', borderRadius:10, border:'1px solid #dcfce7', marginBottom:6 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+            <span style={{ fontSize:13, color:'#16a34a', fontWeight:500 }}>Sent to {item.user}</span>
+            <span style={{ fontSize:11, color:'#86efac' }}>✓</span>
+          </div>
+        </div>
+      );
+    }
+    return (
+      <div key={key} style={{ padding:'14px 16px', background:T.cardBg, borderRadius:10, border:`1px solid ${T.lightGray}`, marginBottom:6 }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:5 }}>
+          <div>
+            <span style={{ fontSize:13, fontWeight:600, color:T.ink }}>{item.user}</span>
+            <span style={{ fontSize:11, color:T.gray, marginLeft:6 }}>on "{item.post}"</span>
+          </div>
+          <span style={{ fontSize:11, color:'#ccc' }}>{item.time}</span>
+        </div>
+        <div style={{ fontSize:12, color:T.gray, fontStyle:'italic', marginBottom:8 }}>"{item.comment}"</div>
+        <div style={{ fontSize:13, color:T.ink, lineHeight:1.45, padding:'10px 12px', background:T.warmGray, borderRadius:8, marginBottom:10 }}>{item.draft}</div>
+        <div style={{ display:'flex', gap:8 }}>
+          <button onClick={() => handleApproveItem(key)} style={{ padding:'7px 18px', background:T.ink, color:'#fff', border:'none', borderRadius:20, fontSize:12, fontWeight:600, cursor:'pointer' }}>Approve</button>
+          <button style={{ padding:'7px 14px', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:20, fontSize:12, cursor:'pointer', color:T.ink }}>Edit</button>
+          <button style={{ padding:'7px 14px', background:'transparent', border:'none', fontSize:12, cursor:'pointer', color:'#ccc' }}>Skip</button>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div>
+      <div style={{ fontSize:12, color:T.gray, lineHeight:1.5, marginBottom:16, padding:'0 4px' }}>
+        Post comments with draft replies. Similar ones are grouped so you can review faster.
+      </div>
+
+      {visibleEntries.map((entry, gi) => {
+
+        /* ── Single comment ── */
+        if (entry.type === 'single') {
+          return renderSingle(entry, `s-${gi}`, approvedItems[`s-${gi}`]);
+        }
+
+        /* ── Stack (grouped) ── */
+        const isGroupApproved = approvedGroups[gi];
+        const isExpanded = expandedGroups[gi];
+
+        if (isGroupApproved) {
+          return (
+            <div key={gi} className="fade-in" style={{ padding:'12px 16px', background:'#f0fdf4', borderRadius:12, border:'1px solid #dcfce7', marginBottom:10 }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                <span style={{ fontSize:13, color:'#16a34a', fontWeight:500 }}>
+                  {entry.items.length} replies sent — {entry.emotion.toLowerCase()}
+                </span>
+                <span style={{ fontSize:13, color:'#86efac' }}>✓</span>
+              </div>
+            </div>
+          );
+        }
+
+        if (isExpanded) {
+          return (
+            <div key={gi} style={{ marginBottom:14 }}>
+              <div style={{ fontSize:11, fontWeight:600, letterSpacing:'0.05em', color:T.gray, textTransform:'uppercase', marginBottom:8 }}>
+                {entry.emotion} · {entry.items.length}
+              </div>
+              {entry.items.map((item, ii) => renderSingle(item, `g-${gi}-${ii}`, approvedItems[`g-${gi}-${ii}`]))}
+            </div>
+          );
+        }
+
+        // Stacked collapsed
+        return (
+          <div key={gi} style={{ marginBottom:14 }}>
+            <div style={{ position:'relative' }}>
+              {entry.items.length > 2 && (
+                <div style={{ position:'absolute', top:8, left:6, right:6, height:50, background:T.warmGray, borderRadius:10, border:`1px solid ${T.lightGray}`, opacity:0.35 }} />
+              )}
+              {entry.items.length > 1 && (
+                <div style={{ position:'absolute', top:4, left:3, right:3, height:50, background:T.warmGray, borderRadius:10, border:`1px solid ${T.lightGray}`, opacity:0.55 }} />
+              )}
+              <div style={{ position:'relative', padding:'14px 16px', background:T.cardBg, borderRadius:12, border:`1px solid ${T.lightGray}` }}>
+                <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
+                  <span style={{ fontSize:11, fontWeight:600, letterSpacing:'0.04em', color:T.ink, textTransform:'uppercase' }}>Similar emotion</span>
+                  <span style={{ fontSize:11, color:T.gray }}>· {entry.items.length}</span>
+                </div>
+                <div style={{ fontSize:13, fontWeight:500, color:T.ink, marginBottom:3 }}>{entry.emotion}</div>
+                <div style={{ fontSize:13, color:T.gray, lineHeight:1.5, marginBottom:12 }}>
+                  I'll answer variations of "{entry.summary}"
+                </div>
+                <div style={{ display:'flex', gap:5, marginBottom:12, flexWrap:'wrap' }}>
+                  {entry.items.map((item, ii) => (
+                    <span key={ii} style={{ fontSize:10, color:T.gray, background:T.warmGray, padding:'3px 9px', borderRadius:10 }}>{item.user}</span>
+                  ))}
+                </div>
+                <div style={{ display:'flex', gap:8 }}>
+                  <button onClick={() => handleApproveGroup(gi)}
+                    style={{ padding:'8px 18px', background:T.ink, color:'#fff', border:'none', borderRadius:20, fontSize:12, fontWeight:600, cursor:'pointer' }}>
+                    Approve {entry.items.length} replies
+                  </button>
+                  <button onClick={() => handleExpandGroup(gi)}
+                    style={{ padding:'8px 14px', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:20, fontSize:12, cursor:'pointer', color:T.ink }}>
+                    Review one by one
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+
+      {/* Load more */}
+      {hasMore && (
+        <div style={{ textAlign:'center', padding:'16px 0' }}>
+          <button onClick={() => setVisibleCount(v => Math.min(v + 8, allEntries.length))}
+            style={{ padding:'10px 28px', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:24, fontSize:13, fontWeight:500, cursor:'pointer', color:T.ink }}>
+            Load more ({allEntries.length - visibleCount} remaining)
+          </button>
+        </div>
+      )}
+
+      {!hasMore && visibleCount >= allEntries.length && (
+        <div style={{ textAlign:'center', fontSize:12, color:'#ccc', padding:'16px 0' }}>
+          {totalCount} comments total
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Other Tab (Teach AI) ─── */
+function OtherTab() {
+  const [taught, setTaught] = useState([]);
+  return (
+    <div>
+      <div style={{ fontSize:12, color:T.gray, lineHeight:1.5, marginBottom:16, padding:'0 4px' }}>
+        Questions Chatty doesn't have the answer to yet. Teach it once, it handles them forever.
+      </div>
+
+      {OTHER_DATA.map((item, i) => (
+        <div key={i} style={{ padding:'14px 16px', background:T.cardBg, borderRadius:10, border:`1px solid ${T.lightGray}`, marginBottom:8 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
+            <span style={{ fontSize:14, fontWeight:600, color:T.ink }}>{item.user}</span>
+            <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+              <span style={{ fontSize:9, fontWeight:600, color:'#92400e', background:'#fef3c7', padding:'2px 8px', borderRadius:10, textTransform:'uppercase' }}>{item.topic}</span>
+              <span style={{ fontSize:11, color:'#ccc' }}>{item.time}</span>
+            </div>
+          </div>
+          <div style={{ fontSize:13, color:T.gray, marginBottom:10 }}>"{item.msg}"</div>
+          {taught.includes(i) ? (
+            <div style={{ fontSize:12, color:'#16a34a', fontWeight:500 }}>Learned — Chatty will handle this next time</div>
+          ) : (
+            <div style={{ display:'flex', gap:8 }}>
+              <button onClick={() => setTaught(t => [...t, i])} style={{ padding:'7px 16px', background:T.ink, color:'#fff', border:'none', borderRadius:20, fontSize:12, fontWeight:600, cursor:'pointer' }}>
+                Teach Chatty
+              </button>
+              <button style={{ padding:'7px 14px', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:20, fontSize:12, cursor:'pointer', color:T.ink }}>
+                Reply myself
+              </button>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ─── Handled by AI Tab ─── */
+function HandledTab() {
+  return (
+    <div>
+      {/* Stats */}
+      <div style={{ display:'flex', gap:12, marginBottom:20 }}>
+        {[
+          { n: HANDLED_DATA.stats.dms, l:'DMs handled' },
+          { n: HANDLED_DATA.stats.comments, l:'Comments replied' },
+          { n: HANDLED_DATA.stats.avgTime, l:'Avg response' },
+          { n: HANDLED_DATA.stats.accuracy + '%', l:'Accuracy' },
+        ].map((s,i) => (
+          <div key={i} style={{ flex:1, textAlign:'center', padding:'12px 6px', background:T.warmGray, borderRadius:10 }}>
+            <div style={{ fontSize:18, fontWeight:700, color:T.ink }}>{s.n}</div>
+            <div style={{ fontSize:9, color:T.gray, marginTop:2, lineHeight:1.3 }}>{s.l}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* In progress */}
+      {HANDLED_DATA.inProgress.length > 0 && (
+        <>
+          <SectionLabel icon="◌" label="In progress" count={HANDLED_DATA.inProgress.length} />
+          {HANDLED_DATA.inProgress.map((item,i) => (
+            <div key={i} style={{ padding:'12px 16px', background:T.cardBg, borderRadius:10, border:`1px solid ${T.lightGray}`, marginBottom:6 }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:4 }}>
+                <span style={{ fontSize:13, fontWeight:600, color:T.ink }}>{item.user}</span>
+                <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                  <div style={{ width:6, height:6, borderRadius:3, background:T.accent, animation:'pulse 2s infinite' }} />
+                  <span style={{ fontSize:10, color:T.accent, fontWeight:500 }}>{item.step}</span>
+                </div>
+              </div>
+              <div style={{ fontSize:12, color:T.gray }}>{item.msg}</div>
+            </div>
+          ))}
+        </>
+      )}
+
+      {/* Completed */}
+      <SectionLabel icon="✓" label="Completed" count={HANDLED_DATA.completed.length} />
+      {HANDLED_DATA.completed.map((item,i) => (
+        <div key={i} style={{ padding:'10px 16px', background:T.cardBg, borderRadius:10, border:`1px solid ${T.lightGray}`, marginBottom:4, opacity:0.7 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+            <span style={{ fontSize:13, color:T.ink }}>{item.user}</span>
+            <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+              <span style={{ fontSize:9, color:T.gray, background:T.warmGray, padding:'2px 8px', borderRadius:10 }}>{item.type}</span>
+              <span style={{ fontSize:11, color:'#bbb' }}>✓ {item.status}</span>
+            </div>
+          </div>
+          <div style={{ fontSize:12, color:'#bbb', marginTop:3 }}>{item.msg}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ─── V2 Inbox Main ─── */
+function InboxV2() {
+  const [reportCollapsed, setReportCollapsed] = useState(false);
+  const [activeTab, setActiveTab] = useState('important');
+  const scrollRef = useRef(null);
+
+  // Auto-collapse report on scroll
+  const handleScroll = () => {
+    if (scrollRef.current && scrollRef.current.scrollTop > 20 && !reportCollapsed) {
+      setReportCollapsed(true);
+    }
+  };
+
+  const counts = {
+    important: IMPORTANT_DATA.services.length + IMPORTANT_DATA.sensitive.length + IMPORTANT_DATA.collabs.length,
+    engagement: ENGAGEMENT_DATA.groups.reduce((sum, g) => sum + (g.type === 'stack' ? g.items.length : 1), 0),
+    other: OTHER_DATA.length,
+  };
+
+  return (
+    <div style={{ background:T.paper, height:'100%', display:'flex', flexDirection:'column' }}>
+      {/* Fixed header area */}
+      <div style={{ padding:'52px 20px 0', flexShrink:0 }}>
+        <DailyReport collapsed={reportCollapsed} onToggle={() => setReportCollapsed(!reportCollapsed)} />
+        <TabBar active={activeTab} setActive={setActiveTab} counts={counts} />
+      </div>
+
+      {/* Scrollable content */}
+      <div ref={scrollRef} onScroll={handleScroll}
+        style={{ flex:1, overflowY:'auto', padding:'0 20px 100px' }}>
+        {activeTab === 'important' && <ImportantTab />}
+        {activeTab === 'engagement' && <EngagementTab />}
+        {activeTab === 'other' && <OtherTab />}
+        {activeTab === 'handled' && <HandledTab />}
+      </div>
+    </div>
+  );
+}
+
+
+/* ─── LEGACY: Focus Mode (kept for reference but unused in v2) ─── */
+function FocusMode({ reviewIdx, setReviewIdx }) {
+  const [phase, setPhase] = useState('greeting'); // greeting, reviewing, batch, takeover, done
+  const [sentItems, setSentItems] = useState([]);
+  const [batchMode, setBatchMode] = useState(true);
+  const [editing, setEditing] = useState(false);
+  const [editVal, setEditVal] = useState('');
+  const [batchExpanded, setBatchExpanded] = useState(false);
+  const scrollRef = useRef(null);
+
+  const currentItem = REVIEWS[reviewIdx];
+  const allDone = reviewIdx >= REVIEWS.length;
+
+  const batchItems = currentItem && currentItem.batch && batchMode
+    ? REVIEWS.filter(r => r.batch === currentItem.batch && REVIEWS.indexOf(r) >= reviewIdx)
+    : [];
+  const isBatch = batchItems.length >= 2 && batchMode;
+
+  const startReviewing = () => setPhase('reviewing');
+
+  const handleApprove = () => {
+    setSentItems(s => [...s, currentItem]);
+    setReviewIdx(i => i+1);
+    setEditing(false);
+    setPhase('reviewing');
+  };
+  const handleBatchApprove = () => {
+    setSentItems(s => [...s, ...batchItems]);
+    setReviewIdx(i => i + batchItems.length);
+    setBatchMode(false);
+    setPhase('reviewing');
+  };
+  const handleSkip = () => { setReviewIdx(i => i+1); setEditing(false); setPhase('reviewing'); };
+
+  // Check if done after state changes
+  useEffect(() => {
+    if(phase === 'reviewing' && reviewIdx >= REVIEWS.length) setPhase('done');
+  }, [reviewIdx, phase]);
+
+  // Check if next item is a batch
+  useEffect(() => {
+    if(phase === 'reviewing' && isBatch) setPhase('batch');
+  }, [reviewIdx, phase]);
+
+  useEffect(() => {
+    if(scrollRef.current) setTimeout(() => { scrollRef.current.scrollTop = scrollRef.current.scrollHeight; }, 50);
+  }, [phase, reviewIdx, sentItems.length, editing]);
+
+  useEffect(() => { if(currentItem) setEditVal(currentItem.draft); }, [reviewIdx]);
+
+  return (
+    <div style={{ height:'calc(100% - 120px)', display:'flex', flexDirection:'column' }}>
+      <div ref={scrollRef} style={{ flex:1, overflowY:'auto', padding:'0 24px 20px' }}>
+
+        {/* ── Phase: Greeting (clean, one message) ── */}
+        {phase === 'greeting' && (
+          <div className="fade-up" style={{ display:'flex', flexDirection:'column', alignItems:'flex-start', paddingTop:40 }}>
+            <div style={{ fontSize:48, marginBottom:32 }}>💬</div>
+            <div style={{ marginBottom:12 }}>
+              <div style={{ fontSize:11, color:T.gray, marginBottom:5 }}>Chatty</div>
+              <div style={{ background:T.warmGray, borderRadius:16, borderTopLeftRadius:4, padding:'16px 20px', maxWidth:'90%' }}>
+                <div style={{ fontSize:16, color:T.ink, lineHeight:1.5 }}>
+                  Good morning ☀️
+                </div>
+                <div style={{ fontSize:14, color:T.ink, lineHeight:1.6, marginTop:10 }}>
+                  Chatty drafted responses for 2 lead inquiries and 1 FAQ. Ready when you are.
+                </div>
+                <div style={{ fontSize:14, color:T.ink, marginTop:12, fontWeight:500 }}>
+                  {REVIEWS.length} replies to review. Wanna take a look?
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Phase: Reviewing (one task at a time, scrollable history) ── */}
+        {(phase === 'reviewing' || phase === 'batch' || phase === 'takeover') && (
+          <>
+            {/* Sent items scroll history */}
+            {sentItems.map((item) => (
+              <SentBubble key={`sent-${item.id}`} item={item} />
+            ))}
+
+            {/* Current single task */}
+            {phase === 'reviewing' && currentItem && !isBatch && (
+              <div className="fade-up">
+                <div style={{ marginBottom:10 }}>
+                  <div style={{ fontSize:11, color:T.gray, marginBottom:5, display:'flex', alignItems:'center', gap:5 }}>
+                    💬 Chatty · {reviewIdx+1} of {REVIEWS.length}
+                  </div>
+                  <div style={{ background:T.warmGray, borderRadius:14, borderTopLeftRadius:4, padding:'14px 16px', maxWidth:'90%' }}>
+                    <div style={{ fontSize:14, fontWeight:600, color:T.ink, marginBottom:4 }}>
+                      {currentItem.user} <span style={{ fontWeight:400, color:T.gray }}>· {currentItem.source}</span>
+                    </div>
+                    <div style={{ fontSize:14, color:T.ink, lineHeight:1.5 }}>
+                      {NARRATIONS[currentItem.id]}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Their message */}
+                <div style={{ marginLeft:16, marginBottom:10 }}>
+                  <div style={{ padding:'12px 16px', background:'#fff', border:`1px solid ${T.lightGray}`, borderRadius:12, borderTopLeftRadius:4, maxWidth:'85%' }}>
+                    <div style={{ fontSize:14, color:T.ink, lineHeight:1.5, fontStyle:'italic' }}>"{currentItem.msg}"</div>
+                  </div>
+                </div>
+
+                {/* Draft intro + draft */}
+                <div style={{ marginBottom:6 }}>
+                  <div style={{ fontSize:11, color:T.gray, marginBottom:5 }}>💬 Chatty</div>
+                  <div style={{ background:T.warmGray, borderRadius:14, borderTopLeftRadius:4, padding:'10px 16px', maxWidth:'55%', fontSize:13, color:T.ink }}>
+                    I'd answer with this:
+                  </div>
+                </div>
+                <div style={{ marginLeft:16, marginBottom:8 }}>
+                  {!editing ? (
+                    <div style={{ padding:'14px 16px', background:'#fff', border:`1px solid ${T.lightGray}`, borderRadius:12, maxWidth:'90%' }}>
+                      <div style={{ fontSize:14, color:T.ink, lineHeight:1.55 }}>{currentItem.draft}</div>
+                    </div>
+                  ) : (
+                    <div style={{ maxWidth:'90%' }}>
+                      <textarea value={editVal} onChange={e=>setEditVal(e.target.value)}
+                        style={{ width:'100%', fontSize:14, color:T.ink, lineHeight:1.5, padding:'14px 16px', border:`2px solid ${T.accent}`, borderRadius:12, resize:'none', height:100, fontFamily:'Inter', background:'#fff', outline:'none' }} />
+                      <div style={{ display:'flex', gap:6, marginTop:8, flexWrap:'wrap' }}>
+                        {['Shorter','Warmer','Add a question','More direct'].map(c => (
+                          <span key={c} style={{ fontSize:11, padding:'5px 12px', borderRadius:20, border:`1px solid ${T.lightGray}`, cursor:'pointer', color:T.ink, fontWeight:500, background:'#fff' }}>{c}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Batch */}
+            {phase === 'batch' && (
+              <div className="fade-up">
+                <div style={{ marginBottom:10 }}>
+                  <div style={{ fontSize:11, color:T.gray, marginBottom:5 }}>💬 Chatty</div>
+                  <div style={{ background:T.warmGray, borderRadius:14, borderTopLeftRadius:4, padding:'14px 16px', maxWidth:'90%' }}>
+                    <div style={{ fontSize:14, color:T.ink, lineHeight:1.5 }}>
+                      These {batchItems.length} are very similar — all FAQ replies about your program. Want to approve them all?
+                    </div>
+                  </div>
+                </div>
+                <div style={{ marginLeft:16, marginBottom:8 }}>
+                  {(batchExpanded ? batchItems : batchItems).map((item,i) => (
+                    <div key={i} style={{ padding:'12px 14px', background:'#fff', border:`1px solid ${T.lightGray}`, borderRadius:10, marginBottom:6,
+                      opacity: !batchExpanded && i > 0 ? 0.6 : 1 }}>
+                      <div style={{ fontSize:13, fontWeight:600, color:T.ink }}>{item.user} <span style={{ fontWeight:400, color:T.gray }}>· {item.type}</span></div>
+                      <div style={{ fontSize:13, color:T.gray, fontStyle:'italic', marginTop:3 }}>"{item.msg.slice(0,50)}{item.msg.length>50?'...':''}"</div>
+                      {batchExpanded && (
+                        <div style={{ fontSize:12, color:T.ink, marginTop:8, paddingTop:8, borderTop:`1px solid ${T.lightGray}`, lineHeight:1.4 }}>
+                          Draft: {item.draft}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  {!batchExpanded && (
+                    <div onClick={() => setBatchExpanded(true)} style={{ fontSize:12, color:T.accent, cursor:'pointer', marginTop:4, fontWeight:500 }}>
+                      Show drafts →
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Take over */}
+            {phase === 'takeover' && currentItem && (
+              <div className="fade-up">
+                <div style={{ marginBottom:10 }}>
+                  <div style={{ fontSize:11, color:T.gray, marginBottom:5 }}>💬 Chatty</div>
+                  <div style={{ background:T.warmGray, borderRadius:14, borderTopLeftRadius:4, padding:'12px 16px', maxWidth:'65%', fontSize:14, color:T.ink }}>
+                    All yours! Write your reply:
+                  </div>
+                </div>
+                <div style={{ marginLeft:16, maxWidth:'90%' }}>
+                  <textarea placeholder="Type your reply..."
+                    style={{ width:'100%', padding:'14px 16px', borderRadius:12, border:`1px solid ${T.lightGray}`, fontSize:14, lineHeight:1.5, resize:'none', height:90, fontFamily:'Inter', background:'#fff', outline:'none', color:T.ink }} />
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ── Phase: Done ── */}
+        {phase === 'done' && (
+          <>
+            {sentItems.map((item) => (
+              <SentBubble key={`sent-${item.id}`} item={item} />
+            ))}
+            <div className="fade-up" style={{ textAlign:'center', padding:'40px 20px' }}>
+              <div style={{ fontSize:48, marginBottom:16 }}>✨</div>
+              <h2 style={{ fontSize:22, fontWeight:700, color:T.ink, marginBottom:8 }}>All caught up</h2>
+              <p style={{ fontSize:14, color:T.gray, lineHeight:1.5 }}>Chatty learned 2 new preferences from your edits.</p>
+              <p style={{ fontSize:13, color:'#bbb', marginTop:20 }}>Go create something.</p>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* ─── Pinned bottom bar ─── */}
+      {phase === 'greeting' && (
+        <div style={{ padding:'12px 24px 28px', display:'flex', gap:10 }}>
+          <button style={{ flex:1, padding:'14px 0', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:50, fontSize:14, fontWeight:500, cursor:'pointer', color:T.ink }}>
+            Summary first
+          </button>
+          <button onClick={startReviewing} style={{ flex:1, padding:'14px 0', background:T.ink, color:'#fff', border:'none', borderRadius:50, fontSize:14, fontWeight:600, cursor:'pointer' }}>
+            Start reviewing
+          </button>
+        </div>
+      )}
+
+      {phase === 'reviewing' && currentItem && !isBatch && (
+        <div style={{ padding:'12px 24px 28px', borderTop:`1px solid ${T.lightGray}`, display:'flex', gap:8, alignItems:'center' }}>
+          <button onClick={handleApprove} style={{ flex:1, padding:'14px 0', background:T.ink, color:'#fff', border:'none', borderRadius:50, fontSize:14, fontWeight:600, cursor:'pointer' }}>
+            {editing ? 'Send edited' : 'Approve'}
+          </button>
+          <button onClick={() => { setEditing(!editing); if(currentItem) setEditVal(currentItem.draft); }}
+            style={{ padding:'14px 20px', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:50, fontSize:13, fontWeight:500, cursor:'pointer', color:T.ink }}>
+            {editing ? 'Cancel' : 'Edit'}
+          </button>
+          <button onClick={handleSkip} style={{ padding:'14px 16px', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:50, fontSize:13, fontWeight:500, cursor:'pointer', color:T.gray }}>
+            Skip
+          </button>
+          <button onClick={() => setPhase('takeover')} style={{ padding:'14px 0', background:'transparent', border:'none', fontSize:11, fontWeight:500, cursor:'pointer', color:'#bbb' }}>
+            I'll take over
+          </button>
+        </div>
+      )}
+
+      {phase === 'batch' && (
+        <div style={{ padding:'12px 24px 28px', borderTop:`1px solid ${T.lightGray}`, display:'flex', gap:8 }}>
+          <button onClick={handleBatchApprove} style={{ flex:1, padding:'14px 0', background:T.ink, color:'#fff', border:'none', borderRadius:50, fontSize:14, fontWeight:600, cursor:'pointer' }}>
+            Approve all {batchItems.length}
+          </button>
+          <button onClick={() => { setBatchMode(false); setPhase('reviewing'); }} style={{ padding:'14px 20px', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:50, fontSize:13, fontWeight:500, cursor:'pointer', color:T.ink }}>
+            One by one
+          </button>
+        </div>
+      )}
+
+      {phase === 'takeover' && (
+        <div style={{ padding:'12px 24px 28px', borderTop:`1px solid ${T.lightGray}`, display:'flex', gap:8 }}>
+          <button onClick={() => { setSentItems(s => [...s, currentItem]); setReviewIdx(i=>i+1); setPhase('reviewing'); }}
+            style={{ flex:1, padding:'14px 0', background:T.ink, color:'#fff', border:'none', borderRadius:50, fontSize:14, fontWeight:600, cursor:'pointer' }}>
+            Send my reply
+          </button>
+          <button onClick={() => setPhase('reviewing')} style={{ padding:'14px 20px', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:50, fontSize:13, fontWeight:500, cursor:'pointer', color:T.gray }}>
+            Back
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Stacked Mode ─── */
+function StackedMode() {
+  return (
+    <div style={{ padding:'0 24px', paddingBottom:80, overflowY:'auto', height:'calc(100% - 120px)' }}>
+      {/* Daily brief */}
+      <div style={{ background:T.warmGray, borderRadius:14, padding:'16px 20px', marginBottom:28 }}>
+        <div style={{ fontSize:13, fontWeight:600, color:T.ink }}>Today</div>
+        <div style={{ fontSize:13, color:T.gray, marginTop:4 }}>47 handled · 4 corrections · 2m avg</div>
+      </div>
+
+      {/* Needs You */}
+      <div style={{ marginBottom:28 }}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
+          <div style={{ fontSize:11, fontWeight:600, letterSpacing:'0.08em', color:T.ink, textTransform:'uppercase' }}>
+            Needs you <span style={{ fontWeight:400, color:T.gray }}>· {STACKED_DATA.needsYou.length}</span>
+          </div>
+          <span style={{ fontSize:16, color:'#ccc', cursor:'grab' }}>≡</span>
+        </div>
+        {STACKED_DATA.needsYou.map((item,i) => (
+          <div key={i} style={{ padding:'14px 18px', background:T.cardBg, borderRadius:12, border:`1px solid ${T.lightGray}`, marginBottom:8, cursor:'pointer' }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <span style={{ fontSize:14, fontWeight:600, color:T.ink }}>{item.user}</span>
+              <span style={{ fontSize:10, fontWeight:500, color:T.ink, border:`1px solid ${T.lightGray}`, padding:'2px 10px', borderRadius:20 }}>needs you</span>
+            </div>
+            <div style={{ fontSize:13, color:T.gray, marginTop:5 }}>{item.msg}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Review Drafts */}
+      <div style={{ marginBottom:28 }}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
+          <div style={{ fontSize:11, fontWeight:600, letterSpacing:'0.08em', color:T.ink, textTransform:'uppercase' }}>
+            Review drafts <span style={{ fontWeight:400, color:T.gray }}>· {STACKED_DATA.reviewDrafts.length}</span>
+          </div>
+          <span style={{ fontSize:16, color:'#ccc', cursor:'grab' }}>≡</span>
+        </div>
+        {STACKED_DATA.reviewDrafts.map((item,i) => (
+          <div key={i} style={{ padding:'14px 18px', background:T.cardBg, borderRadius:12, border:`1px solid ${T.lightGray}`, marginBottom:8, cursor:'pointer' }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <span style={{ fontSize:14, fontWeight:600, color:T.ink }}>{item.user}</span>
+              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                <span style={{ fontSize:10, color:T.gray, background:T.warmGray, padding:'2px 10px', borderRadius:20 }}>{item.skill}</span>
+                <span style={{ width:7, height:7, borderRadius:'50%', background: item.confidence==='high' ? T.accent : '#ccc' }} />
+              </div>
+            </div>
+            <div style={{ fontSize:13, color:T.gray, marginTop:5 }}>{item.msg}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Questions */}
+      <div style={{ marginBottom:28 }}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
+          <div style={{ fontSize:11, fontWeight:600, letterSpacing:'0.08em', color:T.ink, textTransform:'uppercase' }}>
+            Questions <span style={{ fontWeight:400, color:T.gray }}>· {STACKED_DATA.questions.length}</span>
+          </div>
+          <span style={{ fontSize:16, color:'#ccc', cursor:'grab' }}>≡</span>
+        </div>
+        {STACKED_DATA.questions.map((item,i) => (
+          <div key={i} style={{ padding:'14px 18px', background:T.cardBg, borderRadius:12, border:`1px solid ${T.lightGray}`, marginBottom:8 }}>
+            <div style={{ fontSize:14, fontWeight:600, color:T.ink }}>{item.user}</div>
+            <div style={{ fontSize:13, color:T.gray, marginTop:5 }}>{item.msg}</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ textAlign:'center', fontSize:12, color:'#ccc', padding:'10px 0 30px' }}>
+        Drag sections to reorganize · Chatty remembers your layout
+      </div>
+    </div>
+  );
+}
+
+/* ─── AI Dark Panel ─── */
+function AIPanel({ onClose }) {
+  const [expanded, setExpanded] = useState(null);
+
+  return (
+    <div style={{ background:T.darkBg, height:'100%', overflowY:'auto', padding:'0 0 40px' }}>
+      {/* Header */}
+      <div style={{ padding:'56px 24px 16px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+        <div onClick={onClose} style={{ fontSize:14, color:'#888', cursor:'pointer', fontWeight:500 }}>← Paper</div>
+        <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:12, color:T.mint }}>
+          <div style={{ width:6, height:6, borderRadius:3, background:T.mint, animation:'pulse 2s infinite' }} />
+          live
+        </div>
+      </div>
+
+      <div style={{ padding:'0 24px' }}>
+        {/* Title */}
+        <div style={{ fontSize:13, color:'#555', marginBottom:28, fontWeight:500 }}>Chatty is working</div>
+
+        {/* Handled today */}
+        <div style={{ background:T.darkSurface, borderRadius:16, padding:'20px', marginBottom:20, border:`1px solid ${T.darkBorder}` }}>
+          <div style={{ fontSize:13, fontWeight:600, color:'#999', marginBottom:14, letterSpacing:'0.05em', textTransform:'uppercase' }}>Handled today</div>
+          <div style={{ display:'flex', gap:16, marginBottom:16 }}>
+            <div><span style={{ fontSize:24, fontWeight:700, color:'#fff' }}>34</span><span style={{ fontSize:11, color:'#666', marginLeft:4 }}>DMs</span></div>
+            <div><span style={{ fontSize:24, fontWeight:700, color:'#fff' }}>126</span><span style={{ fontSize:11, color:'#666', marginLeft:4 }}>comments</span></div>
+            <div><span style={{ fontSize:24, fontWeight:700, color:'#fff' }}>4</span><span style={{ fontSize:11, color:'#666', marginLeft:4 }}>corrections</span></div>
+          </div>
+          {/* Mini bar */}
+          <div style={{ height:4, background:'#2a2a2c', borderRadius:2, overflow:'hidden', marginBottom:10 }}>
+            <div style={{ width:'85%', height:'100%', background:T.mint, borderRadius:2 }} />
+          </div>
+          <div style={{ fontSize:12, color:'#666' }}>2m avg response time</div>
+        </div>
+
+        {/* Approval rates */}
+        <div style={{ background:T.darkSurface, borderRadius:16, padding:'20px', marginBottom:20, border:`1px solid ${T.darkBorder}` }}>
+          <div style={{ fontSize:13, fontWeight:600, color:'#999', marginBottom:16, letterSpacing:'0.05em', textTransform:'uppercase' }}>Approval rates</div>
+          {[
+            { name:'FAQ replies', pct:82 },
+            { name:'Lead qualification', pct:74 },
+            { name:'Positive comments', pct:91 },
+          ].map((s,i) => (
+            <div key={i} style={{ marginBottom:i<2?16:0 }}>
+              <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
+                <span style={{ fontSize:13, color:'#ccc' }}>{s.name}</span>
+                <span style={{ fontSize:13, color:T.mint, fontWeight:600 }}>{s.pct}%</span>
+              </div>
+              <div style={{ height:4, background:'#2a2a2c', borderRadius:2, overflow:'hidden' }}>
+                <div style={{ width:`${s.pct}%`, height:'100%', background:T.mint, borderRadius:2, transition:'width .5s ease' }} />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Recent auto-handled */}
+        <div style={{ marginBottom:20 }}>
+          <div style={{ fontSize:13, fontWeight:600, color:'#999', marginBottom:14, letterSpacing:'0.05em', textTransform:'uppercase' }}>Recently handled</div>
+          {AI_HANDLED.map((item,i) => (
+            <div key={i}>
+              <div onClick={() => setExpanded(expanded===i?null:i)}
+                style={{ background:T.darkSurface, borderRadius: expanded===i ? '14px 14px 0 0' : 14, padding:'14px 18px', marginBottom: expanded===i ? 0 : 8,
+                  border:`1px solid ${T.darkBorder}`, cursor:'pointer', transition:'all .15s ease',
+                  borderBottom: expanded===i ? 'none' : undefined }}>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                  <span style={{ fontSize:14, fontWeight:500, color:'#ddd' }}>{item.user}</span>
+                  <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                    <span style={{ fontSize:10, color:T.mintDim, background:'rgba(79,255,176,0.1)', padding:'2px 10px', borderRadius:20 }}>{item.type}</span>
+                    <span style={{ fontSize:11, color:'#555' }}>{item.status}</span>
+                  </div>
+                </div>
+                <div style={{ fontSize:13, color:'#777', marginTop:5 }}>{item.msg}</div>
+              </div>
+              {expanded===i && item.draft && (
+                <div className="fade-in" style={{ background:T.darkSurface, borderRadius:'0 0 14px 14px', padding:'0 18px 16px', marginBottom:8,
+                  border:`1px solid ${T.darkBorder}`, borderTop:'none' }}>
+                  <div style={{ borderTop:`1px solid ${T.darkBorder}`, paddingTop:14 }}>
+                    <div style={{ fontSize:12, color:'#666', marginBottom:6 }}>Chatty replied:</div>
+                    <div style={{ fontSize:13, color:'#bbb', lineHeight:1.5, marginBottom:14 }}>{item.draft}</div>
+                    <div style={{ display:'flex', gap:8 }}>
+                      <span style={{ fontSize:12, padding:'6px 16px', background:'rgba(79,255,176,0.15)', color:T.mint, borderRadius:20, cursor:'pointer', fontWeight:500 }}>Looks good</span>
+                      <span style={{ fontSize:12, padding:'6px 16px', border:`1px solid ${T.darkBorder}`, color:'#888', borderRadius:20, cursor:'pointer' }}>Flag this</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Patterns learned */}
+        <div style={{ background:T.darkSurface, borderRadius:16, padding:'20px', border:`1px solid ${T.darkBorder}` }}>
+          <div style={{ fontSize:13, fontWeight:600, color:'#999', marginBottom:10, letterSpacing:'0.05em', textTransform:'uppercase' }}>Patterns learned</div>
+          <div style={{ fontSize:13, color:T.mint, marginBottom:10 }}>3 new this week</div>
+          <div style={{ fontSize:12, color:'#777', lineHeight:1.6 }}>
+            Shorter lead replies · Emoji-free FAQs ·<br/>Warmer tone for comments
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Input Bar ─── */
+function InputBar() {
+  return (
+    <div style={{ position:'absolute', bottom:0, left:0, right:0, padding:'10px 24px 30px', background:`linear-gradient(transparent, ${T.paper} 20%)` }}>
+      <div style={{ display:'flex', alignItems:'center', background:T.cardBg, borderRadius:28, border:`1px solid ${T.lightGray}`, padding:'12px 20px' }}>
+        <span style={{ fontSize:14, color:'#bbb', flex:1 }}>Talk to Chatty...</span>
+        <span style={{ fontSize:18, color:'#ccc' }}>↑</span>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════
+   MAIN APP — V2
+   ═══════════════════════════════════════════ */
+function App() {
+  const [screen, setScreen] = useState('ob-welcome');
+  const [confidence, setConfidence] = useState('mid');
+
+  return (
+    <div style={{ width:'100%', height:'100%', position:'relative', overflow:'hidden' }}>
+
+      {/* ─── Onboarding ─── */}
+      {screen === 'ob-welcome' && <ObWelcome onNext={() => setScreen('ob-workflow')} />}
+      {screen === 'ob-workflow' && <ObWorkflow onNext={() => setScreen('ob-analyzing')} />}
+      {screen === 'ob-analyzing' && <ObAnalyzing onNext={() => setScreen('ob-insights')} />}
+      {screen === 'ob-insights' && <ObInsights onNext={() => setScreen('ob-trust')} />}
+      {screen === 'ob-trust' && <ObTrustFeel onNext={() => setScreen('ob-settingup')} setConfidence={setConfidence} />}
+      {screen === 'ob-settingup' && <ObSettingUp onNext={() => setScreen('ob-examples')} />}
+      {screen === 'ob-examples' && <ObExamples onNext={() => setScreen('ob-preview')} />}
+      {screen === 'ob-preview' && <ObInboxPreview onNext={() => setScreen('ob-stats')} />}
+      {screen === 'ob-stats' && <ObStats onNext={() => setScreen('ob-loading')} />}
+      {screen === 'ob-loading' && <ObLoading onNext={() => setScreen('main')} />}
+
+      {/* ─── V2 Inbox ─── */}
+      {screen === 'main' && <InboxV2 />}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
