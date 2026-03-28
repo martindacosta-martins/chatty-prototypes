@@ -1,0 +1,1916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Chatty — AI Native Inbox</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { font-family:'Inter',system-ui,sans-serif; background:#e8e6e2; display:flex; justify-content:center; align-items:center; min-height:100vh; overflow:hidden; }
+  #root { width:393px; height:852px; position:relative; overflow:hidden; border-radius:44px; box-shadow:0 25px 80px rgba(0,0,0,.25); }
+
+  /* Animations */
+  @keyframes fadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+  @keyframes slideUp { from { opacity:0; transform:translateY(40px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes slideOut { from { opacity:1; transform:translateY(0); } to { opacity:0; transform:translateY(-30px); } }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.4; } }
+  @keyframes typing { 0% { content:''; } 33% { content:'.'; } 66% { content:'..'; } 100% { content:'...'; } }
+  .fade-up { animation: fadeUp .4s ease-out both; }
+  .fade-in { animation: fadeIn .3s ease both; }
+  .slide-up { animation: slideUp .35s ease-out both; }
+
+  /* Scrollbar hide */
+  ::-webkit-scrollbar { display:none; }
+
+  /* Mobile responsive */
+  @media (max-width:420px) {
+    body { background:#FAFAF8; align-items:flex-start; }
+    #root { width:100vw; height:100vh; height:100dvh; border-radius:0; box-shadow:none; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+/* ─── Design Tokens ─── */
+const T = {
+  paper: '#FAFAF8',
+  ink: '#1A1A1A',
+  gray: '#999',
+  lightGray: '#E8E6E2',
+  cardBg: '#fff',
+  accent: '#2D5BFF',
+  darkBg: '#0A0A0A',
+  darkSurface: '#161618',
+  darkBorder: '#2A2A2C',
+  mint: '#4FFFB0',
+  mintDim: '#2a8a60',
+  warmGray: '#F3F1ED',
+};
+
+/* ─── Mock Data ─── */
+const REVIEWS = [
+  { id:1, user:'@jayrunz', type:'Lead Qual', source:'Instagram DM',
+    msg:"I've been struggling for 2 years. Is it too late to start?",
+    draft:"It's never too late — 2 years tells me you're serious. Want me to share what week 1 looks like?",
+    batch: false },
+  { id:2, user:'@sara.j', type:'FAQ', source:'Instagram DM',
+    msg:"I'm postpartum, 8 months out. Would this work for me?",
+    draft:"Yes! I have a dedicated postpartum module — 8 months out is a great time to start. DM me for the full details",
+    batch: 'faq-group' },
+  { id:3, user:'@maya.runs', type:'FAQ', source:'Instagram DM',
+    msg:"Do you offer discounts for students?",
+    draft:"Hey! I don't do discounts, but I do have a payment plan that makes it super manageable. Want me to send the details?",
+    batch: 'faq-group' },
+  { id:4, user:'@carlos.m', type:'FAQ', source:'Instagram DM',
+    msg:"How quickly can I see results?",
+    draft:"Most people notice changes within 2-3 weeks. Consistency is key — and I'll be here to keep you on track!",
+    batch: 'faq-group' },
+  { id:5, user:'@lena.fit', type:'Lead Qual', source:'Instagram DM',
+    msg:"You seem real. I've tried everything. I'm scared to spend more money.",
+    draft:"I totally get that — and honestly, the fact that you're still looking means you haven't given up. Want me to share some results from people who felt the same?",
+    batch: false },
+];
+
+/* ─── V2 Inbox Data ─── */
+const IMPORTANT_DATA = {
+  services: [
+    { user:'@jayrunz', msg:"I've been struggling for 2 years. Is it too late to start?", source:'DM', time:'2h', draft:"It's never too late — 2 years tells me you're serious. Want to see what week 1 looks like?", reason:"They're interested but hesitant — I went with encouragement and a clear next step" },
+    { user:'@mike.coach', msg:"What's included in the premium program?", source:'DM', time:'3h', draft:"Great question! The premium includes 12 weeks of coaching, weekly check-ins, and a custom meal plan.", reason:"Direct question about your product — I pulled from what you shared with me" },
+    { user:'@emma.k', msg:"I want to sign up but nervous about the cost", source:'DM', time:'4h', draft:"Totally understand — I have a payment plan that breaks it into manageable chunks. Want details?", reason:"They're worried about the price — I mentioned your payment plan" },
+  ],
+  sensitive: [
+    { user:'@lena.fit', msg:"You seem real. I've tried everything. I'm scared to spend more money.", source:'DM', time:'1h', flag:'emotional', summary:"She's been trying different programs without success. Emotionally vulnerable — needs a personal, empathetic response. Not a sales moment." },
+    { user:'@ana.healing', msg:"I'm going through a really hard time and need something to focus on", source:'DM', time:'5h', flag:'personal', summary:"Going through personal difficulties and looking for structure. Handle with care — acknowledge their situation before suggesting anything." },
+  ],
+  collabs: [
+    { user:'@fitbrand.co', msg:"Would love to explore a partnership. We have 200k followers", source:'DM', time:'6h', draft:"Thanks for reaching out! I'd love to hear more about what you have in mind. Can you send over some details?", reason:"A brand in your space wants to collaborate — could be a good fit" },
+    { user:'@wellness.mag', msg:"We'd like to feature you in our next issue", source:'DM', time:'1d', draft:"That sounds amazing! I'd be honored. What do you need from me to get started?", reason:"A magazine wants to feature you — great exposure" },
+  ],
+};
+
+const QUESTIONS_DATA = [
+  { user:'@carlos.m', msg:"Do you ship internationally?", source:'DM', time:'2h', draft:"Yes! We ship worldwide. Shipping times vary by region — usually 5-7 business days. Want me to check rates for your location?", reason:"Direct shipping question — I gave a clear answer with a next step" },
+  { user:'@maria.v', msg:"Can I reschedule my session to next week?", source:'DM', time:'3h', draft:"Of course! Let me know what day works best for you next week and I'll get it moved.", reason:"Scheduling request — I kept it simple and friendly" },
+  { user:'@alex.j', msg:"Is there a refund policy?", source:'DM', time:'5h', draft:"Yes, there's a 7-day money-back guarantee. No questions asked. Want me to send the full details?", reason:"Policy question — I gave the key info and offered more detail" },
+];
+
+const ALL_MESSAGES = [
+  { user:'@jayrunz', msg:"I've been struggling for 2 years. Is it too late to start?", time:'2h', category:'lead', badge:'Lead', badgeColor:'#E85D04' },
+  { user:'@spam.bot1', msg:"Check out my page for free followers!", time:'2h', category:'spam', badge:'Spam', badgeColor:'#999' },
+  { user:'@lena.fit', msg:"You seem real. I've tried everything. I'm scared to spend more money.", time:'1h', category:'sensitive', badge:'Sensitive', badgeColor:'#6B21A8' },
+  { user:'@random.user', msg:"hey", time:'1h', category:'uncategorized' },
+  { user:'@carlos.m', msg:"Do you ship internationally?", time:'2h', category:'question', badge:'Question', badgeColor:'#0369A1' },
+  { user:'@mike.coach', msg:"What's included in the premium program?", time:'3h', category:'lead', badge:'Lead', badgeColor:'#E85D04' },
+  { user:'@spam.bot2', msg:"I made $5000 in one day click here", time:'3h', category:'spam', badge:'Spam', badgeColor:'#999' },
+  { user:'@emma.k', msg:"I want to sign up but nervous about the cost", time:'4h', category:'lead', badge:'Lead', badgeColor:'#E85D04' },
+  { user:'@random.user2', msg:"sup", time:'4h', category:'uncategorized' },
+  { user:'@fitbrand.co', msg:"Would love to explore a partnership. We have 200k followers", time:'6h', category:'collab', badge:'Collab', badgeColor:'#0369A1' },
+  { user:'@maria.v', msg:"Can I reschedule my session to next week?", time:'3h', category:'question', badge:'Question', badgeColor:'#0369A1' },
+  { user:'@ana.healing', msg:"I'm going through a really hard time and need something to focus on", time:'5h', category:'sensitive', badge:'Sensitive', badgeColor:'#6B21A8' },
+  { user:'@random.user3', msg:"hi there", time:'5h', category:'uncategorized' },
+  { user:'@alex.j', msg:"Is there a refund policy?", time:'5h', category:'question', badge:'Question', badgeColor:'#0369A1' },
+  { user:'@wellness.mag', msg:"We'd like to feature you in our next issue", time:'1d', category:'collab', badge:'Collab', badgeColor:'#0369A1' },
+  { user:'@spam.bot3', msg:"DM me for promo deals", time:'1d', category:'spam', badge:'Spam', badgeColor:'#999' },
+  // Answered/old important messages
+  { user:'@prev.lead1', msg:"I signed up! Thanks for the info", time:'1d', category:'answered', badge:'Answered', badgeColor:'#16a34a' },
+  { user:'@prev.lead2', msg:"Just purchased the program, so excited!", time:'1d', category:'answered', badge:'Answered', badgeColor:'#16a34a' },
+  { user:'@spam.bot4', msg:"FREE FOLLOWERS! Click link in bio", time:'1d', category:'spam', badge:'Spam', badgeColor:'#999' },
+  { user:'@spam.bot5', msg:"I can get you 10k followers overnight", time:'1d', category:'spam', badge:'Spam', badgeColor:'#999' },
+  { user:'@random.user4', msg:"yo", time:'1d', category:'uncategorized' },
+  { user:'@random.user5', msg:".", time:'1d', category:'uncategorized' },
+  { user:'@prev.question1', msg:"Got it, thanks for explaining!", time:'2d', category:'answered', badge:'Answered', badgeColor:'#16a34a' },
+  { user:'@prev.collab1', msg:"Let's schedule that call next week", time:'2d', category:'answered', badge:'Answered', badgeColor:'#16a34a' },
+  { user:'@spam.bot6', msg:"Check DM for collab opportunity", time:'2d', category:'spam', badge:'Spam', badgeColor:'#999' },
+  { user:'@spam.bot7', msg:"Want to grow your page? DM me", time:'2d', category:'spam', badge:'Spam', badgeColor:'#999' },
+  { user:'@random.user6', msg:"hello", time:'2d', category:'uncategorized' },
+  { user:'@random.user7', msg:"hey there", time:'2d', category:'uncategorized' },
+  { user:'@prev.lead3', msg:"The payment plan works for me, signing up now", time:'3d', category:'answered', badge:'Answered', badgeColor:'#16a34a' },
+  { user:'@spam.bot8', msg:"Promote your content with us!", time:'3d', category:'spam', badge:'Spam', badgeColor:'#999' },
+  { user:'@spam.bot9', msg:"500 likes for $5", time:'3d', category:'spam', badge:'Spam', badgeColor:'#999' },
+  { user:'@random.user8', msg:"hi", time:'3d', category:'uncategorized' },
+  { user:'@random.user9', msg:"sup", time:'3d', category:'uncategorized' },
+  { user:'@old.lead4', msg:"I decided to go with another program, thanks though", time:'4d', category:'answered', badge:'Answered', badgeColor:'#16a34a' },
+  { user:'@random.user10', msg:"hiii", time:'4d', category:'uncategorized' },
+  { user:'@random.user11', msg:"hey!", time:'4d', category:'uncategorized' },
+  { user:'@old.sensitive1', msg:"Update: things are better now, thanks for listening", time:'5d', category:'answered', badge:'Answered', badgeColor:'#16a34a' },
+  { user:'@random.user12', msg:"wave", time:'5d', category:'uncategorized' },
+  { user:'@user.old1', msg:"Thanks for the info!", time:'1w', category:'answered', badge:'Answered', badgeColor:'#16a34a' },
+  { user:'@user.old2', msg:"Got it, will check it out", time:'1w', category:'answered', badge:'Answered', badgeColor:'#16a34a' },
+  { user:'@user.old3', msg:"Appreciate the quick reply", time:'1w', category:'answered', badge:'Answered', badgeColor:'#16a34a' },
+  { user:'@user.old4', msg:"Perfect, signing up now", time:'2w', category:'answered', badge:'Answered', badgeColor:'#16a34a' },
+  { user:'@user.old5', msg:"This is exactly what I needed", time:'2w', category:'answered', badge:'Answered', badgeColor:'#16a34a' },
+  { user:'@user.old6', msg:"Great, talk soon!", time:'2w', category:'answered', badge:'Answered', badgeColor:'#16a34a' },
+  { user:'@user.old7', msg:"Sounds good, I'll think about it", time:'3w', category:'answered', badge:'Answered', badgeColor:'#16a34a' },
+  { user:'@user.old8', msg:"Thanks!", time:'3w', category:'answered', badge:'Answered', badgeColor:'#16a34a' },
+];
+
+/* ═══════════════════════════════════════════
+   COMPONENTS
+   ═══════════════════════════════════════════ */
+
+/* ─── Shared: Option Card ─── */
+function OptCard({ title, desc, emoji, selected, onClick, small }) {
+  return (
+    <div onClick={onClick}
+      style={{ padding: small ? '14px 18px' : '18px 20px', background:T.cardBg, borderRadius:14,
+        border: selected ? `2px solid ${T.ink}` : `1px solid ${T.lightGray}`,
+        cursor:'pointer', transition:'all .15s ease', display:'flex', alignItems:'flex-start', gap:14 }}>
+      {emoji && <span style={{ fontSize:24, flexShrink:0, marginTop:small?0:2 }}>{emoji}</span>}
+      <div>
+        <div style={{ fontSize: small ? 14 : 15, fontWeight:600, color:T.ink }}>{title}</div>
+        {desc && <div style={{ fontSize:13, color:T.gray, marginTop:3, lineHeight:1.4 }}>{desc}</div>}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Shared: Black CTA Button ─── */
+function BlackBtn({ label, onClick, disabled }) {
+  return (
+    <button onClick={onClick} disabled={disabled}
+      style={{ width:'100%', padding:'16px 0', background: disabled ? '#ccc' : T.ink, color:'#fff',
+        border:'none', borderRadius:50, fontSize:16, fontWeight:600, cursor: disabled ? 'default' : 'pointer',
+        transition:'background .2s' }}>
+      {label}
+    </button>
+  );
+}
+
+/* ═════════════════════════════════════
+   ONBOARDING — 8-STEP CONVERSATIONAL FLOW
+   ═════════════════════════════════════ */
+
+/* Staggered fade-in messages (replaces TypeWriter — 2s instead of 25s) */
+function ChattyMessages({ messages, onAllDone }) {
+  const [visibleCount, setVisibleCount] = useState(0);
+
+  useEffect(() => {
+    messages.forEach((_, i) => {
+      setTimeout(() => {
+        setVisibleCount(i + 1);
+        if (i === messages.length - 1 && onAllDone) {
+          setTimeout(onAllDone, 400);
+        }
+      }, 300 + i * 500);
+    });
+  }, [messages.length]);
+
+  return (
+    <div>
+      {messages.map((msg, i) => (
+        <div key={i} style={{ marginBottom: 10, opacity: i < visibleCount ? 1 : 0, transform: i < visibleCount ? 'translateY(0)' : 'translateY(12px)', transition: 'all .35s ease-out' }}>
+          {i === 0 && (
+            <div style={{ fontSize: 11, color: T.gray, marginBottom: 5, fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+              · Chatty
+            </div>
+          )}
+          <div style={{ background: T.warmGray, borderRadius: 14, borderTopLeftRadius: i === 0 ? 14 : 4, padding: '13px 17px', maxWidth: '88%', display: 'inline-block' }}>
+            <div style={{ fontSize: 15, color: T.ink, lineHeight: 1.55 }}>{msg}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* Progress bar with step label */
+function ProgressBar({ step, total, label }) {
+  return (
+    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 }}>
+      <div style={{ height: 3, background: T.lightGray }}>
+        <div style={{ height: '100%', background: T.ink, width: `${(step / total) * 100}%`, transition: 'width .4s ease' }} />
+      </div>
+      {label && (
+        <div style={{ padding: '8px 28px 0', fontSize: 10, color: T.gray, fontWeight: 500, letterSpacing: '0.03em' }}>
+          Step {step} of {total} · {label}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* Back button for onboarding */
+function ObBackBtn({ onClick }) {
+  if (!onClick) return null;
+  return (
+    <div onClick={onClick} style={{ position:'absolute', top:20, left:20, zIndex:15, cursor:'pointer', fontSize:18, color:T.ink, fontWeight:300, padding:'8px 12px', margin:'-8px -12px' }}>←</div>
+  );
+}
+
+/* ─── Step 1: Welcome ─── */
+function ObWelcome({ onNext }) {
+  const [showBtn, setShowBtn] = useState(false);
+
+  return (
+    <div style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      <ProgressBar step={1} total={8} label="Welcome" />
+      <div style={{ padding: '60px 28px 0' }}>
+        {/* Profile card */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 18px', background: T.warmGray, borderRadius: 14, marginBottom: 32 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 44, height: 44, borderRadius: 22, background: T.ink, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 14, fontWeight: 600 }}>SR</div>
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: T.ink }}>Sofia Reyes</div>
+              <div style={{ fontSize: 12, color: T.gray }}>@sofiafit · 84k followers</div>
+            </div>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: 24, fontWeight: 700, color: T.ink }}>143</div>
+            <div style={{ fontSize: 10, color: T.gray, display: 'flex', alignItems: 'center', gap: 4 }}>
+              <span style={{ width: 6, height: 6, borderRadius: 3, background: T.ink, display: 'inline-block' }}></span> unread DMs
+            </div>
+          </div>
+        </div>
+
+        <ChattyMessages
+          messages={[
+            "Hi Sofia.",
+            "84,000 people follow you. A lot of them are trying to reach you right now.",
+            "I'll help you stay on top of every conversation.",
+            "Takes about 2 minutes."
+          ]}
+          onAllDone={() => setShowBtn(true)}
+        />
+      </div>
+
+      <div style={{ marginTop: 'auto', padding: '0 28px 50px', opacity: showBtn ? 1 : 0, transform: showBtn ? 'translateY(0)' : 'translateY(12px)', transition: 'all .4s ease' }}>
+        <BlackBtn label="Let's set it up →" onClick={onNext} />
+        {/* skip removed */}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Step 2: Workflow Priority ─── */
+function ObWorkflow({ onNext, onBack }) {
+  const [selected, setSelected] = useState(['leads', 'questions', 'comments']);
+  const priorities = [
+    { id: 'leads', label: 'Check leads', desc: 'People interested in what you offer' },
+    { id: 'partnerships', label: 'Check partnerships', desc: 'Brand deals and collaboration requests' },
+    { id: 'questions', label: 'Answer questions', desc: 'Pricing, scheduling, how things work' },
+    { id: 'comments', label: 'Answer comments from my audience', desc: 'Engage with people on your posts' },
+  ];
+
+  const toggle = (id) => {
+    setSelected(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
+  };
+
+  return (
+    <div className="fade-up" style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      <ProgressBar step={2} total={8} label="Workflow" />
+      <ObBackBtn onClick={onBack} />
+      <div style={{ padding: '60px 28px 0', flex: 1, overflowY: 'auto' }}>
+        <div style={{ fontSize: 11, color: T.gray, marginBottom: 6, fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase' }}>· Chatty</div>
+        <h1 style={{ fontSize: 26, fontWeight: 700, color: T.ink, lineHeight: 1.15, marginBottom: 8 }}>
+          If you had 10 minutes, what would you check first?
+        </h1>
+        <p style={{ fontSize: 14, color: T.gray, marginBottom: 28 }}>Tap in order of priority — this helps me organize your inbox.</p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {priorities.map((p) => {
+            const idx = selected.indexOf(p.id);
+            const isSelected = idx >= 0;
+            return (
+              <div key={p.id} onClick={() => toggle(p.id)}
+                style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px', borderRadius: 12, border: `1.5px solid ${isSelected ? T.ink : T.lightGray}`, background: '#fff', cursor: 'pointer', transition: 'all .15s ease' }}>
+                <div style={{ width: 28, height: 28, borderRadius: 14, border: `1.5px solid ${isSelected ? T.ink : T.lightGray}`, background: isSelected ? T.ink : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 12, fontWeight: 600, flexShrink: 0, transition: 'all .15s ease' }}>
+                  {isSelected ? idx + 1 : ''}
+                </div>
+                <div>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: T.ink }}>{p.label}</div>
+                  <div style={{ fontSize: 12, color: T.gray }}>{p.desc}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div style={{ padding: '16px 28px 50px' }}>
+        <BlackBtn label="Next →" onClick={onNext} disabled={selected.length === 0} />
+      </div>
+    </div>
+  );
+}
+
+/* ─── Step 3: Analyzing ─── */
+function ObAnalyzing({ onNext, onBack }) {
+  const [lines, setLines] = useState([]);
+  const allLines = [
+    'Syncing your DMs...',
+    'Categorizing your messages...',
+    'Identifying leads and questions...',
+    'Drafting replies...',
+    'Matching your tone and voice...',
+  ];
+
+  useEffect(() => {
+    allLines.forEach((line, i) => {
+      setTimeout(() => setLines(l => [...l, line]), 1200 * (i + 1));
+    });
+    setTimeout(onNext, 1200 * (allLines.length + 1) + 800);
+  }, []);
+
+  return (
+    <div className="fade-up" style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', position: 'relative' }}>
+      <ProgressBar step={3} total={8} label="Analyzing" />
+      <ObBackBtn onClick={onBack} />
+      <div style={{ padding: '0 36px' }}>
+        <div style={{ fontSize: 11, color: T.gray, marginBottom: 12, fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase' }}>· Chatty</div>
+        {lines.map((line, i) => (
+          <div key={i} className="fade-up" style={{ fontSize: 16, color: i === lines.length - 1 ? T.ink : T.gray, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10, transition: 'color .3s' }}>
+            <span style={{ width: 16, height: 16, borderRadius: 8, border: `1.5px solid ${i < lines.length - 1 ? T.ink : T.gray}`, background: i < lines.length - 1 ? T.ink : 'transparent', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              {i < lines.length - 1 && <span style={{ color: '#fff', fontSize: 9 }}>&#10003;</span>}
+            </span>
+            {line}
+          </div>
+        ))}
+        {lines.length < allLines.length && (
+          <div style={{ marginLeft: 26, animation: 'pulse 1s infinite', fontSize: 14, color: T.gray }}>...</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Step 4: Things I noticed ─── */
+function ObInsights({ onNext, onBack }) {
+  const [showBtn, setShowBtn] = useState(false);
+
+  return (
+    <div className="fade-up" style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      <ProgressBar step={4} total={8} label="Your style" />
+      <ObBackBtn onClick={onBack} />
+      <div style={{ padding: '60px 28px 0', flex: 1 }}>
+        <ChattyMessages
+          messages={[
+            "I looked at how you reply.",
+            "You're fast — especially with leads. And you always give people a next step.",
+            "Your replies don't sound templated. That matters.",
+            "I'll keep your tone and voice consistent across every conversation."
+          ]}
+          onAllDone={() => setShowBtn(true)}
+        />
+      </div>
+      <div style={{ padding: '0 28px 50px', opacity: showBtn ? 1 : 0, transform: showBtn ? 'translateY(0)' : 'translateY(12px)', transition: 'all .4s ease' }}>
+        <BlackBtn label="About my business →" onClick={onNext} />
+      </div>
+    </div>
+  );
+}
+
+/* ─── Step 4b: Lead Definition ─── */
+function ObLeadDef({ onNext, onBack }) {
+  const [leadInput, setLeadInput] = useState('someone interested in my coaching program who is ready to invest in themselves');
+  const [expanded, setExpanded] = useState(false);
+  const [showBtn, setShowBtn] = useState(false);
+
+  return (
+    <div className="fade-up" style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      <ProgressBar step={5} total={8} label="Your leads" />
+      <ObBackBtn onClick={onBack} />
+      <div style={{ padding: '60px 28px 0', flex: 1, overflowY: 'auto' }}>
+        <ChattyMessages
+          messages={[
+            "I've looked at how your business works.",
+            "Let's define what a lead looks like so I know who to prioritize."
+          ]}
+          onAllDone={() => setShowBtn(true)}
+        />
+
+        {showBtn && (
+          <div className="fade-up" style={{ marginTop: 24 }}>
+            <div style={{ fontSize: 11, color: T.gray, marginBottom: 8, fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase' }}>· Chatty</div>
+            <div style={{ background: T.warmGray, borderRadius: 14, padding: '16px 18px' }}>
+              <div style={{ fontSize: 14, color: T.ink, lineHeight: 1.5, marginBottom: 12 }}>
+                A lead for you is...
+              </div>
+              <textarea
+                value={leadInput}
+                onChange={e => setLeadInput(e.target.value)}
+                onFocus={() => setExpanded(true)}
+                style={{ width: '100%', fontSize: 14, color: T.ink, lineHeight: 1.55, padding: '14px 16px', border: `1.5px solid ${T.lightGray}`, borderRadius: 12, resize: 'none', height: expanded ? 120 : 70, fontFamily: 'Inter', background: '#fff', outline: 'none', transition: 'height .2s ease' }}
+              />
+              <div style={{ fontSize: 12, color: T.gray, marginTop: 8, lineHeight: 1.4 }}>
+                Expand on this to help me understand your ideal customer better — age, geographic zone, interests, budget...
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+      <div style={{ padding: '0 28px 50px', opacity: showBtn ? 1 : 0, transform: showBtn ? 'translateY(0)' : 'translateY(12px)', transition: 'all .4s ease' }}>
+        <BlackBtn label="Got it, next →" onClick={onNext} />
+      </div>
+    </div>
+  );
+}
+
+/* ─── Step 5: How do you feel about AI ─── */
+function ObTrustFeel({ onNext, setConfidence }) {
+  const [selected, setSelected] = useState(null);
+  const [showResponse, setShowResponse] = useState(false);
+  const [showBtn, setShowBtn] = useState(false);
+
+  const options = [
+    { id: 'low', icon: '?!', label: 'I barely trust autocorrect', desc: 'No judgment — we\'ll go slow' },
+    { id: 'mid', icon: '~', label: 'I\'ve tried AI. Cautiously optimistic', desc: 'You get it, just need to see it work' },
+    { id: 'high', icon: '>>', label: 'I\'m comfortable with AI', desc: 'You\'re ready to let it handle things' },
+  ];
+
+  const responses = {
+    low: "Totally fair.\n\nI'll sort your messages and draft replies — but nothing gets sent without you. You review everything.",
+    mid: "Great.\n\nI'll sort your messages, categorize your leads, and draft replies for common questions. You review everything before it goes out.",
+    high: "Let's go.\n\nI'll sort your messages, draft replies, and categorize everything. You review and send — I'll get faster over time."
+  };
+
+  const pick = (id) => {
+    setSelected(id);
+    setConfidence(id);
+    setShowResponse(true);
+    setShowBtn(true);
+  };
+
+  return (
+    <div className="fade-up" style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      <ProgressBar step={5} total={8} />
+      <div style={{ padding: '60px 28px 0', flex: 1, overflowY: 'auto' }}>
+        <div style={{ fontSize: 11, color: T.gray, marginBottom: 6, fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase' }}>· Chatty</div>
+        <h1 style={{ fontSize: 26, fontWeight: 700, color: T.ink, lineHeight: 1.15, marginBottom: 6 }}>
+          Real talk — how do you feel about AI?
+        </h1>
+        <p style={{ fontSize: 14, color: T.gray, marginBottom: 24 }}>This helps me know where to start.</p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {options.map(o => (
+            <div key={o.id} onClick={() => pick(o.id)}
+              style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px', borderRadius: 12, border: `1.5px solid ${selected === o.id ? T.ink : T.lightGray}`, background: selected === o.id ? T.warmGray : '#fff', cursor: 'pointer', opacity: selected && selected !== o.id ? 0.45 : 1, transition: 'all .25s ease' }}>
+              <div style={{ width: 36, height: 36, borderRadius: 8, background: selected === o.id ? T.ink : T.lightGray, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, color: selected === o.id ? '#fff' : T.ink, flexShrink: 0, transition: 'all .2s ease' }}>{o.icon}</div>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: T.ink }}>{o.label}</div>
+                <div style={{ fontSize: 12, color: T.gray }}>{o.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {showResponse && (
+          <div className="fade-up" style={{ marginTop: 24 }}>
+            <div style={{ fontSize: 11, color: T.gray, marginBottom: 5, fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase' }}>· Chatty</div>
+            <div style={{ background: T.warmGray, borderRadius: 14, padding: '14px 18px' }}>
+              <div style={{ fontSize: 14, color: T.ink, lineHeight: 1.6, whiteSpace: 'pre-line' }}>{responses[selected]}</div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div style={{ padding: '16px 28px 50px', opacity: showBtn ? 1 : 0, transform: showBtn ? 'translateY(0)' : 'translateY(12px)', transition: 'all .4s ease' }}>
+        <BlackBtn label="Sounds good, next →" onClick={onNext} />
+        <div style={{ textAlign: 'center', marginTop: 10, fontSize: 12, color: '#bbb' }}>You can always change this later</div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Step 5.5: Setting up loading ─── */
+function ObSettingUp({ onNext }) {
+  useEffect(() => {
+    setTimeout(onNext, 2200);
+  }, []);
+
+  return (
+    <div style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
+      <ProgressBar step={6} total={8} label="Setting up" />
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ animation: 'pulse 1.2s infinite', fontSize: 15, color: T.gray, marginBottom: 8 }}>Setting up your inbox...</div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Step 6: Show examples ─── */
+function ObExamples({ onNext, onBack }) {
+  const [idx, setIdx] = useState(0);
+  const [showAlt, setShowAlt] = useState(false);
+  const [draftFading, setDraftFading] = useState(false);
+  const examples = [
+    { from: '@user5', msg: 'Do you offer refunds?', draft: 'Yes, 7-day no-questions refund policy. No questions asked.', tag: 'Common question', altDraft: "We do offer a 7-day money-back guarantee. If it's not for you, no hard feelings. Want me to send the details?" },
+    { from: '@user16', msg: "I'm interested but nervous. Is this really for someone like me?", draft: "Especially for someone like you. Let's chat.", tag: 'Interested lead', altDraft: "I hear you — spending money on yourself is a big step. What if I showed you exactly what week 1 looks like, no commitment?" },
+    { from: '@user18', msg: 'Just finished week 4, feeling amazing!', draft: 'YES! Week 4 is a turning point. So proud of you!', tag: 'Positive', altDraft: "That's amazing progress! Week 4 is where it really clicks. Keep pushing — you're doing incredible." },
+  ];
+
+  const handleDifferent = () => {
+    setDraftFading(true);
+    setTimeout(() => {
+      setShowAlt(true);
+      setDraftFading(false);
+    }, 200);
+  };
+
+  const handleLike = () => {
+    setShowAlt(false);
+    if (idx < examples.length - 1) setIdx(i => i + 1);
+    else onNext();
+  };
+
+  // Reset showAlt when idx changes
+  useEffect(() => { setShowAlt(false); }, [idx]);
+
+  const ex = examples[idx];
+  const displayedDraft = showAlt ? ex.altDraft : ex.draft;
+
+  return (
+    <div className="fade-up" style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      <ProgressBar step={7} total={8} label="Examples" />
+      <ObBackBtn onClick={onBack} />
+      <div style={{ padding: '60px 28px 0', flex: 1 }}>
+        <div style={{ fontSize: 11, color: T.gray, marginBottom: 6, fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase' }}>· Chatty</div>
+        <div style={{ background: T.warmGray, borderRadius: 14, padding: '12px 17px', marginBottom: 20, display: 'inline-block' }}>
+          <div style={{ fontSize: 15, color: T.ink }}>Here's a draft I'd write for this one.</div>
+        </div>
+
+        <div key={idx} className="fade-up">
+          <div style={{ fontSize: 11, color: T.gray, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>From {ex.from}</div>
+          <div style={{ background: T.warmGray, borderRadius: 12, padding: '13px 17px', marginBottom: 16 }}>
+            <div style={{ fontSize: 15, color: T.ink, lineHeight: 1.5 }}>{ex.msg}</div>
+          </div>
+
+          <div style={{ fontSize: 11, color: T.gray, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>· Chatty's draft</div>
+          <div style={{ background: '#fff', border: `1.5px solid ${T.ink}`, borderRadius: 12, padding: '13px 17px', marginBottom: 12, transition: 'opacity 0.2s ease', opacity: draftFading ? 0 : 1 }}>
+            <div style={{ fontSize: 15, color: T.ink, lineHeight: 1.5 }}>{displayedDraft}</div>
+          </div>
+
+          <div style={{ display: 'inline-block', padding: '4px 12px', border: `1px solid ${T.ink}`, borderRadius: 6, fontSize: 11, fontWeight: 600, color: T.ink, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{ex.tag}</div>
+        </div>
+
+        <div style={{ textAlign: 'center', marginTop: 8, fontSize: 12, color: '#bbb' }}>{idx + 1} of {examples.length}</div>
+      </div>
+
+      <div style={{ padding: '16px 28px 50px', display: 'flex', gap: 10 }}>
+        <button onClick={handleDifferent} style={{ flex: 1, padding: '15px 0', borderRadius: 50, border: `1.5px solid ${T.lightGray}`, background: 'transparent', fontSize: 14, fontWeight: 500, cursor: 'pointer', color: T.ink }}>
+          &#10007; Different
+        </button>
+        <button onClick={handleLike} style={{ flex: 1, padding: '15px 0', borderRadius: 50, border: 'none', background: T.ink, color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+          &#10003; Like it
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Step 8: Inbox preview (sorted) ─── */
+function ObInboxPreview({ onNext }) {
+  const [showBtn, setShowBtn] = useState(false);
+
+  return (
+    <div className="fade-up" style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      <ProgressBar step={8} total={8} />
+      <div style={{ padding: '60px 28px 0', flex: 1 }}>
+        <ChattyMessages
+          messages={[
+            "This is what your inbox looks like.",
+            "Two tabs. Important messages first, everything else in All."
+          ]}
+          onAllDone={() => setShowBtn(true)}
+        />
+
+        <div className="fade-up" style={{ marginTop: 24, border: `1.5px solid ${T.ink}`, borderRadius: 14, overflow: 'hidden' }}>
+          {/* Important */}
+          <div style={{ padding: '14px 18px', borderBottom: `1px solid ${T.lightGray}` }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: T.ink, marginBottom: 2 }}>Important</div>
+            <div style={{ fontSize: 11, color: T.gray, marginBottom: 10 }}>Leads, sensitive messages, collabs, and questions — with drafts ready</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 14, color: T.ink }}>@lena.fit</span>
+              <span style={{ fontSize: 10, padding: '3px 10px', border: `1px solid ${T.ink}`, borderRadius: 10, fontWeight: 600 }}>Sensitive</span>
+            </div>
+          </div>
+          {/* All */}
+          <div style={{ padding: '14px 18px' }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: T.ink, marginBottom: 2 }}>All</div>
+            <div style={{ fontSize: 11, color: T.gray, marginBottom: 10 }}>Every DM sorted by time — spam and empty filtered to the bottom</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 14, color: T.ink }}>47 messages</span>
+              <span style={{ fontSize: 10, color: T.gray }}>sorted by category</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ padding: '16px 28px 50px', opacity: showBtn ? 1 : 0, transform: showBtn ? 'translateY(0)' : 'translateY(12px)', transition: 'all .4s ease' }}>
+        <BlackBtn label="Got it →" onClick={onNext} />
+      </div>
+    </div>
+  );
+}
+
+/* ─── Step 9: You're set — Stats ─── */
+function ObStats({ onNext, onBack }) {
+  const [showBtn, setShowBtn] = useState(false);
+
+  return (
+    <div className="fade-up" style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      <ProgressBar step={7} total={8} label="Summary" />
+      <ObBackBtn onClick={onBack} />
+      <div style={{ padding: '60px 28px 0', flex: 1 }}>
+        <ChattyMessages
+          messages={[
+            "You're set, Sofia.",
+            "I sorted 142 messages and matched your tone and voice."
+          ]}
+          onAllDone={() => setShowBtn(true)}
+        />
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 24 }}>
+          {[
+            { n: '142', label: 'DMs sorted' },
+            { n: '12', label: 'drafts created' },
+            { n: '8', label: 'need your review' },
+            { n: '34', label: 'leads found' },
+          ].map((s, i) => (
+            <div key={i} className="fade-up" style={{ padding: '20px 18px', border: `1.5px solid ${T.ink}`, borderRadius: 12, animationDelay: `${i * 0.1 + 0.3}s` }}>
+              <div style={{ fontSize: 28, fontWeight: 700, color: T.ink }}>{s.n}</div>
+              <div style={{ fontSize: 12, color: T.gray, marginTop: 2 }}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ padding: '16px 28px 50px', opacity: showBtn ? 1 : 0, transform: showBtn ? 'translateY(0)' : 'translateY(12px)', transition: 'all .4s ease' }}>
+        <BlackBtn label="Open my inbox →" onClick={onNext} />
+      </div>
+    </div>
+  );
+}
+
+/* ─── Step 10: Loading transition ─── */
+function ObLoading({ onNext }) {
+  useEffect(() => {
+    setTimeout(onNext, 2000);
+  }, []);
+
+  return (
+    <div style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
+      <ProgressBar step={8} total={8} label="Loading" />
+      <div style={{ animation: 'pulse 1.2s infinite', fontSize: 15, color: T.gray }}>Loading your inbox...</div>
+    </div>
+  );
+}
+
+/* ─── Toggle: Focus / Stacked ─── */
+function ModeToggle({ mode, setMode }) {
+  return (
+    <div style={{ display:'flex', background:T.cardBg, borderRadius:10, border:`1px solid ${T.lightGray}`, overflow:'hidden' }}>
+      {['Focus','Stacked'].map(m => (
+        <div key={m} onClick={() => setMode(m.toLowerCase())}
+          style={{ padding:'8px 18px', fontSize:13, fontWeight:mode===m.toLowerCase()?600:400,
+            color:mode===m.toLowerCase()?T.ink:T.gray,
+            background:mode===m.toLowerCase()?T.warmGray:'transparent',
+            cursor:'pointer', transition:'all .15s ease', borderRadius:8 }}>
+          {m}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ─── AI Button ─── */
+function AIButton({ onClick }) {
+  return (
+    <div onClick={onClick}
+      style={{ width:38, height:38, borderRadius:12, background:T.ink, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'transform .1s', position:'relative' }}>
+      <span style={{ color:'#fff', fontSize:11, fontWeight:700, letterSpacing:'0.03em' }}>AI</span>
+      <div style={{ position:'absolute', top:-2, right:-2, width:8, height:8, borderRadius:4, background:T.mint, border:`2px solid ${T.paper}` }} />
+    </div>
+  );
+}
+
+/* ─── Chatty Message Bubble ─── */
+function ChattyMsg({ children, delay=0 }) {
+  const [show, setShow] = useState(delay===0);
+  useEffect(() => { if(delay>0) { const t=setTimeout(()=>setShow(true),delay); return ()=>clearTimeout(t); } }, []);
+  if(!show) return null;
+  return (
+    <div className="fade-up" style={{ marginBottom:16 }}>
+      <div style={{ fontSize:11, color:T.gray, marginBottom:6, display:'flex', alignItems:'center', gap:5 }}>
+        <span style={{ fontSize:13 }}>💬</span> Chatty
+      </div>
+      <div style={{ background:T.warmGray, borderRadius:16, borderTopLeftRadius:4, padding:'14px 18px', maxWidth:'88%', fontSize:15, lineHeight:1.5, color:T.ink }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Sent Bubble (completed task in the chat) ─── */
+function SentBubble({ item }) {
+  return (
+    <div className="fade-in" style={{ padding:'10px 16px', background:'#E8F5E8', borderRadius:12, marginBottom:12 }}>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+        <span style={{ fontSize:13, fontWeight:500, color:'#2d7a2d' }}>✓ Sent to {item.user}</span>
+        <span style={{ fontSize:10, color:'#6aaa6a' }}>{item.type}</span>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Chatty context narration for a task ─── */
+const NARRATIONS = {
+  1: "This person sent you a DM. They've been trying for 2 years — sounds like they need encouragement. This could be a strong lead.",
+  2: "Quick question from a DM. She's postpartum and wondering if it's right for her — your module covers this perfectly.",
+  3: "Another common question — asking about student discounts. You don't do discounts but you have a payment plan.",
+  4: "One more question — they want to know about results timeline. Pretty straightforward.",
+  5: "This one feels more personal. She says she's tried everything and is scared to spend more. Definitely needs your voice — but I drafted something warm.",
+};
+
+/* ═══════════════════════════════════════════
+   V2 INBOX LAYOUT
+   ═══════════════════════════════════════════ */
+
+/* ─── Collapsible AI Value Summary (top of inbox) ─── */
+function DailyReport({ collapsed, onToggle }) {
+  return (
+    <div onClick={onToggle} style={{ background:T.warmGray, borderRadius:14, padding: collapsed ? '12px 18px' : '18px 20px', marginBottom:16, cursor:'pointer', transition:'all .3s ease' }}>
+      {collapsed ? (
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+          <span style={{ fontSize:13, fontWeight:600, color:T.ink }}>Summary</span>
+          <div style={{ display:'flex', gap:12, alignItems:'center' }}>
+            <span style={{ fontSize:12, color:T.gray }}>47 sorted · 83% clean · 12 drafts · 4m avg</span>
+            <span style={{ fontSize:14, color:'#bbb' }}>+</span>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
+            <span style={{ fontSize:13, fontWeight:600, color:T.ink }}>Summary</span>
+            <span style={{ fontSize:14, color:'#bbb' }}>-</span>
+          </div>
+
+          <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+            {/* Stat: Categorization */}
+            <div>
+              <div style={{ fontSize:22, fontWeight:700, color:T.ink, lineHeight:1.2 }}>47 <span style={{ fontSize:13, fontWeight:400, color:T.gray }}>DMs sorted into categories</span></div>
+            </div>
+
+            {/* Stat: Inbox cleaned */}
+            <div>
+              <div style={{ fontSize:22, fontWeight:700, color:T.ink, lineHeight:1.2 }}>83% <span style={{ fontSize:13, fontWeight:400, color:T.gray }}>inbox cleaned</span></div>
+              <div style={{ fontSize:11, color:'#aaa', marginTop:2 }}>Spam and empty messages filtered out</div>
+            </div>
+
+            {/* Stat: Drafts */}
+            <div>
+              <div style={{ fontSize:22, fontWeight:700, color:T.ink, lineHeight:1.2 }}>12 <span style={{ fontSize:13, fontWeight:400, color:T.gray }}>drafts created</span> · <span style={{ fontSize:18, fontWeight:700, color:T.ink }}>8</span> <span style={{ fontSize:13, fontWeight:400, color:T.gray }}>sent as-is</span></div>
+              <div style={{ fontSize:11, color:'#aaa', marginTop:2 }}>67% accuracy on first try</div>
+            </div>
+
+            {/* Stat: Response time */}
+            <div>
+              <div style={{ fontSize:22, fontWeight:700, color:T.ink, lineHeight:1.2 }}>4 min <span style={{ fontSize:13, fontWeight:400, color:T.gray }}>avg response time</span></div>
+              <div style={{ fontSize:11, color:'#aaa', marginTop:2 }}>3x faster with sorted priorities</div>
+            </div>
+
+            {/* Quote */}
+            <div style={{ padding:'12px 14px', background:'rgba(0,0,0,0.03)', borderRadius:10, borderLeft:'3px solid #E85D04' }}>
+              <div style={{ fontSize:13, color:T.ink, lineHeight:1.5, fontStyle:'italic' }}>"Thanks for answering so quickly, I really appreciate it"</div>
+              <div style={{ fontSize:11, color:T.gray, marginTop:4 }}>@user18</div>
+            </div>
+
+            {/* Learning */}
+            <div style={{ fontSize:12, color:T.gray, lineHeight:1.5 }}>
+              I'm getting better at matching your tone — 15% closer this week
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/* ─── Tab bar ─── */
+function TabBar({ active, setActive, counts }) {
+  const tabs = [
+    { id:'important', label:'Important', count: counts.important },
+    { id:'all', label:'All', count: counts.all },
+  ];
+  return (
+    <div style={{ display:'flex', gap:0, borderBottom:`1px solid ${T.lightGray}`, marginBottom:16 }}>
+      {tabs.map(tab => (
+        <div key={tab.id} onClick={() => setActive(tab.id)}
+          style={{ flex:1, textAlign:'center', padding:'10px 0 10px', cursor:'pointer', position:'relative',
+            fontSize:12, fontWeight: active === tab.id ? 600 : 400,
+            color: active === tab.id ? T.ink : T.gray, transition:'all .2s' }}>
+          {tab.label}
+          {tab.count !== null && tab.count > 0 && (
+            <span style={{ fontSize:9, fontWeight:600, background: active === tab.id ? T.ink : '#ddd', color: active === tab.id ? '#fff' : T.gray,
+              padding:'1px 6px', borderRadius:10, marginLeft:4, verticalAlign:'top' }}>{tab.count}</span>
+          )}
+          {active === tab.id && <div style={{ position:'absolute', bottom:-1, left:'20%', right:'20%', height:2, background:T.ink, borderRadius:1 }} />}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ─── Section header inside tabs ─── */
+function SectionLabel({ label, count }) {
+  return (
+    <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:10, marginTop:16 }}>
+      <span style={{ fontSize:11, fontWeight:600, letterSpacing:'0.06em', color:T.ink, textTransform:'uppercase' }}>{label}</span>
+      {count !== undefined && <span style={{ fontSize:11, color:T.gray }}>· {count}</span>}
+    </div>
+  );
+}
+
+/* ─── Message row (Superhuman-style) ─── */
+function MsgRow({ user, msg, time, badge, badgeColor, onClick }) {
+  return (
+    <div onClick={onClick} style={{ padding:'13px 16px', background:T.cardBg, borderRadius:10, border:`1px solid ${T.lightGray}`, marginBottom:6, cursor:'pointer', transition:'background .15s' }}>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:4 }}>
+        <span style={{ fontSize:14, fontWeight:600, color:T.ink }}>{user}</span>
+        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+          {badge && <span style={{ fontSize:9, fontWeight:600, color: badgeColor || T.gray, background: badgeColor ? badgeColor + '18' : T.warmGray, padding:'2px 8px', borderRadius:10, textTransform:'uppercase', letterSpacing:'0.04em' }}>{badge}</span>}
+          <span style={{ fontSize:11, color:'#ccc' }}>{time}</span>
+        </div>
+      </div>
+      <div style={{ fontSize:13, color:T.gray, lineHeight:1.4, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{msg}</div>
+    </div>
+  );
+}
+
+/* ─── Chat Detail (full-screen overlay) ─── */
+function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent }) {
+  const [mode, setMode] = useState(isSensitive ? 'summary' : 'draft'); // draft, editing, custom, sent, summary
+  const [editVal, setEditVal] = useState(item.draft || '');
+  const [customVal, setCustomVal] = useState('');
+  const [showToast, setShowToast] = useState(false);
+  const [toastMsg, setToastMsg] = useState('');
+  const [sentMsg, setSentMsg] = useState('');
+  const [labelMenu, setLabelMenu] = useState(false); // label feedback
+  const [labelReason, setLabelReason] = useState(false);
+  const [labelHidden, setLabelHidden] = useState(false);
+  const [activeTone, setActiveTone] = useState(null);
+  const originalDraft = item.draft || '';
+
+  // Close label menu when clicking outside
+  useEffect(() => {
+    if (!labelMenu && !labelReason) return;
+    const close = () => { setLabelMenu(false); setLabelReason(false); };
+    const timer = setTimeout(() => document.addEventListener('click', close, { once: true }), 100);
+    return () => { clearTimeout(timer); document.removeEventListener('click', close); };
+  }, [labelMenu, labelReason]);
+
+  const triggerToast = (msg) => {
+    setToastMsg(msg);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 2500);
+  };
+
+  const handleSendDraft = () => {
+    const wasEdited = mode === 'editing';
+    setSentMsg(wasEdited ? editVal : item.draft);
+    setMode('sent');
+    if (wasEdited) {
+      if (activeTone) {
+        triggerToast('Got it — ' + activeTone.toLowerCase() + ' tone for similar messages.');
+      } else {
+        triggerToast('Noted — I\'ll adjust my style based on your edit.');
+      }
+    }
+    if (onSent) onSent(item.user);
+  };
+
+  const handleSendCustom = () => {
+    if (!customVal.trim()) return;
+    setSentMsg(customVal);
+    setMode('sent');
+    if (onSent) onSent(item.user);
+    triggerToast('Got it — I\'ll adjust for next time');
+  };
+
+  const handleDismissDraft = () => {
+    setMode('custom');
+    setCustomVal('');
+  };
+
+  // Fake conversation history
+  const chatHistory = [
+    { from: 'them', text: item.msg, time: item.time || '2h ago' },
+  ];
+  // Add some context messages for richer feel
+  if (item.source === 'DM') {
+    chatHistory.unshift({ from: 'them', text: 'Hey!', time: '2h ago' });
+  }
+
+  return (
+    <div className="fade-up" onClick={(e) => e.stopPropagation()} style={{ position:'absolute', inset:0, zIndex:100, background:T.paper, display:'flex', flexDirection:'column' }}>
+      {/* Header */}
+      <div style={{ padding:'52px 20px 14px', display:'flex', alignItems:'center', justifyContent:'space-between', borderBottom:`1px solid ${T.lightGray}`, flexShrink:0 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+          <div onClick={(e) => { e.stopPropagation(); onClose(); }} style={{ cursor:'pointer', fontSize:20, color:T.ink, fontWeight:300, padding:'8px 12px', margin:'-8px -12px' }}>←</div>
+          <div>
+            <div style={{ fontSize:16, fontWeight:600, color:T.ink }}>{item.user}</div>
+            <div style={{ fontSize:11, color:T.gray }}>{item.source}</div>
+          </div>
+        </div>
+        {!labelHidden && (
+          <div style={{ position:'relative' }} onClick={(e) => { e.stopPropagation(); setLabelMenu(!labelMenu); setLabelReason(false); }}>
+            <div style={{ fontSize:10, fontWeight:600, color:labelColor, background:labelColor+'18', padding:'6px 14px', borderRadius:10, textTransform:'uppercase', letterSpacing:'0.04em', cursor:'pointer', userSelect:'none' }}>{label}</div>
+
+            {/* Label context menu */}
+            {labelMenu && !labelReason && (
+              <div className="fade-in" onClick={(e) => e.stopPropagation()} style={{ position:'absolute', right:0, top:'100%', marginTop:6, background:'#fff', borderRadius:10, border:`1px solid ${T.lightGray}`, boxShadow:'0 4px 16px rgba(0,0,0,0.1)', zIndex:20, minWidth:160, overflow:'hidden' }}>
+                <div onClick={(e) => { e.stopPropagation(); setLabelReason(true); }} style={{ padding:'12px 16px', fontSize:13, color:'#dc2626', cursor:'pointer', borderBottom:`1px solid ${T.lightGray}`, fontWeight:500 }}>
+                  Not a {label.toLowerCase()}
+                </div>
+                <div onClick={(e) => { e.stopPropagation(); setLabelMenu(false); }} style={{ padding:'12px 16px', fontSize:13, color:T.gray, cursor:'pointer' }}>
+                  Cancel
+                </div>
+              </div>
+            )}
+
+            {/* Reason picker */}
+            {labelReason && (
+              <div className="fade-in" onClick={(e) => e.stopPropagation()} style={{ position:'absolute', right:0, top:'100%', marginTop:6, background:'#fff', borderRadius:10, border:`1px solid ${T.lightGray}`, boxShadow:'0 4px 16px rgba(0,0,0,0.1)', zIndex:20, minWidth:200, overflow:'hidden' }}>
+                <div style={{ padding:'10px 16px', fontSize:11, color:T.gray, fontWeight:500, textTransform:'uppercase', letterSpacing:'0.04em', borderBottom:`1px solid ${T.lightGray}` }}>Why is it not a {label.toLowerCase()}?</div>
+                {['Just browsing','Wrong category','Spam or bot','Other'].map(reason => (
+                  <div key={reason} onClick={(e) => { e.stopPropagation(); setLabelHidden(true); setLabelMenu(false); setLabelReason(false); }}
+                    style={{ padding:'12px 16px', fontSize:13, color:T.ink, cursor:'pointer', borderBottom:`1px solid ${T.lightGray}` }}>
+                    {reason}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        {labelHidden && (
+          <span className="fade-in" style={{ fontSize:10, color:'#16a34a', fontWeight:500 }}>Label removed</span>
+        )}
+      </div>
+
+      {/* Chat body */}
+      <div style={{ flex:1, overflowY:'auto', padding:'20px 20px 12px' }}>
+        {chatHistory.map((m, i) => (
+          <div key={i} style={{ marginBottom:12, display:'flex', justifyContent: m.from === 'you' ? 'flex-end' : 'flex-start' }}>
+            <div style={{ maxWidth:'80%', padding:'12px 16px', borderRadius:16, background: m.from === 'you' ? T.ink : '#fff', color: m.from === 'you' ? '#fff' : T.ink, border: m.from === 'them' ? `1px solid ${T.lightGray}` : 'none', borderTopLeftRadius: m.from === 'them' ? 4 : 16, borderTopRightRadius: m.from === 'you' ? 4 : 16 }}>
+              <div style={{ fontSize:14, lineHeight:1.5 }}>{m.text}</div>
+              <div style={{ fontSize:10, color: m.from === 'you' ? 'rgba(255,255,255,0.5)' : '#ccc', marginTop:4, textAlign:'right' }}>{m.time}</div>
+            </div>
+          </div>
+        ))}
+
+        {/* Sent message */}
+        {mode === 'sent' && (
+          <div className="fade-up" style={{ marginBottom:12, display:'flex', justifyContent:'flex-end' }}>
+            <div style={{ maxWidth:'80%', padding:'12px 16px', borderRadius:16, borderTopRightRadius:4, background:T.ink, color:'#fff' }}>
+              <div style={{ fontSize:14, lineHeight:1.5 }}>{sentMsg}</div>
+              <div style={{ fontSize:10, color:'rgba(255,255,255,0.5)', marginTop:4, textAlign:'right' }}>Just now</div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Bottom area */}
+      <div style={{ flexShrink:0, borderTop:`1px solid ${T.lightGray}`, background:T.paper }}>
+
+        {/* Summary mode (for sensitive/needs-a-human) */}
+        {mode === 'summary' && (
+          <div style={{ padding:'16px 20px 40px' }}>
+            <div style={{ background:T.warmGray, borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
+              <div style={{ fontSize:10, fontWeight:600, color:T.gray, textTransform:'uppercase', letterSpacing:'0.05em', marginBottom:6 }}>Summary</div>
+              <div style={{ fontSize:13, color:T.ink, lineHeight:1.55 }}>{item.summary}</div>
+            </div>
+            <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+              <div style={{ flex:1, padding:'12px 16px', background:'#fff', border:`1px solid ${T.lightGray}`, borderRadius:24, display:'flex', alignItems:'center', gap:8 }}>
+                <span style={{ fontSize:16, color:'#ccc' }}>+</span>
+                <input value={customVal} onChange={e => setCustomVal(e.target.value)} placeholder="Write your reply..." onKeyDown={e => e.key === 'Enter' && handleSendCustom()}
+                  style={{ border:'none', outline:'none', fontSize:14, color:T.ink, flex:1, background:'transparent', fontFamily:'Inter' }} />
+              </div>
+              <div onClick={handleSendCustom} style={{ width:40, height:40, borderRadius:20, background: customVal.trim() ? T.ink : T.lightGray, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'background .2s', flexShrink:0 }}>
+                <span style={{ color:'#fff', fontSize:14 }}>↑</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Draft mode */}
+        {mode === 'draft' && (
+          <div style={{ padding:'16px 20px 40px' }}>
+            <div style={{ position:'relative', background:T.warmGray, borderRadius:12, overflow:'hidden', marginBottom:12 }}>
+              <div onClick={handleDismissDraft} style={{ position:'absolute', top:8, right:8, width:32, height:32, borderRadius:16, background:'rgba(0,0,0,0.08)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', fontSize:16, color:T.ink, fontWeight:300, zIndex:2 }}>x</div>
+              <div style={{ padding:'14px 16px 12px', paddingRight:28 }}>
+                <div style={{ fontSize:15, color:T.ink, lineHeight:1.6 }}>{item.draft}</div>
+              </div>
+              {item.reason && (
+                <div style={{ padding:'8px 16px 10px', borderTop:'1px solid rgba(0,0,0,0.06)' }}>
+                  <div style={{ fontSize:11, color:T.gray, lineHeight:1.45 }}>{item.reason}</div>
+                </div>
+              )}
+            </div>
+            <div style={{ display:'flex', gap:8 }}>
+              <button onClick={handleSendDraft} style={{ flex:1, padding:'13px 0', background:T.ink, color:'#fff', border:'none', borderRadius:50, fontSize:14, fontWeight:600, cursor:'pointer' }}>Send</button>
+              <button onClick={() => { setMode('editing'); setEditVal(item.draft); }} style={{ padding:'13px 28px', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:50, fontSize:14, fontWeight:500, cursor:'pointer', color:T.ink }}>Edit</button>
+            </div>
+          </div>
+        )}
+
+        {/* Editing mode */}
+        {mode === 'editing' && (
+          <div style={{ padding:'16px 20px 40px' }}>
+            <textarea value={editVal} onChange={e => setEditVal(e.target.value)}
+              style={{ width:'100%', fontSize:14, color:T.ink, lineHeight:1.5, padding:'14px 16px', border:`1.5px solid ${T.ink}`, borderRadius:12, resize:'none', height:90, fontFamily:'Inter', background:'#fff', outline:'none' }} />
+            <div style={{ display:'flex', gap:6, marginTop:8, marginBottom:12, flexWrap:'wrap' }}>
+              {['Friendly','Formal','Shorter','Direct','Add a question'].map(tone => (
+                <span key={tone} onClick={() => {
+                  setActiveTone(tone);
+                  const base = originalDraft;
+                  if (tone === 'Shorter') {
+                    const sentences = base.split(/(?<=[.!?])\s+/);
+                    setEditVal(sentences.slice(0, Math.ceil(sentences.length / 2)).join(' '));
+                  } else if (tone === 'Friendly') {
+                    setEditVal('Hey! ' + base.charAt(0).toLowerCase() + base.slice(1).replace(/\.$/, '') + ' 😊');
+                  } else if (tone === 'Formal') {
+                    setEditVal('Thank you for reaching out. ' + base.replace(/!/g, '.').replace(/Hey!?\s*/gi, ''));
+                  } else if (tone === 'Direct') {
+                    const sentences = base.split(/(?<=[.!?])\s+/);
+                    setEditVal(sentences.filter(s => s.length > 20).join(' '));
+                  } else if (tone === 'Add a question') {
+                    setEditVal(base.replace(/\.$/, '') + ' — what questions do you have?');
+                  }
+                }} style={{ fontSize:11, padding:'6px 14px', borderRadius:20, border: activeTone === tone ? `1.5px solid ${T.ink}` : `1px solid ${T.lightGray}`, cursor:'pointer', color: activeTone === tone ? '#fff' : T.ink, fontWeight:500, background: activeTone === tone ? T.ink : '#fff', transition:'all .15s ease' }}>{tone}</span>
+              ))}
+            </div>
+            <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+              <span style={{ fontSize:20, color:'#ccc', cursor:'pointer', padding:'0 4px' }}>+</span>
+              <div style={{ flex:1 }}></div>
+              <div onClick={handleSendDraft} style={{ width:40, height:40, borderRadius:20, background:T.ink, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0 }}>
+                <span style={{ color:'#fff', fontSize:14 }}>↑</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Custom mode (draft dismissed) */}
+        {mode === 'custom' && (
+          <div style={{ padding:'16px 20px 40px' }}>
+            <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+              <span style={{ fontSize:20, color:'#ccc', cursor:'pointer', padding:'0 4px', flexShrink:0 }}>+</span>
+              <div style={{ flex:1, padding:'12px 16px', background:'#fff', border:`1px solid ${T.lightGray}`, borderRadius:24 }}>
+                <input value={customVal} onChange={e => setCustomVal(e.target.value)} placeholder="Type your message..." onKeyDown={e => e.key === 'Enter' && handleSendCustom()}
+                  style={{ border:'none', outline:'none', fontSize:14, color:T.ink, width:'100%', background:'transparent', fontFamily:'Inter' }} />
+              </div>
+              <div onClick={handleSendCustom} style={{ width:40, height:40, borderRadius:20, background: customVal.trim() ? T.ink : T.lightGray, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'background .2s', flexShrink:0 }}>
+                <span style={{ color:'#fff', fontSize:14 }}>↑</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Sent mode — back to normal input */}
+        {mode === 'sent' && (
+          <div style={{ padding:'16px 20px 40px' }}>
+            <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+              <span style={{ fontSize:20, color:'#ccc', padding:'0 4px', flexShrink:0 }}>+</span>
+              <div style={{ flex:1, padding:'12px 16px', background:'#fff', border:`1px solid ${T.lightGray}`, borderRadius:24 }}>
+                <input placeholder="Type your message..." style={{ border:'none', outline:'none', fontSize:14, color:T.ink, width:'100%', background:'transparent', fontFamily:'Inter' }} />
+              </div>
+              <div style={{ width:40, height:40, borderRadius:20, background:T.lightGray, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                <span style={{ color:'#fff', fontSize:14 }}>↑</span>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Toast */}
+      {showToast && (
+        <div style={{ position:'absolute', bottom:100, left:'50%', transform:'translateX(-50%)', background:T.ink, color:'#fff', padding:'10px 20px', borderRadius:20, fontSize:13, fontWeight:500, animation:'fadeUp .3s ease-out', whiteSpace:'nowrap', zIndex:110 }}>
+          {toastMsg}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Important Tab ─── */
+function ImportantTab({ onOpenChat, answeredChats }) {
+  const renderGroup = (items, badgeText, badgeColor, isSensitive) => {
+    const pending = items.filter(item => !answeredChats.has(item.user));
+    const answered = items.filter(item => answeredChats.has(item.user));
+    return (
+      <>
+        {pending.map((item,i) => (
+          <MsgRow key={`p${item.user}`} user={item.user} msg={item.msg} time={item.time} badge={isSensitive ? item.flag : badgeText} badgeColor={badgeColor}
+            onClick={() => onOpenChat(item, isSensitive ? item.flag : badgeText, badgeColor, isSensitive)} />
+        ))}
+        {answered.map((item,i) => (
+          <div key={`a${item.user}`} onClick={() => onOpenChat(item, isSensitive ? item.flag : badgeText, badgeColor, isSensitive)}
+            style={{ padding:'10px 16px', background:T.cardBg, borderRadius:10, border:`1px solid ${T.lightGray}`, marginBottom:4, opacity:0.45, cursor:'pointer', transform:'scale(0.97)', transformOrigin:'left center' }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:2 }}>
+              <span style={{ fontSize:13, fontWeight:500, color:T.gray }}>{item.user}</span>
+              <span style={{ fontSize:9, fontWeight:500, color:'#16a34a', background:'#f0fdf4', padding:'2px 8px', borderRadius:10 }}>seen</span>
+            </div>
+            <div style={{ fontSize:12, color:'#bbb', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.msg}</div>
+          </div>
+        ))}
+      </>
+    );
+  };
+
+  return (
+    <div>
+      <div style={{ fontSize:12, color:T.gray, lineHeight:1.5, marginBottom:16, padding:'0 4px' }}>
+        Conversations that need your personal touch. I flagged these for you.
+      </div>
+      <SectionLabel label="Interested in your services" count={IMPORTANT_DATA.services.length} />
+      {renderGroup(IMPORTANT_DATA.services, 'lead', '#E85D04', false)}
+
+      <SectionLabel label="Needs your voice" count={IMPORTANT_DATA.sensitive.length} />
+      {renderGroup(IMPORTANT_DATA.sensitive, '', '#6B21A8', true)}
+
+      <SectionLabel label="May want to collaborate" count={IMPORTANT_DATA.collabs.length} />
+      {renderGroup(IMPORTANT_DATA.collabs, 'collab', '#0369A1', false)}
+
+      <SectionLabel label="Questions" count={QUESTIONS_DATA.length} />
+      {renderGroup(QUESTIONS_DATA, 'question', '#0369A1', false)}
+    </div>
+  );
+}
+
+/* ─── (EngagementTab removed — DMs only prototype) ─── */
+
+/* ─── (OtherTab removed — questions moved into ImportantTab) ─── */
+
+/* ─── In-Progress Detail (full-screen conversation with feedback) ─── */
+function InProgressDetail({ item, onClose }) {
+  const [feedbackMsg, setFeedbackMsg] = useState(null); // index of AI msg being reviewed
+  const [feedbackStep, setFeedbackStep] = useState(null); // 'pick' | 'reason' | 'correction' | 'done'
+  const [selectedReason, setSelectedReason] = useState(null);
+  const [correctionText, setCorrectionText] = useState('');
+  const [correctedDraft, setCorrectedDraft] = useState('');
+
+  const reasons = [
+    'Too pushy / salesy',
+    'Didn\'t answer the question',
+    'Wrong tone',
+    'Shared incorrect info',
+    'Too long',
+  ];
+
+  const handleWrong = (idx) => { setFeedbackMsg(idx); setFeedbackStep('reason'); };
+  const handleGood = (idx) => { setFeedbackMsg(idx); setFeedbackStep('done'); };
+
+  const pickReason = (r) => {
+    setSelectedReason(r);
+    setFeedbackStep('correction');
+    // Generate a "corrected" version
+    const orig = item.conversation[feedbackMsg].text;
+    if (r === 'Too pushy / salesy') setCorrectedDraft(orig.replace(/!+/g, '.').replace(/Want me to/, 'I can'));
+    else if (r === 'Too long') setCorrectedDraft(orig.split('.').slice(0,2).join('.') + '.');
+    else setCorrectedDraft(orig.replace(/\?$/, '. Let me know if you have questions.'));
+  };
+
+  const handleCorrectionGood = () => setFeedbackStep('done');
+
+  return (
+    <div className="fade-up" style={{ position:'absolute', inset:0, zIndex:100, background:T.paper, display:'flex', flexDirection:'column' }}>
+      {/* Header */}
+      <div style={{ padding:'52px 20px 14px', display:'flex', alignItems:'center', justifyContent:'space-between', borderBottom:`1px solid ${T.lightGray}`, flexShrink:0 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+          <div onClick={onClose} style={{ cursor:'pointer', fontSize:20, color:T.ink, padding:'8px 12px', margin:'-8px -12px' }}>←</div>
+          <div>
+            <div style={{ fontSize:16, fontWeight:600, color:T.ink }}>{item.user}</div>
+            <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+              <div style={{ width:6, height:6, borderRadius:3, background:T.accent }} />
+              <span style={{ fontSize:11, color:T.accent }}>{item.step}</span>
+            </div>
+          </div>
+        </div>
+        <span style={{ fontSize:10, fontWeight:600, color:T.accent, background:T.accent+'18', padding:'3px 10px', borderRadius:10, textTransform:'uppercase' }}>in progress</span>
+      </div>
+
+      {/* Conversation */}
+      <div style={{ flex:1, overflowY:'auto', padding:'16px 20px' }}>
+        {item.conversation.map((m, i) => (
+          <div key={i} style={{ marginBottom:12 }}>
+            <div style={{ display:'flex', justifyContent: m.from === 'ai' ? 'flex-end' : 'flex-start' }}>
+              <div style={{ maxWidth:'80%' }}>
+                {m.from === 'ai' && <div style={{ fontSize:10, color:T.gray, marginBottom:3, textAlign:'right' }}>Chatty</div>}
+                <div style={{ padding:'11px 15px', borderRadius:14, background: m.from === 'ai' ? T.warmGray : '#fff', border: m.from === 'them' ? `1px solid ${T.lightGray}` : 'none', borderTopLeftRadius: m.from === 'them' ? 4 : 14, borderTopRightRadius: m.from === 'ai' ? 4 : 14 }}>
+                  <div style={{ fontSize:14, color:T.ink, lineHeight:1.5 }}>{m.text}</div>
+                </div>
+                {/* Feedback buttons for AI messages */}
+                {m.from === 'ai' && feedbackMsg === null && (
+                  <div className="fade-in" style={{ display:'flex', gap:6, justifyContent:'flex-end', marginTop:6 }}>
+                    <button onClick={() => handleGood(i)} style={{ padding:'5px 12px', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:14, fontSize:10, cursor:'pointer', color:T.gray }}>Good</button>
+                    <button onClick={() => handleWrong(i)} style={{ padding:'5px 12px', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:14, fontSize:10, cursor:'pointer', color:T.gray }}>Wrong</button>
+                  </div>
+                )}
+                {/* Feedback: done/good */}
+                {m.from === 'ai' && feedbackMsg === i && feedbackStep === 'done' && (
+                  <div className="fade-in" style={{ fontSize:11, color:'#16a34a', textAlign:'right', marginTop:4 }}>Feedback saved</div>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {/* Feedback flow: reason selection */}
+        {feedbackStep === 'reason' && (
+          <div className="fade-up" style={{ padding:'14px 16px', background:T.warmGray, borderRadius:12, marginBottom:12 }}>
+            <div style={{ fontSize:11, color:T.gray, fontWeight:500, letterSpacing:'0.04em', textTransform:'uppercase', marginBottom:8 }}>Chatty</div>
+            <div style={{ fontSize:13, color:T.ink, marginBottom:12 }}>What went wrong?</div>
+            <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+              {reasons.map(r => (
+                <div key={r} onClick={() => pickReason(r)} style={{ padding:'10px 14px', background:'#fff', borderRadius:8, border:`1px solid ${T.lightGray}`, cursor:'pointer', fontSize:12, color:T.ink }}>
+                  {r}
+                </div>
+              ))}
+              <input placeholder="Something else..." onKeyDown={e => { if(e.key==='Enter' && e.target.value) pickReason(e.target.value); }}
+                style={{ padding:'10px 14px', background:'#fff', borderRadius:8, border:`1px solid ${T.lightGray}`, fontSize:12, color:T.ink, fontFamily:'Inter', outline:'none' }} />
+            </div>
+          </div>
+        )}
+
+        {/* Feedback flow: correction proposal */}
+        {feedbackStep === 'correction' && (
+          <div className="fade-up" style={{ padding:'14px 16px', background:T.warmGray, borderRadius:12, marginBottom:12 }}>
+            <div style={{ fontSize:11, color:T.gray, fontWeight:500, letterSpacing:'0.04em', textTransform:'uppercase', marginBottom:8 }}>Chatty</div>
+            <div style={{ fontSize:13, color:T.ink, marginBottom:10 }}>Got it — {selectedReason.toLowerCase()}. Next time I'd say something like this:</div>
+            <div style={{ padding:'10px 14px', background:'#fff', borderRadius:8, border:`1px solid ${T.lightGray}`, fontSize:13, color:T.ink, lineHeight:1.5, marginBottom:10 }}>
+              {correctedDraft}
+            </div>
+            <div style={{ display:'flex', gap:6 }}>
+              <button onClick={handleCorrectionGood} style={{ padding:'7px 16px', background:T.ink, color:'#fff', border:'none', borderRadius:16, fontSize:11, fontWeight:600, cursor:'pointer' }}>Good</button>
+              <button onClick={() => setFeedbackStep('reason')} style={{ padding:'7px 12px', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:16, fontSize:11, cursor:'pointer', color:T.gray }}>Still wrong</button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ─── All Tab (chronological inbox — value summary moved to top of inbox) ─── */
+function AllTab({ onOpenChat }) {
+  const getOpacity = (category) => {
+    return 1;
+  };
+
+  // Map category to a clickable item for ChatDetail
+  const getChatItem = (m) => {
+    // Find matching item in IMPORTANT_DATA or QUESTIONS_DATA for draft info
+    const allImportant = [...IMPORTANT_DATA.services, ...IMPORTANT_DATA.sensitive, ...IMPORTANT_DATA.collabs, ...QUESTIONS_DATA];
+    const match = allImportant.find(item => item.user === m.user);
+    if (match) return match;
+    return { user: m.user, msg: m.msg, source: 'DM', time: m.time };
+  };
+
+  const handleClick = (m) => {
+    const item = getChatItem(m);
+    const isSensitive = m.category === 'sensitive';
+    onOpenChat(item, m.badge || '', m.badgeColor || T.gray, isSensitive);
+  };
+
+  return (
+    <div>
+      {/* All messages list */}
+      <SectionLabel label="All messages" count={ALL_MESSAGES.length} />
+      {ALL_MESSAGES.map((m, i) => (
+        <div key={i} onClick={() => handleClick(m)}
+          style={{ padding:'13px 16px', background:T.cardBg, borderRadius:10, border:`1px solid ${T.lightGray}`, marginBottom:6, cursor:'pointer', transition:'background .15s', opacity: getOpacity(m.category) }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:4 }}>
+            <span style={{ fontSize:14, fontWeight:600, color:T.ink }}>{m.user}</span>
+            <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+              {m.badge && <span style={{ fontSize:9, fontWeight:600, color: m.badgeColor || T.gray, background: (m.badgeColor || T.gray) + '18', padding:'2px 8px', borderRadius:10, textTransform:'uppercase', letterSpacing:'0.04em' }}>{m.badge}</span>}
+              <span style={{ fontSize:11, color:'#ccc' }}>{m.time}</span>
+            </div>
+          </div>
+          <div style={{ fontSize:13, color:T.gray, lineHeight:1.4, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{m.msg}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ─── V2 Inbox Main ─── */
+/* ─── Morning Brief (full-screen overlay) ─── */
+function MorningBrief({ onDismiss }) {
+  const [showBtn, setShowBtn] = useState(false);
+
+  return (
+    <div className="fade-up" style={{ position:'absolute', inset:0, zIndex:90, background:T.paper, display:'flex', flexDirection:'column', justifyContent:'center', padding:'0 32px' }}>
+      <div style={{ marginBottom:40 }}>
+        <ChattyMessages
+          messages={[
+            "Here's your morning update.",
+            "34 new DMs overnight. I sorted them by priority.",
+            "3 look like potential leads — I drafted replies for you.",
+            "2 felt sensitive. I wrote summaries but left them for you.",
+            "12 were spam or empty — I moved those to the bottom."
+          ]}
+          onAllDone={() => setShowBtn(true)}
+        />
+      </div>
+      <div style={{ opacity: showBtn ? 1 : 0, transform: showBtn ? 'translateY(0)' : 'translateY(12px)', transition:'all .4s ease' }}>
+        <BlackBtn label="Let's start the day" onClick={onDismiss} />
+      </div>
+    </div>
+  );
+}
+
+function InboxV2() {
+  const [morningDismissed, setMorningDismissed] = useState(false);
+  const [reportCollapsed, setReportCollapsed] = useState(true);
+  const [activeTab, setActiveTab] = useState('important');
+  const [openChat, setOpenChat] = useState(null);
+  const [answeredChats, setAnsweredChats] = useState(new Set()); // track answered by user key
+  const scrollRef = useRef(null);
+
+  const handleScroll = () => {
+    if (scrollRef.current && scrollRef.current.scrollTop > 20 && !reportCollapsed) {
+      setReportCollapsed(true);
+    }
+  };
+
+  const handleOpenChat = (item, label, labelColor, isSensitive) => {
+    setOpenChat({ item, label, labelColor, isSensitive });
+  };
+
+  const counts = {
+    important: IMPORTANT_DATA.services.length + IMPORTANT_DATA.sensitive.length + IMPORTANT_DATA.collabs.length + QUESTIONS_DATA.length,
+    all: ALL_MESSAGES.length,
+  };
+
+  return (
+    <div style={{ background:T.paper, height:'100%', display:'flex', flexDirection:'column', position:'relative' }}>
+
+      {/* Morning brief overlay */}
+      {!morningDismissed && (
+        <MorningBrief onDismiss={() => setMorningDismissed(true)} />
+      )}
+
+      {/* Fixed header area */}
+      <div style={{ padding:'52px 20px 0', flexShrink:0 }}>
+        <DailyReport collapsed={reportCollapsed} onToggle={() => setReportCollapsed(!reportCollapsed)} />
+        <TabBar active={activeTab} setActive={setActiveTab} counts={counts} />
+      </div>
+
+      {/* Scrollable content */}
+      <div ref={scrollRef} onScroll={handleScroll}
+        style={{ flex:1, overflowY:'auto', padding:'0 10px 100px 20px' }}>
+        {activeTab === 'important' && <ImportantTab onOpenChat={handleOpenChat} answeredChats={answeredChats} />}
+        {activeTab === 'all' && <AllTab onOpenChat={handleOpenChat} />}
+      </div>
+
+      {/* Chat Detail Overlay */}
+      {openChat && (
+        <ChatDetail
+          item={openChat.item}
+          label={openChat.label}
+          labelColor={openChat.labelColor}
+          isSensitive={openChat.isSensitive}
+          onClose={() => setOpenChat(null)}
+          onSent={(user) => setAnsweredChats(prev => new Set([...prev, user]))}
+        />
+      )}
+    </div>
+  );
+}
+
+
+/* ─── Legacy stubs (referenced by unused components below) ─── */
+const STACKED_DATA = { needsYou:[], reviewDrafts:[], questions:[] };
+const AI_HANDLED = [];
+
+/* ─── LEGACY: Focus Mode (kept for reference but unused in v2) ─── */
+function FocusMode({ reviewIdx, setReviewIdx }) {
+  const [phase, setPhase] = useState('greeting'); // greeting, reviewing, batch, takeover, done
+  const [sentItems, setSentItems] = useState([]);
+  const [batchMode, setBatchMode] = useState(true);
+  const [editing, setEditing] = useState(false);
+  const [editVal, setEditVal] = useState('');
+  const [batchExpanded, setBatchExpanded] = useState(false);
+  const scrollRef = useRef(null);
+
+  const currentItem = REVIEWS[reviewIdx];
+  const allDone = reviewIdx >= REVIEWS.length;
+
+  const batchItems = currentItem && currentItem.batch && batchMode
+    ? REVIEWS.filter(r => r.batch === currentItem.batch && REVIEWS.indexOf(r) >= reviewIdx)
+    : [];
+  const isBatch = batchItems.length >= 2 && batchMode;
+
+  const startReviewing = () => setPhase('reviewing');
+
+  const handleApprove = () => {
+    setSentItems(s => [...s, currentItem]);
+    setReviewIdx(i => i+1);
+    setEditing(false);
+    setPhase('reviewing');
+  };
+  const handleBatchApprove = () => {
+    setSentItems(s => [...s, ...batchItems]);
+    setReviewIdx(i => i + batchItems.length);
+    setBatchMode(false);
+    setPhase('reviewing');
+  };
+  const handleSkip = () => { setReviewIdx(i => i+1); setEditing(false); setPhase('reviewing'); };
+
+  // Check if done after state changes
+  useEffect(() => {
+    if(phase === 'reviewing' && reviewIdx >= REVIEWS.length) setPhase('done');
+  }, [reviewIdx, phase]);
+
+  // Check if next item is a batch
+  useEffect(() => {
+    if(phase === 'reviewing' && isBatch) setPhase('batch');
+  }, [reviewIdx, phase]);
+
+  useEffect(() => {
+    if(scrollRef.current) setTimeout(() => { scrollRef.current.scrollTop = scrollRef.current.scrollHeight; }, 50);
+  }, [phase, reviewIdx, sentItems.length, editing]);
+
+  useEffect(() => { if(currentItem) setEditVal(currentItem.draft); }, [reviewIdx]);
+
+  return (
+    <div style={{ height:'calc(100% - 120px)', display:'flex', flexDirection:'column' }}>
+      <div ref={scrollRef} style={{ flex:1, overflowY:'auto', padding:'0 24px 20px' }}>
+
+        {/* ── Phase: Greeting (clean, one message) ── */}
+        {phase === 'greeting' && (
+          <div className="fade-up" style={{ display:'flex', flexDirection:'column', alignItems:'flex-start', paddingTop:40 }}>
+            <div style={{ fontSize:48, marginBottom:32 }}>💬</div>
+            <div style={{ marginBottom:12 }}>
+              <div style={{ fontSize:11, color:T.gray, marginBottom:5 }}>Chatty</div>
+              <div style={{ background:T.warmGray, borderRadius:16, borderTopLeftRadius:4, padding:'16px 20px', maxWidth:'90%' }}>
+                <div style={{ fontSize:16, color:T.ink, lineHeight:1.5 }}>
+                  Good morning ☀️
+                </div>
+                <div style={{ fontSize:14, color:T.ink, lineHeight:1.6, marginTop:10 }}>
+                  Chatty drafted responses for 2 lead inquiries and 1 FAQ. Ready when you are.
+                </div>
+                <div style={{ fontSize:14, color:T.ink, marginTop:12, fontWeight:500 }}>
+                  {REVIEWS.length} replies to review. Wanna take a look?
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Phase: Reviewing (one task at a time, scrollable history) ── */}
+        {(phase === 'reviewing' || phase === 'batch' || phase === 'takeover') && (
+          <>
+            {/* Sent items scroll history */}
+            {sentItems.map((item) => (
+              <SentBubble key={`sent-${item.id}`} item={item} />
+            ))}
+
+            {/* Current single task */}
+            {phase === 'reviewing' && currentItem && !isBatch && (
+              <div className="fade-up">
+                <div style={{ marginBottom:10 }}>
+                  <div style={{ fontSize:11, color:T.gray, marginBottom:5, display:'flex', alignItems:'center', gap:5 }}>
+                    💬 Chatty · {reviewIdx+1} of {REVIEWS.length}
+                  </div>
+                  <div style={{ background:T.warmGray, borderRadius:14, borderTopLeftRadius:4, padding:'14px 16px', maxWidth:'90%' }}>
+                    <div style={{ fontSize:14, fontWeight:600, color:T.ink, marginBottom:4 }}>
+                      {currentItem.user} <span style={{ fontWeight:400, color:T.gray }}>· {currentItem.source}</span>
+                    </div>
+                    <div style={{ fontSize:14, color:T.ink, lineHeight:1.5 }}>
+                      {NARRATIONS[currentItem.id]}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Their message */}
+                <div style={{ marginLeft:16, marginBottom:10 }}>
+                  <div style={{ padding:'12px 16px', background:'#fff', border:`1px solid ${T.lightGray}`, borderRadius:12, borderTopLeftRadius:4, maxWidth:'85%' }}>
+                    <div style={{ fontSize:14, color:T.ink, lineHeight:1.5, fontStyle:'italic' }}>"{currentItem.msg}"</div>
+                  </div>
+                </div>
+
+                {/* Draft intro + draft */}
+                <div style={{ marginBottom:6 }}>
+                  <div style={{ fontSize:11, color:T.gray, marginBottom:5 }}>💬 Chatty</div>
+                  <div style={{ background:T.warmGray, borderRadius:14, borderTopLeftRadius:4, padding:'10px 16px', maxWidth:'55%', fontSize:13, color:T.ink }}>
+                    I'd answer with this:
+                  </div>
+                </div>
+                <div style={{ marginLeft:16, marginBottom:8 }}>
+                  {!editing ? (
+                    <div style={{ padding:'14px 16px', background:'#fff', border:`1px solid ${T.lightGray}`, borderRadius:12, maxWidth:'90%' }}>
+                      <div style={{ fontSize:14, color:T.ink, lineHeight:1.55 }}>{currentItem.draft}</div>
+                    </div>
+                  ) : (
+                    <div style={{ maxWidth:'90%' }}>
+                      <textarea value={editVal} onChange={e=>setEditVal(e.target.value)}
+                        style={{ width:'100%', fontSize:14, color:T.ink, lineHeight:1.5, padding:'14px 16px', border:`2px solid ${T.accent}`, borderRadius:12, resize:'none', height:100, fontFamily:'Inter', background:'#fff', outline:'none' }} />
+                      <div style={{ display:'flex', gap:6, marginTop:8, flexWrap:'wrap' }}>
+                        {['Shorter','Warmer','Add a question','More direct'].map(c => (
+                          <span key={c} style={{ fontSize:11, padding:'5px 12px', borderRadius:20, border:`1px solid ${T.lightGray}`, cursor:'pointer', color:T.ink, fontWeight:500, background:'#fff' }}>{c}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Batch */}
+            {phase === 'batch' && (
+              <div className="fade-up">
+                <div style={{ marginBottom:10 }}>
+                  <div style={{ fontSize:11, color:T.gray, marginBottom:5 }}>💬 Chatty</div>
+                  <div style={{ background:T.warmGray, borderRadius:14, borderTopLeftRadius:4, padding:'14px 16px', maxWidth:'90%' }}>
+                    <div style={{ fontSize:14, color:T.ink, lineHeight:1.5 }}>
+                      These {batchItems.length} are very similar — all FAQ replies about your program. Want to approve them all?
+                    </div>
+                  </div>
+                </div>
+                <div style={{ marginLeft:16, marginBottom:8 }}>
+                  {(batchExpanded ? batchItems : batchItems).map((item,i) => (
+                    <div key={i} style={{ padding:'12px 14px', background:'#fff', border:`1px solid ${T.lightGray}`, borderRadius:10, marginBottom:6,
+                      opacity: !batchExpanded && i > 0 ? 0.6 : 1 }}>
+                      <div style={{ fontSize:13, fontWeight:600, color:T.ink }}>{item.user} <span style={{ fontWeight:400, color:T.gray }}>· {item.type}</span></div>
+                      <div style={{ fontSize:13, color:T.gray, fontStyle:'italic', marginTop:3 }}>"{item.msg.slice(0,50)}{item.msg.length>50?'...':''}"</div>
+                      {batchExpanded && (
+                        <div style={{ fontSize:12, color:T.ink, marginTop:8, paddingTop:8, borderTop:`1px solid ${T.lightGray}`, lineHeight:1.4 }}>
+                          Draft: {item.draft}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  {!batchExpanded && (
+                    <div onClick={() => setBatchExpanded(true)} style={{ fontSize:12, color:T.accent, cursor:'pointer', marginTop:4, fontWeight:500 }}>
+                      Show drafts →
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Take over */}
+            {phase === 'takeover' && currentItem && (
+              <div className="fade-up">
+                <div style={{ marginBottom:10 }}>
+                  <div style={{ fontSize:11, color:T.gray, marginBottom:5 }}>💬 Chatty</div>
+                  <div style={{ background:T.warmGray, borderRadius:14, borderTopLeftRadius:4, padding:'12px 16px', maxWidth:'65%', fontSize:14, color:T.ink }}>
+                    All yours! Write your reply:
+                  </div>
+                </div>
+                <div style={{ marginLeft:16, maxWidth:'90%' }}>
+                  <textarea placeholder="Type your reply..."
+                    style={{ width:'100%', padding:'14px 16px', borderRadius:12, border:`1px solid ${T.lightGray}`, fontSize:14, lineHeight:1.5, resize:'none', height:90, fontFamily:'Inter', background:'#fff', outline:'none', color:T.ink }} />
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ── Phase: Done ── */}
+        {phase === 'done' && (
+          <>
+            {sentItems.map((item) => (
+              <SentBubble key={`sent-${item.id}`} item={item} />
+            ))}
+            <div className="fade-up" style={{ textAlign:'center', padding:'40px 20px' }}>
+              <div style={{ fontSize:48, marginBottom:16 }}>✨</div>
+              <h2 style={{ fontSize:22, fontWeight:700, color:T.ink, marginBottom:8 }}>All caught up</h2>
+              <p style={{ fontSize:14, color:T.gray, lineHeight:1.5 }}>Chatty learned 2 new preferences from your edits.</p>
+              <p style={{ fontSize:13, color:'#bbb', marginTop:20 }}>Go create something.</p>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* ─── Pinned bottom bar ─── */}
+      {phase === 'greeting' && (
+        <div style={{ padding:'12px 24px 28px', display:'flex', gap:10 }}>
+          <button style={{ flex:1, padding:'14px 0', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:50, fontSize:14, fontWeight:500, cursor:'pointer', color:T.ink }}>
+            Summary first
+          </button>
+          <button onClick={startReviewing} style={{ flex:1, padding:'14px 0', background:T.ink, color:'#fff', border:'none', borderRadius:50, fontSize:14, fontWeight:600, cursor:'pointer' }}>
+            Start reviewing
+          </button>
+        </div>
+      )}
+
+      {phase === 'reviewing' && currentItem && !isBatch && (
+        <div style={{ padding:'12px 24px 28px', borderTop:`1px solid ${T.lightGray}`, display:'flex', gap:8, alignItems:'center' }}>
+          <button onClick={handleApprove} style={{ flex:1, padding:'14px 0', background:T.ink, color:'#fff', border:'none', borderRadius:50, fontSize:14, fontWeight:600, cursor:'pointer' }}>
+            {editing ? 'Send edited' : 'Approve'}
+          </button>
+          <button onClick={() => { setEditing(!editing); if(currentItem) setEditVal(currentItem.draft); }}
+            style={{ padding:'14px 20px', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:50, fontSize:13, fontWeight:500, cursor:'pointer', color:T.ink }}>
+            {editing ? 'Cancel' : 'Edit'}
+          </button>
+          <button onClick={handleSkip} style={{ padding:'14px 16px', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:50, fontSize:13, fontWeight:500, cursor:'pointer', color:T.gray }}>
+            Skip
+          </button>
+          <button onClick={() => setPhase('takeover')} style={{ padding:'14px 0', background:'transparent', border:'none', fontSize:11, fontWeight:500, cursor:'pointer', color:'#bbb' }}>
+            I'll take over
+          </button>
+        </div>
+      )}
+
+      {phase === 'batch' && (
+        <div style={{ padding:'12px 24px 28px', borderTop:`1px solid ${T.lightGray}`, display:'flex', gap:8 }}>
+          <button onClick={handleBatchApprove} style={{ flex:1, padding:'14px 0', background:T.ink, color:'#fff', border:'none', borderRadius:50, fontSize:14, fontWeight:600, cursor:'pointer' }}>
+            Approve all {batchItems.length}
+          </button>
+          <button onClick={() => { setBatchMode(false); setPhase('reviewing'); }} style={{ padding:'14px 20px', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:50, fontSize:13, fontWeight:500, cursor:'pointer', color:T.ink }}>
+            One by one
+          </button>
+        </div>
+      )}
+
+      {phase === 'takeover' && (
+        <div style={{ padding:'12px 24px 28px', borderTop:`1px solid ${T.lightGray}`, display:'flex', gap:8 }}>
+          <button onClick={() => { setSentItems(s => [...s, currentItem]); setReviewIdx(i=>i+1); setPhase('reviewing'); }}
+            style={{ flex:1, padding:'14px 0', background:T.ink, color:'#fff', border:'none', borderRadius:50, fontSize:14, fontWeight:600, cursor:'pointer' }}>
+            Send my reply
+          </button>
+          <button onClick={() => setPhase('reviewing')} style={{ padding:'14px 20px', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:50, fontSize:13, fontWeight:500, cursor:'pointer', color:T.gray }}>
+            Back
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Stacked Mode ─── */
+function StackedMode() {
+  return (
+    <div style={{ padding:'0 24px', paddingBottom:80, overflowY:'auto', height:'calc(100% - 120px)' }}>
+      {/* Daily brief */}
+      <div style={{ background:T.warmGray, borderRadius:14, padding:'16px 20px', marginBottom:28 }}>
+        <div style={{ fontSize:13, fontWeight:600, color:T.ink }}>Today</div>
+        <div style={{ fontSize:13, color:T.gray, marginTop:4 }}>47 handled · 4 corrections · 2m avg</div>
+      </div>
+
+      {/* Needs You */}
+      <div style={{ marginBottom:28 }}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
+          <div style={{ fontSize:11, fontWeight:600, letterSpacing:'0.08em', color:T.ink, textTransform:'uppercase' }}>
+            Needs you <span style={{ fontWeight:400, color:T.gray }}>· {STACKED_DATA.needsYou.length}</span>
+          </div>
+          <span style={{ fontSize:16, color:'#ccc', cursor:'grab' }}>≡</span>
+        </div>
+        {STACKED_DATA.needsYou.map((item,i) => (
+          <div key={i} style={{ padding:'14px 18px', background:T.cardBg, borderRadius:12, border:`1px solid ${T.lightGray}`, marginBottom:8, cursor:'pointer' }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <span style={{ fontSize:14, fontWeight:600, color:T.ink }}>{item.user}</span>
+              <span style={{ fontSize:10, fontWeight:500, color:T.ink, border:`1px solid ${T.lightGray}`, padding:'2px 10px', borderRadius:20 }}>needs you</span>
+            </div>
+            <div style={{ fontSize:13, color:T.gray, marginTop:5 }}>{item.msg}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Review Drafts */}
+      <div style={{ marginBottom:28 }}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
+          <div style={{ fontSize:11, fontWeight:600, letterSpacing:'0.08em', color:T.ink, textTransform:'uppercase' }}>
+            Review drafts <span style={{ fontWeight:400, color:T.gray }}>· {STACKED_DATA.reviewDrafts.length}</span>
+          </div>
+          <span style={{ fontSize:16, color:'#ccc', cursor:'grab' }}>≡</span>
+        </div>
+        {STACKED_DATA.reviewDrafts.map((item,i) => (
+          <div key={i} style={{ padding:'14px 18px', background:T.cardBg, borderRadius:12, border:`1px solid ${T.lightGray}`, marginBottom:8, cursor:'pointer' }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <span style={{ fontSize:14, fontWeight:600, color:T.ink }}>{item.user}</span>
+              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                <span style={{ fontSize:10, color:T.gray, background:T.warmGray, padding:'2px 10px', borderRadius:20 }}>{item.skill}</span>
+                <span style={{ width:7, height:7, borderRadius:'50%', background: item.confidence==='high' ? T.accent : '#ccc' }} />
+              </div>
+            </div>
+            <div style={{ fontSize:13, color:T.gray, marginTop:5 }}>{item.msg}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Questions */}
+      <div style={{ marginBottom:28 }}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
+          <div style={{ fontSize:11, fontWeight:600, letterSpacing:'0.08em', color:T.ink, textTransform:'uppercase' }}>
+            Questions <span style={{ fontWeight:400, color:T.gray }}>· {STACKED_DATA.questions.length}</span>
+          </div>
+          <span style={{ fontSize:16, color:'#ccc', cursor:'grab' }}>≡</span>
+        </div>
+        {STACKED_DATA.questions.map((item,i) => (
+          <div key={i} style={{ padding:'14px 18px', background:T.cardBg, borderRadius:12, border:`1px solid ${T.lightGray}`, marginBottom:8 }}>
+            <div style={{ fontSize:14, fontWeight:600, color:T.ink }}>{item.user}</div>
+            <div style={{ fontSize:13, color:T.gray, marginTop:5 }}>{item.msg}</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ textAlign:'center', fontSize:12, color:'#ccc', padding:'10px 0 30px' }}>
+        Drag sections to reorganize · Chatty remembers your layout
+      </div>
+    </div>
+  );
+}
+
+/* ─── AI Dark Panel ─── */
+function AIPanel({ onClose }) {
+  const [expanded, setExpanded] = useState(null);
+
+  return (
+    <div style={{ background:T.darkBg, height:'100%', overflowY:'auto', padding:'0 0 40px' }}>
+      {/* Header */}
+      <div style={{ padding:'56px 24px 16px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+        <div onClick={onClose} style={{ fontSize:14, color:'#888', cursor:'pointer', fontWeight:500 }}>← Paper</div>
+        <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:12, color:T.mint }}>
+          <div style={{ width:6, height:6, borderRadius:3, background:T.mint, animation:'pulse 2s infinite' }} />
+          live
+        </div>
+      </div>
+
+      <div style={{ padding:'0 24px' }}>
+        {/* Title */}
+        <div style={{ fontSize:13, color:'#555', marginBottom:28, fontWeight:500 }}>Chatty is working</div>
+
+        {/* Handled today */}
+        <div style={{ background:T.darkSurface, borderRadius:16, padding:'20px', marginBottom:20, border:`1px solid ${T.darkBorder}` }}>
+          <div style={{ fontSize:13, fontWeight:600, color:'#999', marginBottom:14, letterSpacing:'0.05em', textTransform:'uppercase' }}>Handled today</div>
+          <div style={{ display:'flex', gap:16, marginBottom:16 }}>
+            <div><span style={{ fontSize:24, fontWeight:700, color:'#fff' }}>34</span><span style={{ fontSize:11, color:'#666', marginLeft:4 }}>DMs</span></div>
+            <div><span style={{ fontSize:24, fontWeight:700, color:'#fff' }}>126</span><span style={{ fontSize:11, color:'#666', marginLeft:4 }}>comments</span></div>
+            <div><span style={{ fontSize:24, fontWeight:700, color:'#fff' }}>4</span><span style={{ fontSize:11, color:'#666', marginLeft:4 }}>corrections</span></div>
+          </div>
+          {/* Mini bar */}
+          <div style={{ height:4, background:'#2a2a2c', borderRadius:2, overflow:'hidden', marginBottom:10 }}>
+            <div style={{ width:'85%', height:'100%', background:T.mint, borderRadius:2 }} />
+          </div>
+          <div style={{ fontSize:12, color:'#666' }}>2m avg response time</div>
+        </div>
+
+        {/* Approval rates */}
+        <div style={{ background:T.darkSurface, borderRadius:16, padding:'20px', marginBottom:20, border:`1px solid ${T.darkBorder}` }}>
+          <div style={{ fontSize:13, fontWeight:600, color:'#999', marginBottom:16, letterSpacing:'0.05em', textTransform:'uppercase' }}>Approval rates</div>
+          {[
+            { name:'FAQ replies', pct:82 },
+            { name:'Lead qualification', pct:74 },
+            { name:'Positive comments', pct:91 },
+          ].map((s,i) => (
+            <div key={i} style={{ marginBottom:i<2?16:0 }}>
+              <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
+                <span style={{ fontSize:13, color:'#ccc' }}>{s.name}</span>
+                <span style={{ fontSize:13, color:T.mint, fontWeight:600 }}>{s.pct}%</span>
+              </div>
+              <div style={{ height:4, background:'#2a2a2c', borderRadius:2, overflow:'hidden' }}>
+                <div style={{ width:`${s.pct}%`, height:'100%', background:T.mint, borderRadius:2, transition:'width .5s ease' }} />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Recent auto-handled */}
+        <div style={{ marginBottom:20 }}>
+          <div style={{ fontSize:13, fontWeight:600, color:'#999', marginBottom:14, letterSpacing:'0.05em', textTransform:'uppercase' }}>Recently handled</div>
+          {AI_HANDLED.map((item,i) => (
+            <div key={i}>
+              <div onClick={() => setExpanded(expanded===i?null:i)}
+                style={{ background:T.darkSurface, borderRadius: expanded===i ? '14px 14px 0 0' : 14, padding:'14px 18px', marginBottom: expanded===i ? 0 : 8,
+                  border:`1px solid ${T.darkBorder}`, cursor:'pointer', transition:'all .15s ease',
+                  borderBottom: expanded===i ? 'none' : undefined }}>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                  <span style={{ fontSize:14, fontWeight:500, color:'#ddd' }}>{item.user}</span>
+                  <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                    <span style={{ fontSize:10, color:T.mintDim, background:'rgba(79,255,176,0.1)', padding:'2px 10px', borderRadius:20 }}>{item.type}</span>
+                    <span style={{ fontSize:11, color:'#555' }}>{item.status}</span>
+                  </div>
+                </div>
+                <div style={{ fontSize:13, color:'#777', marginTop:5 }}>{item.msg}</div>
+              </div>
+              {expanded===i && item.draft && (
+                <div className="fade-in" style={{ background:T.darkSurface, borderRadius:'0 0 14px 14px', padding:'0 18px 16px', marginBottom:8,
+                  border:`1px solid ${T.darkBorder}`, borderTop:'none' }}>
+                  <div style={{ borderTop:`1px solid ${T.darkBorder}`, paddingTop:14 }}>
+                    <div style={{ fontSize:12, color:'#666', marginBottom:6 }}>Chatty replied:</div>
+                    <div style={{ fontSize:13, color:'#bbb', lineHeight:1.5, marginBottom:14 }}>{item.draft}</div>
+                    <div style={{ display:'flex', gap:8 }}>
+                      <span style={{ fontSize:12, padding:'6px 16px', background:'rgba(79,255,176,0.15)', color:T.mint, borderRadius:20, cursor:'pointer', fontWeight:500 }}>Looks good</span>
+                      <span style={{ fontSize:12, padding:'6px 16px', border:`1px solid ${T.darkBorder}`, color:'#888', borderRadius:20, cursor:'pointer' }}>Flag this</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Patterns learned */}
+        <div style={{ background:T.darkSurface, borderRadius:16, padding:'20px', border:`1px solid ${T.darkBorder}` }}>
+          <div style={{ fontSize:13, fontWeight:600, color:'#999', marginBottom:10, letterSpacing:'0.05em', textTransform:'uppercase' }}>Patterns learned</div>
+          <div style={{ fontSize:13, color:T.mint, marginBottom:10 }}>3 new this week</div>
+          <div style={{ fontSize:12, color:'#777', lineHeight:1.6 }}>
+            Shorter lead replies · Emoji-free FAQs ·<br/>Warmer tone for comments
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Input Bar ─── */
+function InputBar() {
+  return (
+    <div style={{ position:'absolute', bottom:0, left:0, right:0, padding:'10px 24px 30px', background:`linear-gradient(transparent, ${T.paper} 20%)` }}>
+      <div style={{ display:'flex', alignItems:'center', background:T.cardBg, borderRadius:28, border:`1px solid ${T.lightGray}`, padding:'12px 20px' }}>
+        <span style={{ fontSize:14, color:'#bbb', flex:1 }}>Talk to Chatty...</span>
+        <span style={{ fontSize:18, color:'#ccc' }}>↑</span>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════
+   MAIN APP — V2
+   ═══════════════════════════════════════════ */
+function App() {
+  const [screen, setScreen] = useState(window.location.hash === '#inbox' ? 'main' : 'ob-welcome');
+  const [confidence, setConfidence] = useState('mid');
+
+  return (
+    <div style={{ width:'100%', height:'100%', position:'relative', overflow:'hidden' }}>
+
+      {/* ─── Onboarding ─── */}
+      {screen === 'ob-welcome' && <ObWelcome onNext={() => setScreen('ob-workflow')} />}
+      {screen === 'ob-workflow' && <ObWorkflow onNext={() => setScreen('ob-analyzing')} onBack={() => setScreen('ob-welcome')} />}
+      {screen === 'ob-analyzing' && <ObAnalyzing onNext={() => setScreen('ob-insights')} onBack={() => setScreen('ob-workflow')} />}
+      {screen === 'ob-insights' && <ObInsights onNext={() => setScreen('ob-leaddef')} />}
+      {screen === 'ob-leaddef' && <ObLeadDef onNext={() => setScreen('ob-settingup')} onBack={() => setScreen('ob-insights')} />}
+      {screen === 'ob-settingup' && <ObSettingUp onNext={() => setScreen('ob-stats')} />}
+      {screen === 'ob-stats' && <ObStats onNext={() => setScreen('ob-loading')} onBack={() => setScreen('ob-settingup')} />}
+      {screen === 'ob-loading' && <ObLoading onNext={() => setScreen('main')} />}
+
+      {/* ─── V2 Inbox ─── */}
+      {screen === 'main' && <InboxV2 />}
+
+      {/* ──────────────────────────────────────────────────────────
+          PROTOTYPE ONLY — Skip onboarding button for testing.
+          This will NOT exist in production for real users.
+          ────────────────────────────────────────────────────────── */}
+      {screen !== 'main' && (
+        <div onClick={() => setScreen('main')} style={{ position:'absolute', bottom:12, right:20, zIndex:999, fontSize:11, color:'#dc2626', cursor:'pointer', padding:'6px 14px', background:'rgba(220,38,38,0.08)', borderRadius:20, fontWeight:500 }}>
+          skip →
+        </div>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
