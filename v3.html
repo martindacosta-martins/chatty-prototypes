@@ -444,17 +444,17 @@ function ObInsights({ onNext }) {
       <div style={{ padding: '60px 28px 0', flex: 1 }}>
         <ChattyMessages
           messages={[
-            "I'll help you manage your conversations and ensure your style stays yours.",
+            "I noticed a couple of things from your style.",
             "You reply fast to lead inquiries. People trust you because of it.",
             "Your tone is warm but direct. You always give a clear next step.",
             "Your positive replies feel genuine, not copy-paste. That's rare.",
-            "Tell me about your business."
+            "I'll help you manage your conversations and ensure your style stays yours."
           ]}
           onAllDone={() => setShowBtn(true)}
         />
       </div>
       <div style={{ padding: '0 28px 50px', opacity: showBtn ? 1 : 0, transform: showBtn ? 'translateY(0)' : 'translateY(12px)', transition: 'all .4s ease' }}>
-        <BlackBtn label="Next →" onClick={onNext} />
+        <BlackBtn label="About your business →" onClick={onNext} />
       </div>
     </div>
   );
@@ -473,7 +473,7 @@ function ObLeadDef({ onNext }) {
         <ChattyMessages
           messages={[
             "I've analyzed your business model.",
-            "Let's define what a deal looks like for you so I know who to prioritize."
+            "Let's define what a lead looks like for you so I know who to prioritize."
           ]}
           onAllDone={() => setShowBtn(true)}
         />
@@ -483,7 +483,7 @@ function ObLeadDef({ onNext }) {
             <div style={{ fontSize: 11, color: T.gray, marginBottom: 8, fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase' }}>· Chatty</div>
             <div style={{ background: T.warmGray, borderRadius: 14, padding: '16px 18px' }}>
               <div style={{ fontSize: 14, color: T.ink, lineHeight: 1.5, marginBottom: 12 }}>
-                A deal for you is...
+                A lead for you is...
               </div>
               <textarea
                 value={leadInput}
@@ -492,7 +492,7 @@ function ObLeadDef({ onNext }) {
                 style={{ width: '100%', fontSize: 14, color: T.ink, lineHeight: 1.55, padding: '14px 16px', border: `1.5px solid ${T.lightGray}`, borderRadius: 12, resize: 'none', height: expanded ? 120 : 70, fontFamily: 'Inter', background: '#fff', outline: 'none', transition: 'height .2s ease' }}
               />
               <div style={{ fontSize: 12, color: T.gray, marginTop: 8, lineHeight: 1.4 }}>
-                Expand on this to help me understand your ideal customer better.
+                Expand on this to help me understand your ideal customer better — age, geographic zone, interests, budget...
               </div>
             </div>
           </div>
