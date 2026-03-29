@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Progressive Autonomy — Wireframes</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+    background: #f5f5f5;
+    color: #1a1a1a;
+    padding: 40px 20px;
+  }
+
+  .page-header {
+    max-width: 1400px;
+    margin: 0 auto 48px;
+  }
+  .page-header h1 {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .page-header p {
+    font-size: 16px;
+    color: #666;
+    max-width: 700px;
+    line-height: 1.5;
+  }
+
+  /* Stage layout */
+  .stage {
+    max-width: 1400px;
+    margin: 0 auto 64px;
+    background: white;
+    border-radius: 20px;
+    padding: 32px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .stage-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 8px;
+  }
+  .stage-label {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: white;
+    background: #1a1a1a;
+    padding: 4px 12px;
+    border-radius: 100px;
+  }
+  .stage-title {
+    font-size: 22px;
+    font-weight: 700;
+  }
+  .stage-subtitle {
+    font-size: 14px;
+    color: #888;
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+  .stage-context {
+    font-size: 13px;
+    color: #aaa;
+    margin-bottom: 24px;
+    padding: 12px 16px;
+    background: #f9f9f9;
+    border-radius: 12px;
+    line-height: 1.6;
+  }
+  .stage-context strong { color: #666; }
+
+  /* Phone frames side by side */
+  .phones {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .phone-wrapper {
+    text-align: center;
+  }
+  .phone-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+    color: #999;
+  }
+  .phone-label.front-label { color: #007AFF; }
+  .phone-label.back-label { color: #888; }
+
+  /* Phone frame */
+  .phone {
+    width: 320px;
+    height: 693px;
+    border-radius: 40px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06);
+  }
+  .phone.front-phone {
+    background: #FFFFFF;
+  }
+  .phone.back-phone {
+    background: #111111;
+  }
+
+  /* Status bar */
+  .status-bar {
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .front-phone .status-bar { color: #1a1a1a; }
+  .back-phone .status-bar { color: #fff; }
+
+  /* Front phone content */
+  .front-content {
+    padding: 0 16px 16px;
+    overflow-y: auto;
+    height: calc(100% - 48px - 56px);
+  }
+  .front-header {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #999;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .front-header .count {
+    background: #f0f0f0;
+    padding: 2px 8px;
+    border-radius: 100px;
+    font-size: 11px;
+    color: #666;
+  }
+
+  /* Message list item (Stage 1) */
+  .msg-item {
+    display: flex;
+    gap: 10px;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .msg-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #e8e8e8;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: #999;
+  }
+  .msg-body { flex: 1; min-width: 0; }
+  .msg-name {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 2px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .msg-name .time { font-size: 11px; color: #bbb; font-weight: 400; }
+  .msg-preview {
+    font-size: 13px;
+    color: #888;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .msg-tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-top: 4px;
+  }
+  .tag-lead { background: #E8F5E9; color: #2E7D32; }
+  .tag-sensitive { background: #FFF3E0; color: #E65100; }
+  .tag-collab { background: #E3F2FD; color: #1565C0; }
+  .tag-question { background: #F3E5F5; color: #7B1FA2; }
+  .tag-comment { background: #FFF8E1; color: #F57F17; }
+
+  /* Draft preview under message */
+  .msg-draft {
+    margin-top: 6px;
+    padding: 8px 10px;
+    background: #f7f7f7;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #666;
+    line-height: 1.4;
+    border-left: 2px solid #007AFF;
+  }
+  .msg-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+  }
+  .msg-btn {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    background: white;
+    color: #666;
+    font-weight: 500;
+  }
+  .msg-btn.primary {
+    background: #007AFF;
+    color: white;
+    border-color: #007AFF;
+  }
+
+  /* Swipe card (Stage 2) */
+  .swipe-card {
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .swipe-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .swipe-progress {
+    font-size: 12px;
+    color: #999;
+    text-align: center;
+    margin-bottom: 12px;
+  }
+  .swipe-draft {
+    padding: 10px 12px;
+    background: #f7f9fb;
+    border-radius: 10px;
+    font-size: 13px;
+    color: #555;
+    line-height: 1.5;
+    margin: 10px 0;
+    border-left: 3px solid #007AFF;
+  }
+  .swipe-reasoning {
+    font-size: 11px;
+    color: #aaa;
+    margin-bottom: 12px;
+    font-style: italic;
+  }
+  .swipe-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+  }
+  .swipe-main-btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    text-align: center;
+    border: none;
+  }
+  .swipe-main-btn.blue {
+    background: #007AFF;
+    color: white;
+  }
+  .swipe-secondary {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+  }
+  .swipe-sec-btn {
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: 100px;
+    border: 1px solid #e0e0e0;
+    background: #fafafa;
+    color: #777;
+  }
+
+  /* Grouped card (Stage 2) */
+  .grouped-card {
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .grouped-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #999;
+    margin-bottom: 6px;
+  }
+  .grouped-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .grouped-items {
+    list-style: none;
+  }
+  .grouped-items li {
+    font-size: 13px;
+    color: #666;
+    padding: 6px 0;
+    border-bottom: 1px solid #f5f5f5;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .grouped-items li:last-child { border-bottom: none; }
+  .grouped-mini-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #eee;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: #aaa;
+  }
+  .grouped-note {
+    font-size: 11px;
+    color: #aaa;
+    margin: 8px 0 12px;
+    font-style: italic;
+  }
+
+  /* Conversation mode (Stage 3-4) */
+  .conv-bubble {
+    max-width: 85%;
+    padding: 10px 14px;
+    border-radius: 16px;
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 8px;
+  }
+  .conv-agent {
+    background: #f0f0f0;
+    color: #333;
+    border-bottom-left-radius: 4px;
+    align-self: flex-start;
+  }
+  .conv-user {
+    background: #007AFF;
+    color: white;
+    border-bottom-right-radius: 4px;
+    align-self: flex-end;
+    margin-left: auto;
+  }
+  .conv-container {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 0 4px;
+  }
+  .conv-inline-card {
+    background: #f7f9fb;
+    border: 1px solid #e8edf2;
+    border-radius: 12px;
+    padding: 10px 12px;
+    margin: 4px 0;
+    max-width: 85%;
+  }
+  .conv-inline-card .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .conv-inline-card .card-desc {
+    font-size: 12px;
+    color: #888;
+  }
+  .conv-quick-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin: 4px 0;
+  }
+  .conv-quick-btn {
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: 100px;
+    border: 1px solid #ddd;
+    background: white;
+    color: #555;
+  }
+  .conv-quick-btn.blue {
+    background: #007AFF;
+    color: white;
+    border-color: #007AFF;
+  }
+
+  /* Bottom nav */
+  .bottom-nav {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 56px;
+    background: #fafafa;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    font-size: 10px;
+    color: #bbb;
+    border-top: 1px solid #f0f0f0;
+  }
+  .back-phone .bottom-nav {
+    background: #1a1a1a;
+    border-top-color: #2a2a2a;
+  }
+  .nav-item { text-align: center; }
+  .nav-item.active { color: #007AFF; }
+  .back-phone .nav-item.active { color: #007AFF; }
+  .nav-icon {
+    width: 20px;
+    height: 20px;
+    margin: 0 auto 2px;
+    border-radius: 4px;
+    background: #e0e0e0;
+  }
+  .back-phone .nav-icon { background: #333; }
+  .nav-item.active .nav-icon { background: #007AFF; }
+
+  /* Back phone content */
+  .back-content {
+    padding: 0 16px 16px;
+    overflow-y: auto;
+    height: calc(100% - 48px - 56px);
+    color: #ccc;
+  }
+  .back-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 16px;
+  }
+
+  /* Potential meter */
+  .potential-meter {
+    margin-bottom: 20px;
+  }
+  .potential-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #666;
+    margin-bottom: 8px;
+  }
+  .potential-number {
+    font-size: 48px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .potential-10 { color: #448AFF; }
+  .potential-30 { color: #448AFF; }
+  .potential-60 { color: #77DD77; }
+  .potential-85 { color: #00E676; }
+  .potential-subtitle {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 12px;
+  }
+  .potential-bar {
+    height: 6px;
+    background: #2a2a2a;
+    border-radius: 100px;
+    overflow: hidden;
+    margin-bottom: 4px;
+  }
+  .potential-fill {
+    height: 100%;
+    border-radius: 100px;
+    transition: width 0.3s;
+  }
+
+  /* Back stats */
+  .back-stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .back-stat {
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    padding: 12px;
+  }
+  .back-stat-number {
+    font-size: 22px;
+    font-weight: 700;
+    color: white;
+  }
+  .back-stat-label {
+    font-size: 11px;
+    color: #666;
+    margin-top: 2px;
+  }
+
+  /* Back learning items */
+  .back-section-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #555;
+    margin-bottom: 10px;
+    margin-top: 16px;
+  }
+  .learning-item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 8px 0;
+    border-bottom: 1px solid #1f1f1f;
+  }
+  .learning-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-top: 4px;
+    flex-shrink: 0;
+  }
+  .dot-green { background: #00E676; }
+  .dot-yellow { background: #77DD77; }
+  .dot-red { background: #448AFF; }
+  .dot-blue { background: #448AFF; }
+  .learning-text {
+    font-size: 12px;
+    color: #999;
+    line-height: 1.4;
+  }
+  .learning-text strong { color: #ccc; }
+
+  /* Confidence breakdown */
+  .conf-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .conf-label {
+    font-size: 12px;
+    color: #888;
+    width: 80px;
+    flex-shrink: 0;
+  }
+  .conf-bar {
+    flex: 1;
+    height: 4px;
+    background: #2a2a2a;
+    border-radius: 100px;
+    overflow: hidden;
+  }
+  .conf-fill { height: 100%; border-radius: 100px; }
+  .conf-pct {
+    font-size: 11px;
+    color: #666;
+    width: 30px;
+    text-align: right;
+  }
+
+  /* Unlock items */
+  .unlock-item {
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+  }
+  .unlock-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #ccc;
+    margin-bottom: 2px;
+  }
+  .unlock-desc {
+    font-size: 11px;
+    color: #666;
+    line-height: 1.4;
+  }
+  .unlock-action {
+    display: inline-block;
+    margin-top: 6px;
+    font-size: 11px;
+    color: #007AFF;
+    font-weight: 500;
+  }
+
+  /* Pull indicator */
+  .pull-indicator {
+    text-align: center;
+    padding: 8px 0;
+    font-size: 11px;
+    color: #bbb;
+  }
+  .back-phone .pull-indicator { color: #444; }
+
+  .arrow-down { display: inline-block; transform: rotate(90deg); }
+
+  /* Annotation arrows between phones */
+  .annotation {
+    font-size: 11px;
+    color: #aaa;
+    text-align: center;
+    margin: 8px 0;
+    font-style: italic;
+  }
+
+  /* View switcher */
+  .view-switcher {
+    display: flex;
+    background: #f0f0f0;
+    border-radius: 10px;
+    padding: 3px;
+    margin-bottom: 12px;
+    gap: 2px;
+  }
+  .view-opt {
+    flex: 1;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 6px 0;
+    border-radius: 8px;
+    color: #999;
+  }
+  .view-opt.active {
+    background: white;
+    color: #1a1a1a;
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  .view-opt.recommended {
+    position: relative;
+  }
+  .view-opt.recommended::after {
+    content: '✦';
+    font-size: 8px;
+    color: #007AFF;
+    position: absolute;
+    top: 2px;
+    right: 8px;
+  }
+
+  /* Level-up transition screen */
+  .transition {
+    max-width: 1400px;
+    margin: -32px auto 64px;
+    display: flex;
+    justify-content: center;
+  }
+  .transition-phone {
+    width: 320px;
+  }
+  .transition-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #007AFF;
+    text-align: center;
+    margin-bottom: 12px;
+  }
+  .transition-frame {
+    width: 320px;
+    border-radius: 40px;
+    overflow: hidden;
+    background: white;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06);
+    padding-bottom: 20px;
+  }
+
+  /* Overlay dialog */
+  .levelup-overlay {
+    position: relative;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 16px;
+  }
+  .levelup-card {
+    background: white;
+    border-radius: 20px;
+    padding: 24px 20px;
+    width: 100%;
+    text-align: center;
+  }
+  .levelup-emoji {
+    font-size: 40px;
+    margin-bottom: 12px;
+  }
+  .levelup-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #1a1a1a;
+  }
+  .levelup-desc {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.5;
+    margin-bottom: 8px;
+  }
+  .levelup-stat {
+    font-size: 13px;
+    font-weight: 600;
+    color: #007AFF;
+    margin-bottom: 20px;
+  }
+  .levelup-btn {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    text-align: center;
+    border: none;
+    margin-bottom: 8px;
+  }
+  .levelup-btn.primary {
+    background: #007AFF;
+    color: white;
+  }
+  .levelup-btn.secondary {
+    background: #f5f5f5;
+    color: #666;
+  }
+  .levelup-footnote {
+    font-size: 11px;
+    color: #aaa;
+    margin-top: 12px;
+  }
+
+  /* Back DM list (chatty-conversations style) */
+  .back-msg-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  .back-msg-row {
+    padding: 10px 12px;
+    background: #1a1a1a;
+    border-radius: 10px;
+    border: 1px solid #2a2a2a;
+  }
+  .back-msg-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3px;
+  }
+  .back-msg-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #e0e0e0;
+  }
+  .back-msg-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .back-msg-badge {
+    font-size: 9px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .back-badge-lead { color: #4CAF50; background: rgba(76,175,80,0.12); }
+  .back-badge-sensitive { color: #FF9800; background: rgba(255,152,0,0.12); }
+  .back-badge-collab { color: #448AFF; background: rgba(68,138,255,0.12); }
+  .back-badge-comment { color: #FFB347; background: rgba(255,179,71,0.12); }
+  .back-badge-question { color: #CE93D8; background: rgba(206,147,216,0.12); }
+  .back-msg-time {
+    font-size: 10px;
+    color: #555;
+  }
+  .back-msg-preview {
+    font-size: 12px;
+    color: #777;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .back-msg-status {
+    font-size: 11px;
+    font-weight: 500;
+    margin-top: 3px;
+  }
+  .status-draft { color: #E85D04; }
+  .status-sent { color: #4CAF50; }
+  .status-held { color: #FF9800; }
+  .status-processing { color: #448AFF; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Progressive Autonomy — Inbox Wireframes</h1>
+  <p>The agent starts as a draft assistant and evolves into an autonomous operator. The UI transforms as the agent grows: list → cards → conversation. Four stages over ~8 weeks.</p>
+</div>
+
+<!-- ===== STAGE 1: WEEK 0 ===== -->
+<div class="stage">
+  <div class="stage-header">
+    <span class="stage-label">Stage 1</span>
+    <span class="stage-title">Week 0 — "I'm learning"</span>
+  </div>
+  <p class="stage-subtitle">Agent handles 10% · User reviews everything · Full list view</p>
+  <div class="stage-context">
+    <strong>What's happening:</strong> Creator just connected Instagram. Agent sorted messages and created drafts for all non-sensitive conversations. Every draft needs review. Agent is learning tone, priorities, and business context from every edit the user makes. The front is dense — every message visible with inline drafts.
+  </div>
+
+  <div class="phones">
+    <!-- FRONT -->
+    <div class="phone-wrapper">
+      <div class="phone-label front-label">↑ Front — What you see</div>
+      <div class="phone front-phone" style="padding:0; overflow:hidden;">
+        <img src="front-list.png" style="width:100%; height:100%; object-fit:cover; object-position:top; display:block;" alt="List view — Week 0">
+      </div>
+    </div>
+
+    <!-- BACK -->
+    <div class="phone-wrapper">
+      <div class="phone-label back-label">↓ Back — Behind the scenes</div>
+      <div class="phone back-phone">
+        <div class="status-bar"><span>9:41</span><span>●●●</span></div>
+        <div class="back-content">
+          <div class="back-title">Behind the scenes</div>
+
+          <div class="potential-meter">
+            <div class="potential-label">What I handle for you</div>
+            <div class="potential-number potential-10">10%</div>
+            <div class="potential-subtitle">Just getting started — I learn with every interaction ✨</div>
+            <div class="potential-bar"><div class="potential-fill" style="width:10%; background: #448AFF;"></div></div>
+          </div>
+
+          <div class="back-section-title">What I'm doing right now</div>
+          <div class="back-msg-list">
+            <div class="back-msg-row">
+              <div class="back-msg-header">
+                <span class="back-msg-name">📝 Creating drafts</span>
+              </div>
+              <div class="back-msg-preview">12 drafts ready for your review. I learn your tone from every edit.</div>
+              <div class="back-msg-status status-processing">Active · Improving with each one</div>
+            </div>
+
+            <div class="back-msg-row">
+              <div class="back-msg-header">
+                <span class="back-msg-name">🔍 Analyzing questions</span>
+              </div>
+              <div class="back-msg-preview">Found 5 questions I can't answer yet — shipping, group rates, refunds...</div>
+              <div class="back-msg-status status-held">Waiting for you to teach me</div>
+            </div>
+          </div>
+
+          <div class="back-section-title">Next milestones</div>
+          <div class="unlock-item">
+            <div class="unlock-title">📝 Review 20 drafts → I match your tone</div>
+            <div class="unlock-desc">Every edit gets me closer to writing like you. Then I can start grouping similar messages.</div>
+            <div class="unlock-action">0 / 20 — Let's go →</div>
+          </div>
+          <div class="unlock-item">
+            <div class="unlock-title">💬 Answer 5 common questions → I auto-reply FAQ</div>
+            <div class="unlock-desc">Teach me once, I answer forever. Less repetitive work for you.</div>
+            <div class="unlock-action">0 / 5 — Start teaching →</div>
+          </div>
+        </div>
+        <div class="bottom-nav">
+          <div class="nav-item"><div class="nav-icon"></div>Home</div>
+          <div class="nav-item active"><div class="nav-icon"></div>Inbox</div>
+          <div class="nav-item"><div class="nav-icon"></div>Contacts</div>
+          <div class="nav-item"><div class="nav-icon"></div>Auto</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ===== TRANSITION 1→2 ===== -->
+<div class="transition">
+  <div class="transition-phone">
+    <div class="transition-label">⬇ Agent asks to level up</div>
+    <div class="transition-frame">
+      <div class="status-bar" style="padding: 0 24px; height: 48px; display:flex; align-items:center; justify-content:space-between; font-size:13px; font-weight:600;"><span>9:41</span><span>●●●</span></div>
+      <div class="levelup-overlay">
+        <div class="levelup-card">
+          <div class="levelup-emoji">🎯</div>
+          <div class="levelup-title">I'm getting your style</div>
+          <div class="levelup-desc">You've sent 89% of my drafts exactly as I wrote them. I think I can start grouping similar messages so you approve faster.</div>
+          <div class="levelup-stat">42 drafts reviewed · 37 sent as-is</div>
+          <div class="levelup-btn primary">Try Stack view</div>
+          <div class="levelup-btn secondary">Not yet, keep List</div>
+          <div class="levelup-footnote">You can always switch back in the view toggle</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== STAGE 2: WEEK 2 ===== -->
+<div class="stage">
+  <div class="stage-header">
+    <span class="stage-label">Stage 2</span>
+    <span class="stage-title">Week 2 — "I see patterns"</span>
+  </div>
+  <p class="stage-subtitle">Agent handles 30% · User approves batches · Card view with groups</p>
+  <div class="stage-context">
+    <strong>What's happening:</strong> Agent has learned tone from 40+ edited drafts. It starts grouping similar messages and suggesting batch approvals. Comments get grouped. The view shifts from a dense list to swipeable cards — fewer items, each representing more decisions. The agent proposes: "I've noticed patterns. Let me group these for you."
+  </div>
+
+  <div class="phones">
+    <!-- FRONT -->
+    <div class="phone-wrapper">
+      <div class="phone-label front-label">↑ Front — What you see</div>
+      <div class="phone front-phone" style="padding:0; overflow:hidden;">
+        <img src="front-stack.png" style="width:100%; height:100%; object-fit:cover; object-position:top; display:block;" alt="Stack view — Week 2">
+      </div>
+    </div>
+
+    <!-- BACK -->
+    <div class="phone-wrapper">
+      <div class="phone-label back-label">↓ Back — Behind the scenes</div>
+      <div class="phone back-phone">
+        <div class="status-bar"><span>9:41</span><span>●●●</span></div>
+        <div class="back-content">
+          <div class="back-title">Behind the scenes</div>
+
+          <div class="potential-meter">
+            <div class="potential-label">What I handle for you</div>
+            <div class="potential-number potential-30">30%</div>
+            <div class="potential-subtitle">Growing fast — 89% of drafts sent as-is 🎯</div>
+            <div class="potential-bar"><div class="potential-fill" style="width:30%; background: #448AFF;"></div></div>
+          </div>
+
+          <div class="back-stat-grid">
+            <div class="back-stat">
+              <div class="back-stat-number">312</div>
+              <div class="back-stat-label">Messages sorted</div>
+            </div>
+            <div class="back-stat">
+              <div class="back-stat-number">89%</div>
+              <div class="back-stat-label">Drafts you loved</div>
+            </div>
+            <div class="back-stat">
+              <div class="back-stat-number">26</div>
+              <div class="back-stat-label">FAQ auto-replied ✓</div>
+            </div>
+            <div class="back-stat">
+              <div class="back-stat-number">42s</div>
+              <div class="back-stat-label">Avg response time</div>
+            </div>
+          </div>
+
+          <div class="back-section-title">How I'm growing</div>
+          <div class="conf-item">
+            <span class="conf-label">FAQ</span>
+            <div class="conf-bar"><div class="conf-fill" style="width:75%; background:#448AFF;"></div></div>
+            <span class="conf-pct">75%</span>
+          </div>
+          <div class="conf-item">
+            <span class="conf-label">Comments</span>
+            <div class="conf-bar"><div class="conf-fill" style="width:60%; background:#448AFF;"></div></div>
+            <span class="conf-pct">60%</span>
+          </div>
+          <div class="conf-item">
+            <span class="conf-label">Leads</span>
+            <div class="conf-bar"><div class="conf-fill" style="width:35%; background:#448AFF;"></div></div>
+            <span class="conf-pct">35%</span>
+          </div>
+          <div class="conf-item">
+            <span class="conf-label">Collabs</span>
+            <div class="conf-bar"><div class="conf-fill" style="width:15%; background:#448AFF;"></div></div>
+            <span class="conf-pct">15%</span>
+          </div>
+
+          <div class="back-section-title">What I've achieved</div>
+          <div class="learning-item">
+            <div class="learning-dot dot-green"></div>
+            <div class="learning-text"><strong>✓ Your tone:</strong> Matched — direct, encouraging, always a clear next step.</div>
+          </div>
+          <div class="learning-item">
+            <div class="learning-dot dot-green"></div>
+            <div class="learning-text"><strong>✓ FAQ:</strong> Auto-replying to shipping, pricing, and schedule. 5 topics mastered.</div>
+          </div>
+          <div class="learning-item">
+            <div class="learning-dot dot-blue"></div>
+            <div class="learning-text"><strong>↗ Leads:</strong> Getting better at spotting who's ready to buy. Each reply you prioritize teaches me.</div>
+          </div>
+
+          <div class="back-section-title">Next milestones</div>
+          <div class="unlock-item">
+            <div class="unlock-title">💬 Auto-reply to comments → Save 15 min/day</div>
+            <div class="unlock-desc">You approved 95% as-is. I'm ready to send these on my own.</div>
+            <div class="unlock-action">Almost there — Enable →</div>
+          </div>
+          <div class="unlock-item">
+            <div class="unlock-title">🤝 Learn your collab criteria → Spot better deals</div>
+            <div class="unlock-desc">I've flagged 3 partnerships this week. Help me understand your minimums so I can filter better.</div>
+            <div class="unlock-action">Teach me →</div>
+          </div>
+
+        </div>
+        <div class="bottom-nav">
+          <div class="nav-item"><div class="nav-icon"></div>Home</div>
+          <div class="nav-item active"><div class="nav-icon"></div>Inbox</div>
+          <div class="nav-item"><div class="nav-icon"></div>Contacts</div>
+          <div class="nav-item"><div class="nav-icon"></div>Auto</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ===== TRANSITION 2→3 ===== -->
+<div class="transition">
+  <div class="transition-phone">
+    <div class="transition-label">⬇ Agent asks to level up</div>
+    <div class="transition-frame">
+      <div class="status-bar" style="padding: 0 24px; height: 48px; display:flex; align-items:center; justify-content:space-between; font-size:13px; font-weight:600;"><span>9:41</span><span>●●●</span></div>
+      <div class="levelup-overlay">
+        <div class="levelup-card">
+          <div class="levelup-emoji">🚀</div>
+          <div class="levelup-title">I can handle most of this</div>
+          <div class="levelup-desc">I've been auto-replying FAQ and comments with 94% accuracy. I'm ready to handle simple DMs too — and just show you the exceptions.</div>
+          <div class="levelup-stat">94% accuracy · 26 auto-replied · $7,200 revenue attributed</div>
+          <div class="levelup-btn primary">Try Focus view</div>
+          <div class="levelup-btn secondary">Stay in Stack</div>
+          <div class="levelup-footnote">You can always switch back in the view toggle</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== STAGE 3: WEEK 4 ===== -->
+<div class="stage">
+  <div class="stage-header">
+    <span class="stage-label">Stage 3</span>
+    <span class="stage-title">Week 4 — "I've got most of this"</span>
+  </div>
+  <p class="stage-subtitle">Agent handles 60% · User reviews exceptions · Hybrid: cards + conversation</p>
+  <div class="stage-context">
+    <strong>What's happening:</strong> Agent auto-replies to FAQ, comments, and simple DMs. The front now shows fewer items — only leads, collabs, sensitive messages, and edge cases. The agent starts presenting things conversationally: "Here's what happened today. 3 things need you." The view is shifting from cards to conversation.
+  </div>
+
+  <div class="phones">
+    <!-- FRONT -->
+    <div class="phone-wrapper">
+      <div class="phone-label front-label">↑ Front — What you see</div>
+      <div class="phone front-phone" style="padding:0; overflow:hidden;">
+        <img src="front-stack-simple.png" style="width:100%; height:100%; object-fit:cover; object-position:top; display:block;" alt="Stack view — Week 4">
+      </div>
+    </div>
+
+    <!-- BACK -->
+    <div class="phone-wrapper">
+      <div class="phone-label back-label">↓ Back — Behind the scenes</div>
+      <div class="phone back-phone">
+        <div class="status-bar"><span>9:41</span><span>●●●</span></div>
+        <div class="back-content">
+          <div class="back-title">Behind the scenes</div>
+
+          <div class="potential-meter">
+            <div class="potential-label">What I handle for you</div>
+            <div class="potential-number potential-60">60%</div>
+            <div class="potential-subtitle">More than half your inbox runs on autopilot 🚀</div>
+            <div class="potential-bar"><div class="potential-fill" style="width:60%; background: #77DD77;"></div></div>
+          </div>
+
+          <div class="back-stat-grid">
+            <div class="back-stat">
+              <div class="back-stat-number">1,247</div>
+              <div class="back-stat-label">Messages handled</div>
+            </div>
+            <div class="back-stat">
+              <div class="back-stat-number">12s</div>
+              <div class="back-stat-label">Avg response</div>
+            </div>
+            <div class="back-stat">
+              <div class="back-stat-number">94%</div>
+              <div class="back-stat-label">Accuracy</div>
+            </div>
+            <div class="back-stat">
+              <div class="back-stat-number">$7.2k</div>
+              <div class="back-stat-label">Revenue attributed</div>
+            </div>
+          </div>
+
+          <div class="back-section-title">How I'm growing</div>
+          <div class="conf-item">
+            <span class="conf-label">FAQ</span>
+            <div class="conf-bar"><div class="conf-fill" style="width:95%; background:#00E676;"></div></div>
+            <span class="conf-pct">95%</span>
+          </div>
+          <div class="conf-item">
+            <span class="conf-label">Comments</span>
+            <div class="conf-bar"><div class="conf-fill" style="width:90%; background:#00E676;"></div></div>
+            <span class="conf-pct">90%</span>
+          </div>
+          <div class="conf-item">
+            <span class="conf-label">Simple DMs</span>
+            <div class="conf-bar"><div class="conf-fill" style="width:72%; background:#77DD77;"></div></div>
+            <span class="conf-pct">72%</span>
+          </div>
+          <div class="conf-item">
+            <span class="conf-label">Leads</span>
+            <div class="conf-bar"><div class="conf-fill" style="width:55%; background:#448AFF;"></div></div>
+            <span class="conf-pct">55%</span>
+          </div>
+          <div class="conf-item">
+            <span class="conf-label">Collabs</span>
+            <div class="conf-bar"><div class="conf-fill" style="width:30%; background:#448AFF;"></div></div>
+            <span class="conf-pct">30%</span>
+          </div>
+
+          <div class="back-section-title">Wins this week</div>
+          <div class="learning-item">
+            <div class="learning-dot dot-green"></div>
+            <div class="learning-text"><strong>✓ Comments + FAQ on autopilot.</strong> You approved 97% as-is — so I took over.</div>
+          </div>
+          <div class="learning-item">
+            <div class="learning-dot dot-green"></div>
+            <div class="learning-text"><strong>✓ 3 contacts clicked your payment link</strong> after my reply. That's ~$7,200 in revenue.</div>
+          </div>
+          <div class="learning-item">
+            <div class="learning-dot dot-blue"></div>
+            <div class="learning-text"><strong>↗ Collabs:</strong> Getting sharper — flagged 4 this week. Each one you review helps me improve.</div>
+          </div>
+
+          <div class="back-section-title">Next milestone</div>
+          <div class="unlock-item">
+            <div class="unlock-title">📩 Auto-reply simple DMs → Save 30 min/day</div>
+            <div class="unlock-desc">93% accuracy on scheduling and info requests. One more step toward Focus mode.</div>
+            <div class="unlock-action">Ready to enable →</div>
+          </div>
+        </div>
+        <div class="bottom-nav">
+          <div class="nav-item"><div class="nav-icon"></div>Home</div>
+          <div class="nav-item active"><div class="nav-icon"></div>Inbox</div>
+          <div class="nav-item"><div class="nav-icon"></div>Contacts</div>
+          <div class="nav-item"><div class="nav-icon"></div>Auto</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ===== STAGE 4: WEEK 8+ ===== -->
+<div class="stage">
+  <div class="stage-header">
+    <span class="stage-label">Stage 4</span>
+    <span class="stage-title">Week 8+ — "Just check in"</span>
+  </div>
+  <p class="stage-subtitle">Agent handles 85% · User confirms exceptions · Pure conversation</p>
+  <div class="stage-context">
+    <strong>What's happening:</strong> Agent handles most messages autonomously. The front is a peaceful, minimal conversation. The user opens the app, sees a brief summary, handles 1-2 exceptions, and leaves. Total time: under 2 minutes. The back shows a mature, data-rich dashboard with revenue attribution, satisfaction scores, and ongoing learning.
+  </div>
+
+  <div class="phones">
+    <!-- FRONT -->
+    <div class="phone-wrapper">
+      <div class="phone-label front-label">↑ Front — What you see</div>
+      <div class="phone front-phone" style="padding:0; overflow:hidden;">
+        <img src="front-sensitive.png" style="width:100%; height:100%; object-fit:cover; object-position:top; display:block;" alt="Focus view — Week 8">
+      </div>
+    </div>
+
+    <!-- BACK -->
+    <div class="phone-wrapper">
+      <div class="phone-label back-label">↓ Back — Behind the scenes</div>
+      <div class="phone back-phone">
+        <div class="status-bar"><span>9:41</span><span>●●●</span></div>
+        <div class="back-content">
+          <div class="back-title">Behind the scenes</div>
+
+          <div class="potential-meter">
+            <div class="potential-label">What I handle for you</div>
+            <div class="potential-number potential-85">85%</div>
+            <div class="potential-subtitle">Your inbox practically runs itself ☀️</div>
+            <div class="potential-bar"><div class="potential-fill" style="width:85%; background: #00E676;"></div></div>
+          </div>
+
+          <div class="back-stat-grid">
+            <div class="back-stat">
+              <div class="back-stat-number">4,821</div>
+              <div class="back-stat-label">Messages handled</div>
+            </div>
+            <div class="back-stat">
+              <div class="back-stat-number">8s</div>
+              <div class="back-stat-label">Avg response</div>
+            </div>
+            <div class="back-stat">
+              <div class="back-stat-number">97%</div>
+              <div class="back-stat-label">Accuracy</div>
+            </div>
+            <div class="back-stat">
+              <div class="back-stat-number">$28.4k</div>
+              <div class="back-stat-label">Revenue from DMs</div>
+            </div>
+          </div>
+
+          <div class="back-section-title">How I'm growing</div>
+          <div class="conf-item">
+            <span class="conf-label">FAQ</span>
+            <div class="conf-bar"><div class="conf-fill" style="width:99%; background:#00E676;"></div></div>
+            <span class="conf-pct">99%</span>
+          </div>
+          <div class="conf-item">
+            <span class="conf-label">Comments</span>
+            <div class="conf-bar"><div class="conf-fill" style="width:97%; background:#00E676;"></div></div>
+            <span class="conf-pct">97%</span>
+          </div>
+          <div class="conf-item">
+            <span class="conf-label">DMs</span>
+            <div class="conf-bar"><div class="conf-fill" style="width:88%; background:#00E676;"></div></div>
+            <span class="conf-pct">88%</span>
+          </div>
+          <div class="conf-item">
+            <span class="conf-label">Leads</span>
+            <div class="conf-bar"><div class="conf-fill" style="width:82%; background:#77DD77;"></div></div>
+            <span class="conf-pct">82%</span>
+          </div>
+          <div class="conf-item">
+            <span class="conf-label">Collabs</span>
+            <div class="conf-bar"><div class="conf-fill" style="width:60%; background:#448AFF;"></div></div>
+            <span class="conf-pct">60%</span>
+          </div>
+
+          <div class="back-section-title">Your wins this month</div>
+          <div class="learning-item">
+            <div class="learning-dot dot-green"></div>
+            <div class="learning-text"><strong>💰 $28,400 revenue</strong> from DM conversations I handled.</div>
+          </div>
+          <div class="learning-item">
+            <div class="learning-dot dot-green"></div>
+            <div class="learning-text"><strong>⏱ 4.2 hours saved per day.</strong> You spent avg 1.8 min/day in Inbox this week.</div>
+          </div>
+          <div class="learning-item">
+            <div class="learning-dot dot-green"></div>
+            <div class="learning-text"><strong>😊 12 happy contacts</strong> replied with positive feedback after my responses.</div>
+          </div>
+          <div class="learning-item">
+            <div class="learning-dot dot-blue"></div>
+            <div class="learning-text"><strong>💡 Opportunity spotted:</strong> 3 people asked about a group program you don't offer yet. Could be worth exploring.</div>
+          </div>
+
+          <div class="back-section-title">What's next</div>
+          <div class="unlock-item">
+            <div class="unlock-title">🤝 Master collab negotiations → Full autopilot</div>
+            <div class="unlock-desc">I spot partnerships easily now. Teach me your deal minimums and I can handle the first reply too.</div>
+            <div class="unlock-action">Let's set this up →</div>
+          </div>
+        </div>
+        <div class="bottom-nav">
+          <div class="nav-item"><div class="nav-icon"></div>Home</div>
+          <div class="nav-item active"><div class="nav-icon"></div>Inbox</div>
+          <div class="nav-item"><div class="nav-icon"></div>Contacts</div>
+          <div class="nav-item"><div class="nav-icon"></div>Auto</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+</body>
+</html>
