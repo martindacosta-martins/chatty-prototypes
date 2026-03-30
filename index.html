@@ -2,33 +2,41 @@
 <html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width"><title>Chatty Prototypes</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:Inter,system-ui,sans-serif;background:#FAFAF8;display:flex;justify-content:center;align-items:center;min-height:100vh;flex-direction:column;gap:20px;padding:40px 20px}
-a{display:block;padding:18px 36px;background:#1A1A1A;color:#fff;text-decoration:none;border-radius:50px;font-size:15px;font-weight:600;transition:transform .15s;text-align:center}
-a:hover{transform:scale(1.03)}
-h1{font-size:26px;font-weight:700;color:#1A1A1A}
-p.subtitle{color:#999;font-size:13px}
-p.desc{color:#999;font-size:12px;margin-top:-8px}
-.divider{width:60px;height:1px;background:#E8E6E2;margin:8px 0}
+body{font-family:Inter,system-ui,sans-serif;background:#FAFAF8;padding:60px 24px;max-width:560px;margin:0 auto}
+h1{font-size:24px;font-weight:700;color:#1A1A1A;margin-bottom:4px}
+p.subtitle{color:#999;font-size:13px;margin-bottom:32px}
 
-.accordion{width:100%;max-width:400px;display:flex;flex-direction:column;gap:4px}
+.accordion{display:flex;flex-direction:column;gap:0}
+.divider{height:1px;background:#E8E6E2;margin:0}
+
 .section-header{
   display:flex;align-items:center;gap:8px;cursor:pointer;
   font-size:10px;color:#999;text-transform:uppercase;letter-spacing:0.08em;font-weight:500;
-  padding:8px 0;user-select:none;
+  padding:14px 0;user-select:none;
 }
-.section-header .arrow{
-  font-size:10px;transition:transform .25s ease;display:inline-block;
-}
+.section-header .arrow{font-size:10px;transition:transform .25s ease;display:inline-block}
 .section.open .arrow{transform:rotate(90deg)}
+
 .section-content{
-  display:flex;flex-direction:column;gap:12px;
-  max-height:0;overflow:hidden;transition:max-height .35s ease, opacity .25s ease;opacity:0;
+  display:flex;flex-direction:column;gap:20px;
+  max-height:0;overflow:hidden;transition:max-height .35s ease,opacity .25s ease;opacity:0;
+  padding-bottom:0;
 }
-.section.open .section-content{max-height:600px;opacity:1}
+.section.open .section-content{max-height:800px;opacity:1;padding-bottom:16px}
+
+.entry{display:flex;flex-direction:column;gap:4px}
+.entry-title{font-size:15px;font-weight:600;color:#1A1A1A}
+.entry-desc{font-size:13px;color:#999;line-height:1.4}
+.entry a{
+  display:inline-block;margin-top:6px;
+  padding:6px 14px;background:#1A1A1A;color:#fff;text-decoration:none;
+  border-radius:6px;font-size:12px;font-weight:500;transition:opacity .15s;
+}
+.entry a:hover{opacity:.85}
 </style>
 </head><body>
 <h1>Chatty — AI Native Inbox</h1>
-<p class="subtitle">Select a prototype version</p>
+<p class="subtitle">Prototype explorations</p>
 
 <div class="accordion">
 
@@ -38,8 +46,14 @@ p.desc{color:#999;font-size:12px;margin-top:-8px}
       <span class="arrow">▶</span> First ideas
     </div>
     <div class="section-content">
-      <a href="v2.html">v2 — Tabbed Inbox</a>
-      <a href="v3.html">v3 — Latest with UX fixes</a>
+      <div class="entry">
+        <span class="entry-title">v2 — Tabbed Inbox</span>
+        <a href="v2.html">Open prototype</a>
+      </div>
+      <div class="entry">
+        <span class="entry-title">v3 — Latest with UX fixes</span>
+        <a href="v3.html">Open prototype</a>
+      </div>
     </div>
   </div>
 
@@ -49,7 +63,10 @@ p.desc{color:#999;font-size:12px;margin-top:-8px}
       <span class="arrow">▶</span> Mini-v1
     </div>
     <div class="section-content">
-      <a href="inbox-mini-v1-list.html">Prioritized Inbox</a>
+      <div class="entry">
+        <span class="entry-title">Prioritized Inbox</span>
+        <a href="inbox-mini-v1-list.html">Open prototype</a>
+      </div>
     </div>
   </div>
 
@@ -59,14 +76,26 @@ p.desc{color:#999;font-size:12px;margin-top:-8px}
       <span class="arrow">▶</span> Rough concepts
     </div>
     <div class="section-content">
-      <a href="progressive-autonomy-wireframes/">progressive</a>
-      <p class="desc">The layout shows less info as the agent learns more</p>
-      <a href="chatty-system.html">chatty-system</a>
-      <p class="desc">Agent working in the background, tinder-like navigation in the front</p>
-      <a href="chatty-conversation/">chatty-conversation</a>
-      <p class="desc">Reviewing and answering throughout one chat</p>
-      <a href="chatty-agents/">chatty-agents</a>
-      <p class="desc">Conversations with different agents</p>
+      <div class="entry">
+        <span class="entry-title">Progressive</span>
+        <span class="entry-desc">The layout shows less info as the agent learns more</span>
+        <a href="progressive-autonomy-wireframes/">Open prototype</a>
+      </div>
+      <div class="entry">
+        <span class="entry-title">chatty-system</span>
+        <span class="entry-desc">Agent working in the background, tinder-like navigation in the front</span>
+        <a href="chatty-system.html">Open prototype</a>
+      </div>
+      <div class="entry">
+        <span class="entry-title">chatty-conversation</span>
+        <span class="entry-desc">Reviewing and answering throughout one chat</span>
+        <a href="chatty-conversation/">Open prototype</a>
+      </div>
+      <div class="entry">
+        <span class="entry-title">chatty-agents</span>
+        <span class="entry-desc">Conversations with different agents</span>
+        <a href="chatty-agents/">Open prototype</a>
+      </div>
     </div>
   </div>
 
@@ -75,8 +104,7 @@ p.desc{color:#999;font-size:12px;margin-top:-8px}
 <script>
 function toggle(id) {
   const clicked = document.getElementById(id);
-  const allSections = document.querySelectorAll('.section');
-  allSections.forEach(s => { if (s.id !== id) s.classList.remove('open'); });
+  document.querySelectorAll('.section').forEach(s => { if (s.id !== id) s.classList.remove('open'); });
   clicked.classList.toggle('open');
 }
 </script>
