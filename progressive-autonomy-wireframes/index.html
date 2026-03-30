@@ -835,6 +835,64 @@
   <p>The agent starts as a draft assistant and evolves into an autonomous operator. The UI transforms as the agent grows: list → cards → conversation. Four stages over ~8 weeks.</p>
 </div>
 
+<!-- ===== FRAMEWORK OVERVIEW ===== -->
+<div class="stage" style="background:#f9f9f9; border:2px solid #e0e0e0;">
+  <div class="stage-header">
+    <span class="stage-label" style="background:#007AFF;">Framework</span>
+    <span class="stage-title">The core idea</span>
+  </div>
+  <p style="font-size:15px; line-height:1.7; color:#444; max-width:800px; margin-bottom:24px;">
+    As the AI proves itself, the inbox gets simpler. Not because we hide things — because there's less for the user to do. The layout evolves to reduce cognitive load so the creator acts faster on what actually matters. The AI earns each evolution by asking the user for permission.
+  </p>
+
+  <!-- Evolution diagram -->
+  <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:32px;">
+    <div style="flex:1; min-width:200px; padding:16px; border-radius:12px; border:1px solid #e0e0e0; background:white;">
+      <div style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; color:#999; margin-bottom:6px;">Layout evolution</div>
+      <div style="font-size:14px; color:#1a1a1a; line-height:1.6;">
+        <strong>List</strong> → <strong>Stack</strong> → <strong>Conversation</strong><br>
+        <span style="font-size:12px; color:#888;">More control → Batch decisions → Minimal check-ins</span>
+      </div>
+    </div>
+    <div style="flex:1; min-width:200px; padding:16px; border-radius:12px; border:1px solid #e0e0e0; background:white;">
+      <div style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; color:#999; margin-bottom:6px;">Why the layout changes</div>
+      <div style="font-size:12px; color:#555; line-height:1.6;">
+        List → Stack: AI groups similar items, so individual messages collapse into batches. Fewer decisions.<br>
+        Stack → Conversation: AI handles most things, so few items remain. A feed is calmer than cards.
+      </div>
+    </div>
+    <div style="flex:1; min-width:200px; padding:16px; border-radius:12px; border:1px solid #e0e0e0; background:white;">
+      <div style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; color:#999; margin-bottom:6px;">Trust mechanism</div>
+      <div style="font-size:12px; color:#555; line-height:1.6;">
+        Every upgrade is a question: "I noticed X. Want me to handle Y?"<br>
+        The user always decides. The AI never takes over — it earns its way.
+      </div>
+    </div>
+  </div>
+
+  <!-- 4 axes -->
+  <div style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; color:#999; margin-bottom:12px;">4 axes of evolution</div>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; max-width:700px;">
+    <div style="padding:10px 14px; background:white; border-radius:8px; border:1px solid #e8e8e8;">
+      <div style="font-size:13px; font-weight:600; color:#1a1a1a;">AI Learning</div>
+      <div style="font-size:11px; color:#888;">What data feeds the AI: tone → edits → group preferences → auto-reply corrections</div>
+    </div>
+    <div style="padding:10px 14px; background:white; border-radius:8px; border:1px solid #e8e8e8;">
+      <div style="font-size:13px; font-weight:600; color:#1a1a1a;">AI Capability</div>
+      <div style="font-size:11px; color:#888;">What the AI can do: draft → group → auto-reply FAQ → auto-reply most</div>
+    </div>
+    <div style="padding:10px 14px; background:white; border-radius:8px; border:1px solid #e8e8e8;">
+      <div style="font-size:13px; font-weight:600; color:#1a1a1a;">Questions for User</div>
+      <div style="font-size:11px; color:#888;">How the AI earns upgrades: "Group these?" → "Auto-send FAQ?" → "Auto-reply leads?"</div>
+    </div>
+    <div style="padding:10px 14px; background:white; border-radius:8px; border:1px solid #e8e8e8;">
+      <div style="font-size:13px; font-weight:600; color:#1a1a1a;">Layout</div>
+      <div style="font-size:11px; color:#888;">How the UI adapts: list (all visible) → stack (batched) → conversation (minimal)</div>
+    </div>
+  </div>
+
+</div>
+
 <!-- ===== STAGE 1: WEEK 0 ===== -->
 <div class="stage">
   <div class="stage-header">
@@ -843,7 +901,14 @@
   </div>
   <p class="stage-subtitle">Agent handles 10% · User reviews everything · Full list view</p>
   <div class="stage-context">
-    <strong>What's happening:</strong> Creator just connected Instagram. Agent sorted messages and created drafts for all non-sensitive conversations. Every draft needs review. Agent is learning tone, priorities, and business context from every edit the user makes. The front is dense — every message visible with inline drafts.
+    <strong>Intention:</strong> User sees everything. Full control. AI is invisible except for drafts.<br><br>
+    <strong>What's happening:</strong>
+    <ul style="margin:6px 0 0 16px; line-height:1.8;">
+      <li>Agent sorted messages and created drafts for all non-sensitive conversations</li>
+      <li>Every draft needs review — nothing is sent without approval</li>
+      <li>AI learns tone from every edit the user makes</li>
+    </ul><br>
+    <strong>Why list view:</strong> User doesn't trust AI yet. They need to see every message to feel in control. Dense is reassuring at this stage.<br><br>
   </div>
 
   <div class="phones">
@@ -851,7 +916,7 @@
     <div class="phone-wrapper">
       <div class="phone-label front-label">↑ Front — What you see</div>
       <div class="phone front-phone" style="padding:0; overflow:hidden;">
-        <img src="front-list.png" style="width:100%; height:100%; object-fit:cover; object-position:top; display:block;" alt="List view — Week 0">
+        <img src="front-list.png?v=1774853816" style="width:100%; height:100%; object-fit:cover; object-position:top; display:block;" alt="List view — Week 0">
       </div>
     </div>
 
@@ -921,15 +986,42 @@
   </div>
   <p class="stage-subtitle">Agent handles 30% · User approves batches · Card view with groups</p>
   <div class="stage-context">
-    <strong>What's happening:</strong> Agent has learned tone from 40+ edited drafts. It starts grouping similar messages and suggesting batch approvals. Comments get grouped. The view shifts from a dense list to swipeable cards — fewer items, each representing more decisions. The agent proposes: "I've noticed patterns. Let me group these for you."
+    <strong>Intention:</strong> Reduce the number of individual decisions. Batch similar items so the user acts faster.<br><br>
+    <strong>What's happening:</strong>
+    <ul style="margin:6px 0 0 16px; line-height:1.8;">
+      <li>AI learned tone from 40+ edited drafts</li>
+      <li>Groups similar comments ("These 4 say thank you") → batch approve</li>
+      <li>Auto-replies FAQ after user approved enough drafts in a row</li>
+      <li>AI asks: "I noticed these are similar. Want me to group them for you?"</li>
+    </ul><br>
+    <strong>Why stack view:</strong> AI can now group items, so individual messages collapse into cards. Each card = one batch decision instead of 4 individual ones. The screen gets calmer because there's less to look at.<br><br>
+    <strong>AI asks the user:</strong>
+    <ul style="margin:6px 0 0 16px; line-height:1.8;">
+      <li>"Similar comments — I'll answer variations of 'thank you' with a warm reply. Approve for all?"</li>
+      <li>"You approved 15 FAQ drafts without edits. Want me to auto-send these from now on?"</li>
+      <li>"You've been editing my drafts for FAQ. Can you share your price list so I get it right?"</li>
+    </ul><br>
+    <strong>Questions to answer:</strong>
+    <ul style="margin:6px 0 0 16px; line-height:1.8;">
+      <li>Should milestones be fixed numbers ("20 drafts") or adaptive ("I'm 80% confident in your tone")?</li>
+      <li>Does the layout switch automatically when grouping is enabled, or does the user choose?</li>
+    </ul>
   </div>
 
   <div class="phones">
-    <!-- FRONT -->
+    <!-- FRONT: Stack variant -->
     <div class="phone-wrapper">
-      <div class="phone-label front-label">↑ Front — What you see</div>
+      <div class="phone-label front-label">↑ Front — Stack view</div>
       <div class="phone front-phone" style="padding:0; overflow:hidden;">
-        <img src="front-stack.png" style="width:100%; height:100%; object-fit:cover; object-position:top; display:block;" alt="Stack view — Week 2">
+        <img src="front-stack.png?v=1774853816" style="width:100%; height:100%; object-fit:cover; object-position:top; display:block;" alt="Stack view — Week 2">
+      </div>
+    </div>
+
+    <!-- FRONT: Group variant -->
+    <div class="phone-wrapper">
+      <div class="phone-label front-label">↑ Front — Group view</div>
+      <div class="phone front-phone" style="padding:0; overflow:hidden;">
+        <img src="front-group.png?v=1774853816" style="width:100%; height:100%; object-fit:cover; object-position:top; display:block;" alt="Group view — Week 2">
       </div>
     </div>
 
@@ -1036,7 +1128,25 @@
   </div>
   <p class="stage-subtitle">Agent handles 60% · User reviews exceptions · Hybrid: cards + conversation</p>
   <div class="stage-context">
-    <strong>What's happening:</strong> Agent auto-replies to FAQ, comments, and simple DMs. The front now shows fewer items — only leads, collabs, sensitive messages, and edge cases. The agent starts presenting things conversationally: "Here's what happened today. 3 things need you." The view is shifting from cards to conversation.
+    <strong>Intention:</strong> The inbox is getting quieter. Most things are handled. The user only sees what truly needs them.<br><br>
+    <strong>What's happening:</strong>
+    <ul style="margin:6px 0 0 16px; line-height:1.8;">
+      <li>Auto-replies FAQ, comments, and simple DMs</li>
+      <li>Only leads, collabs, sensitive messages, and edge cases remain</li>
+      <li>Agent starts narrating: "3 things need you today"</li>
+      <li>Sensitive messages now include a summary + how you handled similar ones before</li>
+    </ul><br>
+    <strong>Why shifting to conversation:</strong> There are so few items left that a list or stack feels empty. A conversational feed ("Here's what happened, here's what needs you") is calmer and faster to scan. The user opens the app, reads a brief, handles exceptions, leaves.<br><br>
+    <strong>AI asks the user:</strong>
+    <ul style="margin:6px 0 0 16px; line-height:1.8;">
+      <li>"Approve drafts for all comments on this post?" (post-level batch)</li>
+      <li>"You approved my lead replies 10 times in a row. Want me to auto-reply to leads too?"</li>
+    </ul><br>
+    <strong>Questions to answer:</strong>
+    <ul style="margin:6px 0 0 16px; line-height:1.8;">
+      <li>When the AI auto-replies and makes a mistake, what's the recovery flow? Pause that category?</li>
+      <li>Should the user be able to revert to stack/list if they want more control back?</li>
+    </ul>
   </div>
 
   <div class="phones">
@@ -1044,7 +1154,7 @@
     <div class="phone-wrapper">
       <div class="phone-label front-label">↑ Front — What you see</div>
       <div class="phone front-phone" style="padding:0; overflow:hidden;">
-        <img src="front-stack-simple.png" style="width:100%; height:100%; object-fit:cover; object-position:top; display:block;" alt="Stack view — Week 4">
+        <img src="front-stack-simple.png?v=1774853816" style="width:100%; height:100%; object-fit:cover; object-position:top; display:block;" alt="Stack view — Week 4">
       </div>
     </div>
 
@@ -1150,7 +1260,25 @@
   </div>
   <p class="stage-subtitle">Agent handles 85% · User confirms exceptions · Pure conversation</p>
   <div class="stage-context">
-    <strong>What's happening:</strong> Agent handles most messages autonomously. The front is a peaceful, minimal conversation. The user opens the app, sees a brief summary, handles 1-2 exceptions, and leaves. Total time: under 2 minutes. The back shows a mature, data-rich dashboard with revenue attribution, satisfaction scores, and ongoing learning.
+    <strong>Intention:</strong> The inbox practically runs itself. The user checks in briefly, handles 1-2 exceptions, leaves. Under 2 minutes.<br><br>
+    <strong>What's happening:</strong>
+    <ul style="margin:6px 0 0 16px; line-height:1.8;">
+      <li>Auto-replies to most messages: FAQ, comments, simple DMs, even leads</li>
+      <li>Only sensitive messages and edge cases reach the user</li>
+      <li>Sensitive messages now show: summary + 3 similar past conversations as reference</li>
+      <li>AI surfaces insights: "3 people asked about a group program you don't offer yet"</li>
+    </ul><br>
+    <strong>Why conversation view:</strong> 1-2 items per day. A list is overkill. A stack has nothing to stack. The most natural interface is a brief: "Here's what happened. One thing needs you." Open, review, done. The emptiness IS the design — it means everything is handled.<br><br>
+    <strong>Value shown:</strong>
+    <ul style="margin:6px 0 0 16px; line-height:1.8;">
+      <li>3 people clicked your payment link after my reply (contribution, not attribution)</li>
+      <li>4.2 hours saved per day — you spent 1.8 min in Inbox this week</li>
+      <li>12 happy contacts replied with positive feedback after my responses</li>
+    </ul><br>
+    <strong>Questions to answer:</strong>
+    <ul style="margin:6px 0 0 16px; line-height:1.8;">
+      <li>What's the collab endgame — can the AI negotiate deal minimums?</li>
+    </ul>
   </div>
 
   <div class="phones">
@@ -1158,7 +1286,7 @@
     <div class="phone-wrapper">
       <div class="phone-label front-label">↑ Front — What you see</div>
       <div class="phone front-phone" style="padding:0; overflow:hidden;">
-        <img src="front-sensitive.png" style="width:100%; height:100%; object-fit:cover; object-position:top; display:block;" alt="Focus view — Week 8">
+        <img src="front-sensitive.png?v=1774853816" style="width:100%; height:100%; object-fit:cover; object-position:top; display:block;" alt="Focus view — Week 8">
       </div>
     </div>
 
