@@ -141,5 +141,7 @@ function toggle(id) {
   document.querySelectorAll('.section').forEach(s => { if (s.id !== id) s.classList.remove('open'); });
   clicked.classList.toggle('open');
 }
+const hash = location.hash.replace('#','');
+if (hash) { document.querySelectorAll('.section').forEach(s => s.classList.remove('open')); const t = document.getElementById(hash); if (t) t.classList.add('open'); }
 </script>
 </body></html>
