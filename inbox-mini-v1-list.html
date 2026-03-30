@@ -3,33 +3,33 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Chatty — AI Native Inbox</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>Inbox — AI Native Inbox</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-  body { font-family:'Inter',system-ui,sans-serif; background:#e8e6e2; display:flex; justify-content:center; align-items:center; min-height:100vh; overflow:hidden; }
-  #root { width:393px; height:852px; position:relative; overflow:hidden; border-radius:44px; box-shadow:0 25px 80px rgba(0,0,0,.25); }
+  body { font-family:'Inter',-apple-system,system-ui,sans-serif; background:#E0E0E0; display:flex; justify-content:center; align-items:center; min-height:100vh; overflow:hidden; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+  #root { width:393px; height:852px; position:relative; overflow:hidden; border-radius:44px; box-shadow:0 20px 60px rgba(28,26,22,.16), 0 1px 3px rgba(28,26,22,.06); }
 
   /* Animations */
-  @keyframes fadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
   @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
-  @keyframes slideUp { from { opacity:0; transform:translateY(40px); } to { opacity:1; transform:translateY(0); } }
-  @keyframes slideOut { from { opacity:1; transform:translateY(0); } to { opacity:0; transform:translateY(-30px); } }
-  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.4; } }
+  @keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes slideOut { from { opacity:1; transform:translateY(0); } to { opacity:0; transform:translateY(-16px); } }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.3; } }
   @keyframes typing { 0% { content:''; } 33% { content:'.'; } 66% { content:'..'; } 100% { content:'...'; } }
-  .fade-up { animation: fadeUp .4s ease-out both; }
+  .fade-up { animation: fadeUp .4s cubic-bezier(.25,.46,.45,.94) both; }
   .fade-in { animation: fadeIn .3s ease both; }
-  .slide-up { animation: slideUp .35s ease-out both; }
+  .slide-up { animation: slideUp .35s cubic-bezier(.25,.46,.45,.94) both; }
 
   /* Scrollbar hide */
   ::-webkit-scrollbar { display:none; }
 
   /* Mobile responsive */
   @media (max-width:420px) {
-    body { background:#FAFAF8; align-items:flex-start; }
+    body { background:#FFFFFF; align-items:flex-start; }
     #root { width:100vw; height:100vh; height:100dvh; border-radius:0; box-shadow:none; }
   }
 </style>
@@ -41,18 +41,18 @@ const { useState, useEffect, useRef, useCallback } = React;
 
 /* ─── Design Tokens ─── */
 const T = {
-  paper: '#FAFAF8',
-  ink: '#1A1A1A',
-  gray: '#999',
-  lightGray: '#E8E6E2',
-  cardBg: '#fff',
-  accent: '#2D5BFF',
-  darkBg: '#0A0A0A',
-  darkSurface: '#161618',
-  darkBorder: '#2A2A2C',
-  mint: '#4FFFB0',
-  mintDim: '#2a8a60',
-  warmGray: '#F3F1ED',
+  paper: '#FFFFFF',
+  ink: '#1B1B18',
+  gray: '#7F7E76',
+  lightGray: '#D6D6D6',
+  cardBg: '#FFFFFF',
+  accent: '#006BE2',
+  darkBg: '#1B1B18',
+  darkSurface: '#28271F',
+  darkBorder: '#3D3C34',
+  mint: '#006BE2',
+  mintDim: '#0050B0',
+  warmGray: '#F5F5F5',
 };
 
 /* ─── Mock Data ─── */
@@ -160,13 +160,13 @@ const ALL_MESSAGES = [
 function OptCard({ title, desc, emoji, selected, onClick, small }) {
   return (
     <div onClick={onClick}
-      style={{ padding: small ? '14px 18px' : '18px 20px', background:T.cardBg, borderRadius:14,
-        border: selected ? `2px solid ${T.ink}` : `1px solid ${T.lightGray}`,
-        cursor:'pointer', transition:'all .15s ease', display:'flex', alignItems:'flex-start', gap:14 }}>
+      style={{ padding: small ? '14px 18px' : '18px 22px', background: selected ? T.warmGray : T.cardBg, borderRadius:14,
+        border: selected ? `1.5px solid ${T.ink}` : `1px solid ${T.lightGray}`,
+        cursor:'pointer', transition:'all .2s ease', display:'flex', alignItems:'flex-start', gap:14 }}>
       {emoji && <span style={{ fontSize:24, flexShrink:0, marginTop:small?0:2 }}>{emoji}</span>}
       <div>
-        <div style={{ fontSize: small ? 14 : 15, fontWeight:600, color:T.ink }}>{title}</div>
-        {desc && <div style={{ fontSize:13, color:T.gray, marginTop:3, lineHeight:1.4 }}>{desc}</div>}
+        <div style={{ fontSize: small ? 14 : 15, fontWeight:600, color:T.ink, letterSpacing:'-0.01em' }}>{title}</div>
+        {desc && <div style={{ fontSize:13, color:T.gray, marginTop:4, lineHeight:1.45 }}>{desc}</div>}
       </div>
     </div>
   );
@@ -176,9 +176,9 @@ function OptCard({ title, desc, emoji, selected, onClick, small }) {
 function BlackBtn({ label, onClick, disabled }) {
   return (
     <button onClick={onClick} disabled={disabled}
-      style={{ width:'100%', padding:'16px 0', background: disabled ? '#ccc' : T.ink, color:'#fff',
-        border:'none', borderRadius:50, fontSize:16, fontWeight:600, cursor: disabled ? 'default' : 'pointer',
-        transition:'background .2s' }}>
+      style={{ width:'100%', padding:'14px 0', background: disabled ? T.lightGray : T.ink, color: disabled ? T.gray : '#FFFFFF',
+        border:'none', borderRadius:12, fontSize:15, fontWeight:600, cursor: disabled ? 'default' : 'pointer',
+        transition:'all .2s ease', letterSpacing:'-0.01em' }}>
       {label}
     </button>
   );
@@ -189,7 +189,7 @@ function BlackBtn({ label, onClick, disabled }) {
    ═════════════════════════════════════ */
 
 /* Staggered fade-in messages (replaces TypeWriter — 2s instead of 25s) */
-function ChattyMessages({ messages, onAllDone }) {
+function InboxMessages({ messages, onAllDone }) {
   const [visibleCount, setVisibleCount] = useState(0);
 
   useEffect(() => {
@@ -208,12 +208,12 @@ function ChattyMessages({ messages, onAllDone }) {
       {messages.map((msg, i) => (
         <div key={i} style={{ marginBottom: 10, opacity: i < visibleCount ? 1 : 0, transform: i < visibleCount ? 'translateY(0)' : 'translateY(12px)', transition: 'all .35s ease-out' }}>
           {i === 0 && (
-            <div style={{ fontSize: 11, color: T.gray, marginBottom: 5, fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-              · Chatty
+            <div style={{ fontSize: 12, color: T.gray, marginBottom: 6, fontWeight: 500, letterSpacing: '0em' }}>
+              Inbox
             </div>
           )}
-          <div style={{ background: T.warmGray, borderRadius: 14, borderTopLeftRadius: i === 0 ? 14 : 4, padding: '13px 17px', maxWidth: '88%', display: 'inline-block' }}>
-            <div style={{ fontSize: 15, color: T.ink, lineHeight: 1.55 }}>{msg}</div>
+          <div style={{ background: T.warmGray, borderRadius: 18, borderTopLeftRadius: i === 0 ? 18 : 6, padding: '14px 18px', maxWidth: '88%', display: 'inline-block' }}>
+            <div style={{ fontSize: 15, color: T.ink, lineHeight: 1.55, letterSpacing: '-0.01em' }}>{msg}</div>
           </div>
         </div>
       ))}
@@ -225,11 +225,11 @@ function ChattyMessages({ messages, onAllDone }) {
 function ProgressBar({ step, total, label }) {
   return (
     <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 }}>
-      <div style={{ height: 3, background: T.lightGray }}>
-        <div style={{ height: '100%', background: T.ink, width: `${(step / total) * 100}%`, transition: 'width .4s ease' }} />
+      <div style={{ height: 2, background: T.lightGray }}>
+        <div style={{ height: '100%', background: T.accent, width: `${(step / total) * 100}%`, transition: 'width .5s cubic-bezier(.25,.46,.45,.94)' }} />
       </div>
       {label && (
-        <div style={{ padding: '8px 28px 0', fontSize: 10, color: T.gray, fontWeight: 500, letterSpacing: '0.03em' }}>
+        <div style={{ padding: '10px 28px 0', fontSize: 10, color: T.gray, fontWeight: 500, letterSpacing: '0.02em' }}>
           Step {step} of {total} · {label}
         </div>
       )}
@@ -251,39 +251,38 @@ function ObWelcome({ onNext }) {
 
   return (
     <div style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-      <ProgressBar step={1} total={8} label="Welcome" />
+      {/* No progress bar on welcome */}
       <div style={{ padding: '60px 28px 0' }}>
         {/* Profile card */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 18px', background: T.warmGray, borderRadius: 14, marginBottom: 32 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 44, height: 44, borderRadius: 22, background: T.ink, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 14, fontWeight: 600 }}>SR</div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 20px', background: T.warmGray, borderRadius: 16, marginBottom: 32 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{ width: 44, height: 44, borderRadius: 22, background: T.ink, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 14, fontWeight: 600, letterSpacing: '-0.02em' }}>SR</div>
             <div>
-              <div style={{ fontSize: 15, fontWeight: 600, color: T.ink }}>Sofia Reyes</div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: T.ink, letterSpacing: '-0.01em' }}>Sofia Reyes</div>
               <div style={{ fontSize: 12, color: T.gray }}>@sofiafit · 84k followers</div>
             </div>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: 24, fontWeight: 700, color: T.ink }}>143</div>
+            <div style={{ fontSize: 24, fontWeight: 700, color: T.ink, letterSpacing: '-0.03em' }}>143</div>
             <div style={{ fontSize: 10, color: T.gray, display: 'flex', alignItems: 'center', gap: 4 }}>
-              <span style={{ width: 6, height: 6, borderRadius: 3, background: T.ink, display: 'inline-block' }}></span> unread DMs
+              <span style={{ width: 6, height: 6, borderRadius: 3, background: T.accent, display: 'inline-block' }}></span> unread DMs
             </div>
           </div>
         </div>
 
-        <ChattyMessages
+        <InboxMessages
           messages={[
-            "Hi Sofia.",
-            "84,000 people follow you. A lot of them are trying to reach you right now.",
-            "I'll help you stay on top of every conversation.",
-            "Takes about 2 minutes."
+            "Hi Sofia. You receive around 140 messages per week. That's a lot.",
+            "Some of them are interested in your services. Others just need a quick reply.",
+            "I can sort everything so you focus on those that really need your attention. I handle the rest.",
+            "It only takes 1 minute."
           ]}
           onAllDone={() => setShowBtn(true)}
         />
       </div>
 
-      <div style={{ marginTop: 'auto', padding: '0 28px 50px', opacity: showBtn ? 1 : 0, transform: showBtn ? 'translateY(0)' : 'translateY(12px)', transition: 'all .4s ease' }}>
-        <BlackBtn label="Let's set it up →" onClick={onNext} />
-        {/* skip removed */}
+      <div style={{ marginTop: 'auto', padding: '0 28px 90px', opacity: showBtn ? 1 : 0, transform: showBtn ? 'translateY(0)' : 'translateY(12px)', transition: 'all .4s ease' }}>
+        <BlackBtn label="Sort my Inbox" onClick={onNext} />
       </div>
     </div>
   );
@@ -305,14 +304,14 @@ function ObWorkflow({ onNext, onBack }) {
 
   return (
     <div className="fade-up" style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-      <ProgressBar step={2} total={8} label="Workflow" />
+      <ProgressBar step={3} total={8} label="Workflow" />
       <ObBackBtn onClick={onBack} />
       <div style={{ padding: '60px 28px 0', flex: 1, overflowY: 'auto' }}>
-        <div style={{ fontSize: 11, color: T.gray, marginBottom: 6, fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase' }}>· Chatty</div>
-        <h1 style={{ fontSize: 26, fontWeight: 700, color: T.ink, lineHeight: 1.15, marginBottom: 8 }}>
+        <div style={{ fontSize: 11, color: T.gray, marginBottom: 6, fontWeight: 500, letterSpacing: '0em' }}>Inbox</div>
+        <h1 style={{ fontSize: 26, fontWeight: 700, color: T.ink, lineHeight: 1.15, marginBottom: 8, letterSpacing: '-0.02em' }}>
           If you had 10 minutes, what would you check first?
         </h1>
-        <p style={{ fontSize: 14, color: T.gray, marginBottom: 28 }}>Tap in order of priority — this helps me organize your inbox.</p>
+        <p style={{ fontSize: 14, color: T.gray, marginBottom: 28, lineHeight: 1.5 }}>Tap in order of priority — this helps me organize your inbox.</p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {priorities.map((p) => {
@@ -320,12 +319,12 @@ function ObWorkflow({ onNext, onBack }) {
             const isSelected = idx >= 0;
             return (
               <div key={p.id} onClick={() => toggle(p.id)}
-                style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px', borderRadius: 12, border: `1.5px solid ${isSelected ? T.ink : T.lightGray}`, background: '#fff', cursor: 'pointer', transition: 'all .15s ease' }}>
-                <div style={{ width: 28, height: 28, borderRadius: 14, border: `1.5px solid ${isSelected ? T.ink : T.lightGray}`, background: isSelected ? T.ink : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 12, fontWeight: 600, flexShrink: 0, transition: 'all .15s ease' }}>
+                style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px', borderRadius: 14, border: `1.5px solid ${isSelected ? T.ink : T.lightGray}`, background: isSelected ? T.warmGray : T.cardBg, cursor: 'pointer', transition: 'all .2s ease' }}>
+                <div style={{ width: 28, height: 28, borderRadius: 14, border: `1.5px solid ${isSelected ? T.ink : T.lightGray}`, background: isSelected ? T.ink : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 12, fontWeight: 600, flexShrink: 0, transition: 'all .2s ease' }}>
                   {isSelected ? idx + 1 : ''}
                 </div>
                 <div>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: T.ink }}>{p.label}</div>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: T.ink, letterSpacing: '-0.01em' }}>{p.label}</div>
                   <div style={{ fontSize: 12, color: T.gray }}>{p.desc}</div>
                 </div>
               </div>
@@ -361,13 +360,13 @@ function ObAnalyzing({ onNext, onBack }) {
 
   return (
     <div className="fade-up" style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', position: 'relative' }}>
-      <ProgressBar step={3} total={8} label="Analyzing" />
+      {/* No progress bar on analyzing */}
       <ObBackBtn onClick={onBack} />
       <div style={{ padding: '0 36px' }}>
-        <div style={{ fontSize: 11, color: T.gray, marginBottom: 12, fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase' }}>· Chatty</div>
+        <div style={{ fontSize: 11, color: T.gray, marginBottom: 12, fontWeight: 500, letterSpacing: '0em' }}>Inbox</div>
         {lines.map((line, i) => (
-          <div key={i} className="fade-up" style={{ fontSize: 16, color: i === lines.length - 1 ? T.ink : T.gray, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10, transition: 'color .3s' }}>
-            <span style={{ width: 16, height: 16, borderRadius: 8, border: `1.5px solid ${i < lines.length - 1 ? T.ink : T.gray}`, background: i < lines.length - 1 ? T.ink : 'transparent', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <div key={i} className="fade-up" style={{ fontSize: 15, color: i === lines.length - 1 ? T.ink : T.gray, marginBottom: 18, display: 'flex', alignItems: 'center', gap: 12, transition: 'color .3s', letterSpacing: '-0.01em' }}>
+            <span style={{ width: 18, height: 18, borderRadius: 9, border: `1.5px solid ${i < lines.length - 1 ? T.accent : T.lightGray}`, background: i < lines.length - 1 ? T.accent : 'transparent', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all .3s ease' }}>
               {i < lines.length - 1 && <span style={{ color: '#fff', fontSize: 9 }}>&#10003;</span>}
             </span>
             {line}
@@ -390,7 +389,7 @@ function ObInsights({ onNext, onBack }) {
       <ProgressBar step={4} total={8} label="Your style" />
       <ObBackBtn onClick={onBack} />
       <div style={{ padding: '60px 28px 0', flex: 1 }}>
-        <ChattyMessages
+        <InboxMessages
           messages={[
             "I looked at how you reply.",
             "You're fast — especially with leads. And you always give people a next step.",
@@ -418,7 +417,7 @@ function ObLeadDef({ onNext, onBack }) {
       <ProgressBar step={5} total={8} label="Your leads" />
       <ObBackBtn onClick={onBack} />
       <div style={{ padding: '60px 28px 0', flex: 1, overflowY: 'auto' }}>
-        <ChattyMessages
+        <InboxMessages
           messages={[
             "I've looked at how your business works.",
             "Let's define what a lead looks like so I know who to prioritize."
@@ -428,7 +427,7 @@ function ObLeadDef({ onNext, onBack }) {
 
         {showBtn && (
           <div className="fade-up" style={{ marginTop: 24 }}>
-            <div style={{ fontSize: 11, color: T.gray, marginBottom: 8, fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase' }}>· Chatty</div>
+            <div style={{ fontSize: 11, color: T.gray, marginBottom: 8, fontWeight: 500, letterSpacing: '0em' }}>Inbox</div>
             <div style={{ background: T.warmGray, borderRadius: 14, padding: '16px 18px' }}>
               <div style={{ fontSize: 14, color: T.ink, lineHeight: 1.5, marginBottom: 12 }}>
                 A lead for you is...
@@ -467,8 +466,8 @@ function ObTrustFeel({ onNext, setConfidence }) {
 
   const responses = {
     low: "Totally fair.\n\nI'll sort your messages and draft replies — but nothing gets sent without you. You review everything.",
-    mid: "Great.\n\nI'll sort your messages, categorize your leads, and draft replies for common questions. You review everything before it goes out.",
-    high: "Let's go.\n\nI'll sort your messages, draft replies, and categorize everything. You review and send — I'll get faster over time."
+    mid: "Great.\n\nI'll handle common questions and sort your leads automatically. For the rest, I'll draft and you review.",
+    high: "Let's go.\n\nI'll reply to comments, sort your leads, and after a few reviews, start replying on your behalf."
   };
 
   const pick = (id) => {
@@ -482,19 +481,19 @@ function ObTrustFeel({ onNext, setConfidence }) {
     <div className="fade-up" style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
       <ProgressBar step={5} total={8} />
       <div style={{ padding: '60px 28px 0', flex: 1, overflowY: 'auto' }}>
-        <div style={{ fontSize: 11, color: T.gray, marginBottom: 6, fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase' }}>· Chatty</div>
-        <h1 style={{ fontSize: 26, fontWeight: 700, color: T.ink, lineHeight: 1.15, marginBottom: 6 }}>
+        <div style={{ fontSize: 11, color: T.gray, marginBottom: 6, fontWeight: 500, letterSpacing: '0em' }}>Inbox</div>
+        <h1 style={{ fontSize: 26, fontWeight: 700, color: T.ink, lineHeight: 1.15, marginBottom: 6, letterSpacing: '-0.02em' }}>
           Real talk — how do you feel about AI?
         </h1>
-        <p style={{ fontSize: 14, color: T.gray, marginBottom: 24 }}>This helps me know where to start.</p>
+        <p style={{ fontSize: 14, color: T.gray, marginBottom: 24, lineHeight: 1.5 }}>This helps me know where to start.</p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {options.map(o => (
             <div key={o.id} onClick={() => pick(o.id)}
-              style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px', borderRadius: 12, border: `1.5px solid ${selected === o.id ? T.ink : T.lightGray}`, background: selected === o.id ? T.warmGray : '#fff', cursor: 'pointer', opacity: selected && selected !== o.id ? 0.45 : 1, transition: 'all .25s ease' }}>
-              <div style={{ width: 36, height: 36, borderRadius: 8, background: selected === o.id ? T.ink : T.lightGray, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, color: selected === o.id ? '#fff' : T.ink, flexShrink: 0, transition: 'all .2s ease' }}>{o.icon}</div>
+              style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px', borderRadius: 14, border: `1.5px solid ${selected === o.id ? T.ink : T.lightGray}`, background: selected === o.id ? T.warmGray : T.cardBg, cursor: 'pointer', opacity: selected && selected !== o.id ? 0.4 : 1, transition: 'all .25s ease' }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: selected === o.id ? T.ink : T.warmGray, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, color: selected === o.id ? '#fff' : T.ink, flexShrink: 0, transition: 'all .2s ease' }}>{o.icon}</div>
               <div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: T.ink }}>{o.label}</div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: T.ink, letterSpacing: '-0.01em' }}>{o.label}</div>
                 <div style={{ fontSize: 12, color: T.gray }}>{o.desc}</div>
               </div>
             </div>
@@ -503,7 +502,7 @@ function ObTrustFeel({ onNext, setConfidence }) {
 
         {showResponse && (
           <div className="fade-up" style={{ marginTop: 24 }}>
-            <div style={{ fontSize: 11, color: T.gray, marginBottom: 5, fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase' }}>· Chatty</div>
+            <div style={{ fontSize: 11, color: T.gray, marginBottom: 5, fontWeight: 500, letterSpacing: '0em' }}>Inbox</div>
             <div style={{ background: T.warmGray, borderRadius: 14, padding: '14px 18px' }}>
               <div style={{ fontSize: 14, color: T.ink, lineHeight: 1.6, whiteSpace: 'pre-line' }}>{responses[selected]}</div>
             </div>
@@ -571,33 +570,33 @@ function ObExamples({ onNext, onBack }) {
       <ProgressBar step={7} total={8} label="Examples" />
       <ObBackBtn onClick={onBack} />
       <div style={{ padding: '60px 28px 0', flex: 1 }}>
-        <div style={{ fontSize: 11, color: T.gray, marginBottom: 6, fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase' }}>· Chatty</div>
-        <div style={{ background: T.warmGray, borderRadius: 14, padding: '12px 17px', marginBottom: 20, display: 'inline-block' }}>
-          <div style={{ fontSize: 15, color: T.ink }}>Here's a draft I'd write for this one.</div>
+        <div style={{ fontSize: 12, color: T.gray, marginBottom: 6, fontWeight: 500 }}>Inbox</div>
+        <div style={{ background: T.warmGray, borderRadius: 18, borderTopLeftRadius: 18, padding: '13px 18px', marginBottom: 20, display: 'inline-block' }}>
+          <div style={{ fontSize: 15, color: T.ink, letterSpacing: '-0.01em' }}>Here's a draft I'd write for this one.</div>
         </div>
 
         <div key={idx} className="fade-up">
-          <div style={{ fontSize: 11, color: T.gray, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>From {ex.from}</div>
-          <div style={{ background: T.warmGray, borderRadius: 12, padding: '13px 17px', marginBottom: 16 }}>
-            <div style={{ fontSize: 15, color: T.ink, lineHeight: 1.5 }}>{ex.msg}</div>
+          <div style={{ fontSize: 11, color: T.gray, marginBottom: 6, letterSpacing: '0.01em' }}>From {ex.from}</div>
+          <div style={{ background: T.warmGray, borderRadius: 16, padding: '14px 18px', marginBottom: 16 }}>
+            <div style={{ fontSize: 15, color: T.ink, lineHeight: 1.5, letterSpacing: '-0.01em' }}>{ex.msg}</div>
           </div>
 
-          <div style={{ fontSize: 11, color: T.gray, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>· Chatty's draft</div>
-          <div style={{ background: '#fff', border: `1.5px solid ${T.ink}`, borderRadius: 12, padding: '13px 17px', marginBottom: 12, transition: 'opacity 0.2s ease', opacity: draftFading ? 0 : 1 }}>
-            <div style={{ fontSize: 15, color: T.ink, lineHeight: 1.5 }}>{displayedDraft}</div>
+          <div style={{ fontSize: 11, color: T.gray, marginBottom: 6 }}>Inbox's draft</div>
+          <div style={{ background: T.cardBg, border: `1.5px solid ${T.ink}`, borderRadius: 16, padding: '14px 18px', marginBottom: 12, transition: 'opacity 0.2s ease', opacity: draftFading ? 0 : 1 }}>
+            <div style={{ fontSize: 15, color: T.ink, lineHeight: 1.5, letterSpacing: '-0.01em' }}>{displayedDraft}</div>
           </div>
 
-          <div style={{ display: 'inline-block', padding: '4px 12px', border: `1px solid ${T.ink}`, borderRadius: 6, fontSize: 11, fontWeight: 600, color: T.ink, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{ex.tag}</div>
+          <div style={{ display: 'inline-block', padding: '5px 14px', border: `1px solid ${T.lightGray}`, borderRadius: 8, fontSize: 12, fontWeight: 500, color: T.gray }}>{ex.tag}</div>
         </div>
 
         <div style={{ textAlign: 'center', marginTop: 8, fontSize: 12, color: '#bbb' }}>{idx + 1} of {examples.length}</div>
       </div>
 
       <div style={{ padding: '16px 28px 50px', display: 'flex', gap: 10 }}>
-        <button onClick={handleDifferent} style={{ flex: 1, padding: '15px 0', borderRadius: 50, border: `1.5px solid ${T.lightGray}`, background: 'transparent', fontSize: 14, fontWeight: 500, cursor: 'pointer', color: T.ink }}>
+        <button onClick={handleDifferent} style={{ flex: 1, padding: '15px 0', borderRadius: 12, border: `1.5px solid ${T.lightGray}`, background: 'transparent', fontSize: 14, fontWeight: 500, cursor: 'pointer', color: T.ink }}>
           &#10007; Different
         </button>
-        <button onClick={handleLike} style={{ flex: 1, padding: '15px 0', borderRadius: 50, border: 'none', background: T.ink, color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+        <button onClick={handleLike} style={{ flex: 1, padding: '15px 0', borderRadius: 12, border: 'none', background: T.ink, color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
           &#10003; Like it
         </button>
       </div>
@@ -613,32 +612,34 @@ function ObInboxPreview({ onNext }) {
     <div className="fade-up" style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
       <ProgressBar step={8} total={8} />
       <div style={{ padding: '60px 28px 0', flex: 1 }}>
-        <ChattyMessages
+        <InboxMessages
           messages={[
             "This is what your inbox looks like.",
-            "Two tabs. Important messages first, everything else in All."
+            "I organized everything into four sections so you can work through it fast."
           ]}
           onAllDone={() => setShowBtn(true)}
         />
 
-        <div className="fade-up" style={{ marginTop: 24, border: `1.5px solid ${T.ink}`, borderRadius: 14, overflow: 'hidden' }}>
+        <div className="fade-up" style={{ marginTop: 24, border: `1px solid ${T.lightGray}`, borderRadius: 16, overflow: 'hidden', background: T.cardBg }}>
           {/* Important */}
-          <div style={{ padding: '14px 18px', borderBottom: `1px solid ${T.lightGray}` }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: T.ink, marginBottom: 2 }}>Important</div>
-            <div style={{ fontSize: 11, color: T.gray, marginBottom: 10 }}>Leads, sensitive messages, collabs, and questions — with drafts ready</div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: 14, color: T.ink }}>@lena.fit</span>
-              <span style={{ fontSize: 10, padding: '3px 10px', border: `1px solid ${T.ink}`, borderRadius: 10, fontWeight: 600 }}>Sensitive</span>
-            </div>
+          <div style={{ padding: '16px 20px', borderBottom: `1px solid ${T.lightGray}` }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: T.ink, marginBottom: 3, letterSpacing: '-0.01em' }}>Important</div>
+            <div style={{ fontSize: 12, color: T.gray, lineHeight: 1.4 }}>I paused — these need your voice</div>
           </div>
-          {/* All */}
-          <div style={{ padding: '14px 18px' }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: T.ink, marginBottom: 2 }}>All</div>
-            <div style={{ fontSize: 11, color: T.gray, marginBottom: 10 }}>Every DM sorted by time — spam and empty filtered to the bottom</div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: 14, color: T.ink }}>47 messages</span>
-              <span style={{ fontSize: 10, color: T.gray }}>sorted by category</span>
-            </div>
+          {/* Engagement */}
+          <div style={{ padding: '16px 20px', borderBottom: `1px solid ${T.lightGray}` }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: T.ink, marginBottom: 3, letterSpacing: '-0.01em' }}>Engagement</div>
+            <div style={{ fontSize: 12, color: T.gray, lineHeight: 1.4 }}>Draft replies ready — approve or edit</div>
+          </div>
+          {/* Questions */}
+          <div style={{ padding: '16px 20px', borderBottom: `1px solid ${T.lightGray}` }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: T.ink, marginBottom: 3, letterSpacing: '-0.01em' }}>Questions</div>
+            <div style={{ fontSize: 12, color: T.gray, lineHeight: 1.4 }}>Repeated questions I can learn from</div>
+          </div>
+          {/* Handled */}
+          <div style={{ padding: '16px 20px' }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: T.ink, marginBottom: 3, letterSpacing: '-0.01em' }}>Handled</div>
+            <div style={{ fontSize: 12, color: T.gray, lineHeight: 1.4 }}>I took care of these — nothing to do</div>
           </div>
         </div>
       </div>
@@ -656,34 +657,88 @@ function ObStats({ onNext, onBack }) {
 
   return (
     <div className="fade-up" style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-      <ProgressBar step={7} total={8} label="Summary" />
-      <ObBackBtn onClick={onBack} />
-      <div style={{ padding: '60px 28px 0', flex: 1 }}>
-        <ChattyMessages
+      <ProgressBar step={1} total={2} label="Summary" />
+      <div style={{ padding: '60px 28px 0', flex: 1, overflowY: 'auto' }}>
+        <InboxMessages
           messages={[
             "You're set, Sofia.",
-            "I sorted 142 messages and matched your tone and voice."
+            "I sorted 142 messages."
           ]}
           onAllDone={() => setShowBtn(true)}
         />
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 24 }}>
-          {[
-            { n: '142', label: 'DMs sorted' },
-            { n: '12', label: 'drafts created' },
-            { n: '8', label: 'need your review' },
-            { n: '34', label: 'leads found' },
-          ].map((s, i) => (
-            <div key={i} className="fade-up" style={{ padding: '20px 18px', border: `1.5px solid ${T.ink}`, borderRadius: 12, animationDelay: `${i * 0.1 + 0.3}s` }}>
-              <div style={{ fontSize: 28, fontWeight: 700, color: T.ink }}>{s.n}</div>
-              <div style={{ fontSize: 12, color: T.gray, marginTop: 2 }}>{s.label}</div>
+        {/* Stats card */}
+        {showBtn && (
+          <div className="fade-up" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 20 }}>
+            {[
+              { n: '142', label: 'DMs sorted' },
+              { n: '12', label: 'drafts created' },
+              { n: '8', label: 'need your review' },
+              { n: '34', label: 'leads found' },
+            ].map((s, i) => (
+              <div key={i} style={{ padding: '18px 16px', border: `1px solid ${T.lightGray}`, borderRadius: 14, background: T.cardBg }}>
+                <div style={{ fontSize: 26, fontWeight: 700, color: T.ink, letterSpacing: '-0.03em' }}>{s.n}</div>
+                <div style={{ fontSize: 12, color: T.gray, marginTop: 3 }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Lead teaser */}
+        {showBtn && (
+          <div className="fade-up" style={{ marginTop: 24, animationDelay: '0.4s' }}>
+            <div style={{ fontSize: 11, color: T.gray, marginBottom: 5, fontWeight: 500, letterSpacing: '0.04em', textTransform: 'uppercase' }}>· Inbox</div>
+            <div style={{ background: T.warmGray, borderRadius: 14, padding: '12px 16px', maxWidth: '88%' }}>
+              <div style={{ fontSize: 14, color: T.ink, lineHeight: 1.5 }}>There's somebody already interested in your mid-level course.</div>
             </div>
-          ))}
-        </div>
+          </div>
+        )}
+
+        {/* Chat frame preview */}
+        {showBtn && (
+          <div className="fade-up" style={{ marginTop: 12, marginLeft: 12, padding: '14px 16px', border: `1px solid ${T.lightGray}`, borderRadius: 12, background: T.cardBg, maxWidth: '88%', animationDelay: '0.6s' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+              <div style={{ width: 32, height: 32, borderRadius: 16, background: T.lightGray, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600, color: T.ink }}>JR</div>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: T.ink }}>@jayrunz</div>
+                <div style={{ fontSize: 10, color: T.gray }}>Comment on "My 12-week results"</div>
+              </div>
+              <span style={{ marginLeft: 'auto', fontSize: 9, fontWeight: 600, color: '#E85D04', background: '#FFF3E8', padding: '2px 8px', borderRadius: 10 }}>LEAD</span>
+            </div>
+            <div style={{ fontSize: 13, color: T.ink, lineHeight: 1.5, fontStyle: 'italic' }}>"I've been struggling for 2 years. Is it too late to start?"</div>
+          </div>
+        )}
       </div>
 
       <div style={{ padding: '16px 28px 50px', opacity: showBtn ? 1 : 0, transform: showBtn ? 'translateY(0)' : 'translateY(12px)', transition: 'all .4s ease' }}>
-        <BlackBtn label="Open my inbox →" onClick={onNext} />
+        <BlackBtn label="Next →" onClick={onNext} />
+      </div>
+    </div>
+  );
+}
+
+/* ─── Step 4: Voice & Control ─── */
+function ObVoice({ onNext, onBack }) {
+  const [showBtn, setShowBtn] = useState(false);
+
+  return (
+    <div className="fade-up" style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      <ProgressBar step={2} total={2} label="Your voice" />
+      <ObBackBtn onClick={onBack} />
+      <div style={{ padding: '60px 28px 0', flex: 1 }}>
+        <InboxMessages
+          messages={[
+            "One more thing. How you express yourself to your audience is key.",
+            "So I checked your replies.",
+            "You're always direct, encouraging, and give people a clear next step.",
+            "I'll draft replies that sound like you.",
+            "But no worries. Nothing will be sent without your approval. You're in control."
+          ]}
+          onAllDone={() => setShowBtn(true)}
+        />
+      </div>
+      <div style={{ padding: '16px 28px 50px', opacity: showBtn ? 1 : 0, transform: showBtn ? 'translateY(0)' : 'translateY(12px)', transition: 'all .4s ease' }}>
+        <BlackBtn label="Open Inbox" onClick={onNext} />
       </div>
     </div>
   );
@@ -697,7 +752,7 @@ function ObLoading({ onNext }) {
 
   return (
     <div style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
-      <ProgressBar step={8} total={8} label="Loading" />
+      {/* No progress bar on loading */}
       <div style={{ animation: 'pulse 1.2s infinite', fontSize: 15, color: T.gray }}>Loading your inbox...</div>
     </div>
   );
@@ -706,13 +761,14 @@ function ObLoading({ onNext }) {
 /* ─── Toggle: Focus / Stacked ─── */
 function ModeToggle({ mode, setMode }) {
   return (
-    <div style={{ display:'flex', background:T.cardBg, borderRadius:10, border:`1px solid ${T.lightGray}`, overflow:'hidden' }}>
+    <div style={{ display:'flex', background:T.warmGray, borderRadius:10, overflow:'hidden', padding:2 }}>
       {['Focus','Stacked'].map(m => (
         <div key={m} onClick={() => setMode(m.toLowerCase())}
-          style={{ padding:'8px 18px', fontSize:13, fontWeight:mode===m.toLowerCase()?600:400,
-            color:mode===m.toLowerCase()?T.ink:T.gray,
-            background:mode===m.toLowerCase()?T.warmGray:'transparent',
-            cursor:'pointer', transition:'all .15s ease', borderRadius:8 }}>
+          style={{ padding:'7px 18px', fontSize:13, fontWeight:mode===m.toLowerCase()?600:400,
+            color:mode===m.toLowerCase()?T.ink:T.gray, letterSpacing:'-0.01em',
+            background:mode===m.toLowerCase()?T.cardBg:'transparent',
+            cursor:'pointer', transition:'all .2s ease', borderRadius:8,
+            boxShadow:mode===m.toLowerCase()?'0 1px 3px rgba(28,26,22,.08)':'none' }}>
           {m}
         </div>
       ))}
@@ -724,24 +780,24 @@ function ModeToggle({ mode, setMode }) {
 function AIButton({ onClick }) {
   return (
     <div onClick={onClick}
-      style={{ width:38, height:38, borderRadius:12, background:T.ink, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'transform .1s', position:'relative' }}>
-      <span style={{ color:'#fff', fontSize:11, fontWeight:700, letterSpacing:'0.03em' }}>AI</span>
-      <div style={{ position:'absolute', top:-2, right:-2, width:8, height:8, borderRadius:4, background:T.mint, border:`2px solid ${T.paper}` }} />
+      style={{ width:36, height:36, borderRadius:10, background:T.ink, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'transform .1s', position:'relative' }}>
+      <span style={{ color:'#fff', fontSize:10, fontWeight:700, letterSpacing:'0.02em' }}>AI</span>
+      <div style={{ position:'absolute', top:-2, right:-2, width:8, height:8, borderRadius:4, background:T.accent, border:`2px solid ${T.paper}` }} />
     </div>
   );
 }
 
-/* ─── Chatty Message Bubble ─── */
-function ChattyMsg({ children, delay=0 }) {
+/* ─── Inbox Message Bubble ─── */
+function InboxMsg({ children, delay=0 }) {
   const [show, setShow] = useState(delay===0);
   useEffect(() => { if(delay>0) { const t=setTimeout(()=>setShow(true),delay); return ()=>clearTimeout(t); } }, []);
   if(!show) return null;
   return (
     <div className="fade-up" style={{ marginBottom:16 }}>
-      <div style={{ fontSize:11, color:T.gray, marginBottom:6, display:'flex', alignItems:'center', gap:5 }}>
-        <span style={{ fontSize:13 }}>💬</span> Chatty
+      <div style={{ fontSize:12, color:T.gray, marginBottom:6, display:'flex', alignItems:'center', gap:6 }}>
+        <span style={{ width:18, height:18, borderRadius:9, background:T.accent, display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:9, color:'#fff', fontWeight:700 }}>C</span> Inbox
       </div>
-      <div style={{ background:T.warmGray, borderRadius:16, borderTopLeftRadius:4, padding:'14px 18px', maxWidth:'88%', fontSize:15, lineHeight:1.5, color:T.ink }}>
+      <div style={{ background:T.warmGray, borderRadius:18, borderTopLeftRadius:6, padding:'14px 18px', maxWidth:'88%', fontSize:15, lineHeight:1.5, color:T.ink, letterSpacing:'-0.01em' }}>
         {children}
       </div>
     </div>
@@ -751,16 +807,16 @@ function ChattyMsg({ children, delay=0 }) {
 /* ─── Sent Bubble (completed task in the chat) ─── */
 function SentBubble({ item }) {
   return (
-    <div className="fade-in" style={{ padding:'10px 16px', background:'#E8F5E8', borderRadius:12, marginBottom:12 }}>
+    <div className="fade-in" style={{ padding:'12px 16px', background:'#F0F5EC', borderRadius:12, marginBottom:10 }}>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-        <span style={{ fontSize:13, fontWeight:500, color:'#2d7a2d' }}>✓ Sent to {item.user}</span>
-        <span style={{ fontSize:10, color:'#6aaa6a' }}>{item.type}</span>
+        <span style={{ fontSize:13, fontWeight:500, color:'#3D7A3D', letterSpacing:'-0.01em' }}>✓ Sent to {item.user}</span>
+        <span style={{ fontSize:10, color:'#7DAA7D' }}>{item.type}</span>
       </div>
     </div>
   );
 }
 
-/* ─── Chatty context narration for a task ─── */
+/* ─── Inbox context narration for a task ─── */
 const NARRATIONS = {
   1: "This person sent you a DM. They've been trying for 2 years — sounds like they need encouragement. This could be a strong lead.",
   2: "Quick question from a DM. She's postpartum and wondering if it's right for her — your module covers this perfectly.",
@@ -776,59 +832,80 @@ const NARRATIONS = {
 /* ─── Collapsible AI Value Summary (top of inbox) ─── */
 function DailyReport({ collapsed, onToggle }) {
   return (
-    <div onClick={onToggle} style={{ background:T.warmGray, borderRadius:14, padding: collapsed ? '12px 18px' : '18px 20px', marginBottom:16, cursor:'pointer', transition:'all .3s ease' }}>
-      {collapsed ? (
+    <div style={{ marginBottom:16 }}>
+      {/* Always show collapsed bar */}
+      <div onClick={onToggle} style={{ background:T.warmGray, borderRadius:16, padding:'14px 20px', cursor:'pointer' }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-          <span style={{ fontSize:13, fontWeight:600, color:T.ink }}>Summary</span>
+          <span style={{ fontSize:13, fontWeight:600, color:T.ink, letterSpacing:'-0.01em' }}>Summary</span>
           <div style={{ display:'flex', gap:12, alignItems:'center' }}>
-            <span style={{ fontSize:12, color:T.gray }}>47 sorted · 83% clean · 12 drafts · 4m avg</span>
-            <span style={{ fontSize:14, color:'#bbb' }}>+</span>
+            <span style={{ fontSize:12, color:T.gray }}>47 sorted · 83% clean · 12 drafts</span>
+            <span style={{ fontSize:14, color:T.gray }}>+</span>
           </div>
         </div>
-      ) : (
-        <>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
-            <span style={{ fontSize:13, fontWeight:600, color:T.ink }}>Summary</span>
-            <span style={{ fontSize:14, color:'#bbb' }}>-</span>
-          </div>
+      </div>
+    </div>
+  );
+}
 
-          <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
-            {/* Stat: Categorization */}
-            <div>
-              <div style={{ fontSize:22, fontWeight:700, color:T.ink, lineHeight:1.2 }}>47 <span style={{ fontSize:13, fontWeight:400, color:T.gray }}>DMs sorted into categories</span></div>
+/* ─── Summary Overlay (full-screen like Morning Brief) ─── */
+function SummaryOverlay({ onDismiss }) {
+  const [showBtn, setShowBtn] = useState(false);
+
+  return (
+    <div className="fade-up" style={{ position:'absolute', inset:0, zIndex:90, background:T.paper, display:'flex', flexDirection:'column', padding:'60px 28px 40px', overflowY:'auto' }}>
+      <div style={{ flex:1 }}>
+        <InboxMessages
+          messages={[
+            "Hey, here's what I've done so far."
+          ]}
+          onAllDone={() => setShowBtn(true)}
+        />
+
+        {showBtn && (
+          <div className="fade-up" style={{ display:'flex', flexDirection:'column', gap:10, marginTop:16 }}>
+            {/* Stats as inline pills */}
+            <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+              <div style={{ padding:'10px 16px', background:T.warmGray, borderRadius:12 }}>
+                <span style={{ fontSize:20, fontWeight:700, color:T.ink }}>47</span>
+                <span style={{ fontSize:12, color:T.gray, marginLeft:5 }}>DMs sorted by priority</span>
+              </div>
+              <div style={{ padding:'10px 16px', background:T.warmGray, borderRadius:12 }}>
+                <span style={{ fontSize:20, fontWeight:700, color:T.ink }}>83%</span>
+                <span style={{ fontSize:12, color:T.gray, marginLeft:5 }}>of your inbox was spam or noise — filtered out</span>
+              </div>
+            </div>
+            <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+              <div style={{ padding:'10px 16px', background:T.warmGray, borderRadius:12 }}>
+                <span style={{ fontSize:20, fontWeight:700, color:T.ink }}>12</span>
+                <span style={{ fontSize:12, color:T.gray, marginLeft:5 }}>draft replies ready for you</span>
+              </div>
+              <div style={{ padding:'10px 16px', background:T.warmGray, borderRadius:12 }}>
+                <span style={{ fontSize:20, fontWeight:700, color:T.ink }}>4 min</span>
+                <span style={{ fontSize:12, color:T.gray, marginLeft:5 }}>avg time you save per reply with a draft</span>
+              </div>
             </div>
 
-            {/* Stat: Inbox cleaned */}
-            <div>
-              <div style={{ fontSize:22, fontWeight:700, color:T.ink, lineHeight:1.2 }}>83% <span style={{ fontSize:13, fontWeight:400, color:T.gray }}>inbox cleaned</span></div>
-              <div style={{ fontSize:11, color:'#aaa', marginTop:2 }}>Spam and empty messages filtered out</div>
+            <div style={{ marginTop:8, fontSize:11, color:T.gray, fontWeight:500, letterSpacing:'0.04em', textTransform:'uppercase' }}>Inbox</div>
+            <div style={{ background:T.warmGray, borderRadius:14, padding:'12px 16px', maxWidth:'88%' }}>
+              <div style={{ fontSize:15, color:T.ink, lineHeight:1.5 }}>I'm getting better at matching your style.</div>
             </div>
 
-            {/* Stat: Drafts */}
-            <div>
-              <div style={{ fontSize:22, fontWeight:700, color:T.ink, lineHeight:1.2 }}>12 <span style={{ fontSize:13, fontWeight:400, color:T.gray }}>drafts created</span> · <span style={{ fontSize:18, fontWeight:700, color:T.ink }}>8</span> <span style={{ fontSize:13, fontWeight:400, color:T.gray }}>sent as-is</span></div>
-              <div style={{ fontSize:11, color:'#aaa', marginTop:2 }}>67% accuracy on first try</div>
-            </div>
-
-            {/* Stat: Response time */}
-            <div>
-              <div style={{ fontSize:22, fontWeight:700, color:T.ink, lineHeight:1.2 }}>4 min <span style={{ fontSize:13, fontWeight:400, color:T.gray }}>avg response time</span></div>
-              <div style={{ fontSize:11, color:'#aaa', marginTop:2 }}>3x faster with sorted priorities</div>
+            <div style={{ background:T.warmGray, borderRadius:14, padding:'12px 16px', maxWidth:'88%' }}>
+              <div style={{ fontSize:15, color:T.ink, lineHeight:1.5 }}>Also, I found your audience cares about you. Like Jess:</div>
             </div>
 
             {/* Quote */}
-            <div style={{ padding:'12px 14px', background:'rgba(0,0,0,0.03)', borderRadius:10, borderLeft:'3px solid #E85D04' }}>
-              <div style={{ fontSize:13, color:T.ink, lineHeight:1.5, fontStyle:'italic' }}>"Thanks for answering so quickly, I really appreciate it"</div>
-              <div style={{ fontSize:11, color:T.gray, marginTop:4 }}>@user18</div>
-            </div>
-
-            {/* Learning */}
-            <div style={{ fontSize:12, color:T.gray, lineHeight:1.5 }}>
-              I'm getting better at matching your tone — 15% closer this week
+            <div style={{ marginLeft:12, padding:'14px 16px', background:T.cardBg, borderRadius:12, border:`1px solid ${T.lightGray}`, maxWidth:'85%' }}>
+              <div style={{ fontSize:14, color:T.ink, lineHeight:1.5, fontStyle:'italic' }}>"Thanks for answering so quickly, I really appreciate it"</div>
+              <div style={{ fontSize:11, color:T.gray, marginTop:6 }}>@jess.wellness</div>
             </div>
           </div>
-        </>
-      )}
+        )}
+      </div>
+
+      <div style={{ paddingTop:20, opacity: showBtn ? 1 : 0, transform: showBtn ? 'translateY(0)' : 'translateY(12px)', transition:'all .4s ease' }}>
+        <BlackBtn label="Got it" onClick={onDismiss} />
+      </div>
     </div>
   );
 }
@@ -843,15 +920,15 @@ function TabBar({ active, setActive, counts }) {
     <div style={{ display:'flex', gap:0, borderBottom:`1px solid ${T.lightGray}`, marginBottom:16 }}>
       {tabs.map(tab => (
         <div key={tab.id} onClick={() => setActive(tab.id)}
-          style={{ flex:1, textAlign:'center', padding:'10px 0 10px', cursor:'pointer', position:'relative',
-            fontSize:12, fontWeight: active === tab.id ? 600 : 400,
+          style={{ flex:1, textAlign:'center', padding:'11px 0 11px', cursor:'pointer', position:'relative',
+            fontSize:13, fontWeight: active === tab.id ? 600 : 400, letterSpacing:'-0.01em',
             color: active === tab.id ? T.ink : T.gray, transition:'all .2s' }}>
           {tab.label}
           {tab.count !== null && tab.count > 0 && (
-            <span style={{ fontSize:9, fontWeight:600, background: active === tab.id ? T.ink : '#ddd', color: active === tab.id ? '#fff' : T.gray,
-              padding:'1px 6px', borderRadius:10, marginLeft:4, verticalAlign:'top' }}>{tab.count}</span>
+            <span style={{ fontSize:9, fontWeight:600, background: active === tab.id ? T.ink : T.lightGray, color: active === tab.id ? '#fff' : T.gray,
+              padding:'2px 7px', borderRadius:10, marginLeft:5, verticalAlign:'top' }}>{tab.count}</span>
           )}
-          {active === tab.id && <div style={{ position:'absolute', bottom:-1, left:'20%', right:'20%', height:2, background:T.ink, borderRadius:1 }} />}
+          {active === tab.id && <div style={{ position:'absolute', bottom:-1, left:'20%', right:'20%', height:2, background:T.accent, borderRadius:1 }} />}
         </div>
       ))}
     </div>
@@ -861,32 +938,33 @@ function TabBar({ active, setActive, counts }) {
 /* ─── Section header inside tabs ─── */
 function SectionLabel({ label, count }) {
   return (
-    <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:10, marginTop:16 }}>
-      <span style={{ fontSize:11, fontWeight:600, letterSpacing:'0.06em', color:T.ink, textTransform:'uppercase' }}>{label}</span>
-      {count !== undefined && <span style={{ fontSize:11, color:T.gray }}>· {count}</span>}
+    <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:10, marginTop:18 }}>
+      <span style={{ fontSize:12, fontWeight:600, letterSpacing:'-0.01em', color:T.ink }}>{label}</span>
+      {count !== undefined && <span style={{ fontSize:12, color:T.gray }}>· {count}</span>}
     </div>
   );
 }
 
 /* ─── Message row (Superhuman-style) ─── */
-function MsgRow({ user, msg, time, badge, badgeColor, onClick }) {
+function MsgRow({ user, msg, time, badge, badgeColor, onClick, hasDraft }) {
   return (
-    <div onClick={onClick} style={{ padding:'13px 16px', background:T.cardBg, borderRadius:10, border:`1px solid ${T.lightGray}`, marginBottom:6, cursor:'pointer', transition:'background .15s' }}>
+    <div onClick={onClick} style={{ padding:'14px 16px', background:T.cardBg, borderRadius:12, border:`1px solid ${T.lightGray}`, marginBottom:6, cursor:'pointer', transition:'all .15s ease', boxSizing:'border-box' }}>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:4 }}>
-        <span style={{ fontSize:14, fontWeight:600, color:T.ink }}>{user}</span>
+        <span style={{ fontSize:14, fontWeight:600, color:T.ink, letterSpacing:'-0.01em' }}>{user}</span>
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-          {badge && <span style={{ fontSize:9, fontWeight:600, color: badgeColor || T.gray, background: badgeColor ? badgeColor + '18' : T.warmGray, padding:'2px 8px', borderRadius:10, textTransform:'uppercase', letterSpacing:'0.04em' }}>{badge}</span>}
-          <span style={{ fontSize:11, color:'#ccc' }}>{time}</span>
+          {badge && <span style={{ fontSize:10, fontWeight:500, color: badgeColor || T.gray, background: badgeColor ? badgeColor + '12' : T.warmGray, padding:'3px 9px', borderRadius:6, letterSpacing:'0em' }}>{badge}</span>}
+          <span style={{ fontSize:11, color:T.gray }}>{time}</span>
         </div>
       </div>
       <div style={{ fontSize:13, color:T.gray, lineHeight:1.4, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{msg}</div>
+      {hasDraft && <div style={{ fontSize:11, color:'#888', marginTop:4 }}>Draft ready</div>}
     </div>
   );
 }
 
 /* ─── Chat Detail (full-screen overlay) ─── */
 function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent }) {
-  const [mode, setMode] = useState(isSensitive ? 'summary' : 'draft'); // draft, editing, custom, sent, summary
+  const [mode, setMode] = useState(isSensitive ? 'summary' : 'draft'); // draft, editing, custom, sent, summary, cancel-reason
   const [editVal, setEditVal] = useState(item.draft || '');
   const [customVal, setCustomVal] = useState('');
   const [showToast, setShowToast] = useState(false);
@@ -935,6 +1013,11 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent }) {
   };
 
   const handleDismissDraft = () => {
+    setMode('cancel-reason');
+  };
+
+  const handleCancelReason = (reason) => {
+    triggerToast('Got it — ' + reason.toLowerCase() + '. I\'ll improve next time.');
     setMode('custom');
     setCustomVal('');
   };
@@ -955,17 +1038,17 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent }) {
         <div style={{ display:'flex', alignItems:'center', gap:12 }}>
           <div onClick={(e) => { e.stopPropagation(); onClose(); }} style={{ cursor:'pointer', fontSize:20, color:T.ink, fontWeight:300, padding:'8px 12px', margin:'-8px -12px' }}>←</div>
           <div>
-            <div style={{ fontSize:16, fontWeight:600, color:T.ink }}>{item.user}</div>
+            <div style={{ fontSize:16, fontWeight:600, color:T.ink, letterSpacing:'-0.01em' }}>{item.user}</div>
             <div style={{ fontSize:11, color:T.gray }}>{item.source}</div>
           </div>
         </div>
         {!labelHidden && (
           <div style={{ position:'relative' }} onClick={(e) => { e.stopPropagation(); setLabelMenu(!labelMenu); setLabelReason(false); }}>
-            <div style={{ fontSize:10, fontWeight:600, color:labelColor, background:labelColor+'18', padding:'6px 14px', borderRadius:10, textTransform:'uppercase', letterSpacing:'0.04em', cursor:'pointer', userSelect:'none' }}>{label}</div>
+            <div style={{ fontSize:11, fontWeight:500, color:labelColor, background:labelColor+'12', padding:'5px 12px', borderRadius:8, letterSpacing:'0em', cursor:'pointer', userSelect:'none' }}>{label}</div>
 
             {/* Label context menu */}
             {labelMenu && !labelReason && (
-              <div className="fade-in" onClick={(e) => e.stopPropagation()} style={{ position:'absolute', right:0, top:'100%', marginTop:6, background:'#fff', borderRadius:10, border:`1px solid ${T.lightGray}`, boxShadow:'0 4px 16px rgba(0,0,0,0.1)', zIndex:20, minWidth:160, overflow:'hidden' }}>
+              <div className="fade-in" onClick={(e) => e.stopPropagation()} style={{ position:'absolute', right:0, top:'100%', marginTop:6, background:T.cardBg, borderRadius:12, border:`1px solid ${T.lightGray}`, boxShadow:'0 4px 20px rgba(28,26,22,.1)', zIndex:20, minWidth:160, overflow:'hidden' }}>
                 <div onClick={(e) => { e.stopPropagation(); setLabelReason(true); }} style={{ padding:'12px 16px', fontSize:13, color:'#dc2626', cursor:'pointer', borderBottom:`1px solid ${T.lightGray}`, fontWeight:500 }}>
                   Not a {label.toLowerCase()}
                 </div>
@@ -978,7 +1061,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent }) {
             {/* Reason picker */}
             {labelReason && (
               <div className="fade-in" onClick={(e) => e.stopPropagation()} style={{ position:'absolute', right:0, top:'100%', marginTop:6, background:'#fff', borderRadius:10, border:`1px solid ${T.lightGray}`, boxShadow:'0 4px 16px rgba(0,0,0,0.1)', zIndex:20, minWidth:200, overflow:'hidden' }}>
-                <div style={{ padding:'10px 16px', fontSize:11, color:T.gray, fontWeight:500, textTransform:'uppercase', letterSpacing:'0.04em', borderBottom:`1px solid ${T.lightGray}` }}>Why is it not a {label.toLowerCase()}?</div>
+                <div style={{ padding:'10px 16px', fontSize:11, color:T.gray, fontWeight:500, textTransform:'none', letterSpacing:'0.04em', borderBottom:`1px solid ${T.lightGray}` }}>Why is it not a {label.toLowerCase()}?</div>
                 {['Just browsing','Wrong category','Spam or bot','Other'].map(reason => (
                   <div key={reason} onClick={(e) => { e.stopPropagation(); setLabelHidden(true); setLabelMenu(false); setLabelReason(false); }}
                     style={{ padding:'12px 16px', fontSize:13, color:T.ink, cursor:'pointer', borderBottom:`1px solid ${T.lightGray}` }}>
@@ -998,139 +1081,129 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent }) {
       <div style={{ flex:1, overflowY:'auto', padding:'20px 20px 12px' }}>
         {chatHistory.map((m, i) => (
           <div key={i} style={{ marginBottom:12, display:'flex', justifyContent: m.from === 'you' ? 'flex-end' : 'flex-start' }}>
-            <div style={{ maxWidth:'80%', padding:'12px 16px', borderRadius:16, background: m.from === 'you' ? T.ink : '#fff', color: m.from === 'you' ? '#fff' : T.ink, border: m.from === 'them' ? `1px solid ${T.lightGray}` : 'none', borderTopLeftRadius: m.from === 'them' ? 4 : 16, borderTopRightRadius: m.from === 'you' ? 4 : 16 }}>
-              <div style={{ fontSize:14, lineHeight:1.5 }}>{m.text}</div>
-              <div style={{ fontSize:10, color: m.from === 'you' ? 'rgba(255,255,255,0.5)' : '#ccc', marginTop:4, textAlign:'right' }}>{m.time}</div>
+            <div style={{ maxWidth:'80%', padding:'12px 16px', borderRadius:18, background: m.from === 'you' ? T.ink : T.cardBg, color: m.from === 'you' ? '#fff' : T.ink, border: m.from === 'them' ? `1px solid ${T.lightGray}` : 'none', borderTopLeftRadius: m.from === 'them' ? 6 : 18, borderTopRightRadius: m.from === 'you' ? 6 : 18 }}>
+              <div style={{ fontSize:14, lineHeight:1.5, letterSpacing:'-0.01em' }}>{m.text}</div>
+              <div style={{ fontSize:10, color: m.from === 'you' ? 'rgba(255,255,255,0.45)' : T.gray, marginTop:4, textAlign:'right' }}>{m.time}</div>
             </div>
           </div>
         ))}
 
+        {/* Draft in chat body (dashed border) */}
+        {mode === 'draft' && item.draft && (
+          <div className="fade-up" style={{ marginBottom:12, display:'flex', justifyContent:'flex-end' }}>
+            <div style={{ maxWidth:'85%' }}>
+              <div style={{ padding:'14px 16px', borderRadius:18, borderTopRightRadius:6, border:'2px dashed #ccc', background:'#fff' }}>
+                <div style={{ fontSize:14, lineHeight:1.55, color:T.ink, letterSpacing:'-0.01em' }}>{item.draft}</div>
+              </div>
+              {item.reason && (
+                <div style={{ fontSize:11, color:T.gray, marginTop:6, paddingRight:4, lineHeight:1.4 }}>{item.reason}</div>
+              )}
+              <div style={{ display:'flex', gap:6, marginTop:8 }}>
+                <button onClick={handleSendDraft} style={{ padding:'7px 16px', background:T.ink, color:'#fff', border:'none', borderRadius:20, fontSize:12, fontWeight:600, cursor:'pointer' }}>Approve & send</button>
+                <button onClick={() => { setMode('editing'); setEditVal(item.draft); }} style={{ padding:'7px 14px', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:20, fontSize:12, fontWeight:500, cursor:'pointer', color:T.ink }}>Edit</button>
+                <button onClick={handleDismissDraft} style={{ padding:'7px 12px', background:'transparent', border:'none', fontSize:12, fontWeight:500, cursor:'pointer', color:T.gray }}>Cancel</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Editing draft in chat body */}
+        {mode === 'editing' && (
+          <div className="fade-up" style={{ marginBottom:12, display:'flex', justifyContent:'flex-end' }}>
+            <div style={{ maxWidth:'85%' }}>
+              <textarea value={editVal} onChange={e => setEditVal(e.target.value)}
+                style={{ width:'100%', fontSize:14, color:T.ink, lineHeight:1.5, padding:'14px 16px', border:`2px solid ${T.ink}`, borderRadius:16, resize:'none', height:90, fontFamily:'Inter, system-ui, sans-serif', background:'#fff', outline:'none', letterSpacing:'-0.01em' }} />
+              <div style={{ display:'flex', gap:5, marginTop:8, flexWrap:'wrap' }}>
+                {['Friendly','Formal','Shorter','Direct','Add a question'].map(tone => (
+                  <span key={tone} onClick={() => {
+                    setActiveTone(tone);
+                    const base = originalDraft;
+                    if (tone === 'Shorter') {
+                      const sentences = base.split(/(?<=[.!?])\s+/);
+                      setEditVal(sentences.slice(0, Math.ceil(sentences.length / 2)).join(' '));
+                    } else if (tone === 'Friendly') {
+                      setEditVal('Hey! ' + base.charAt(0).toLowerCase() + base.slice(1).replace(/\.$/, '') + ' 😊');
+                    } else if (tone === 'Formal') {
+                      setEditVal('Thank you for reaching out. ' + base.replace(/!/g, '.').replace(/Hey!?\s*/gi, ''));
+                    } else if (tone === 'Direct') {
+                      const sentences = base.split(/(?<=[.!?])\s+/);
+                      setEditVal(sentences.filter(s => s.length > 20).join(' '));
+                    } else if (tone === 'Add a question') {
+                      setEditVal(base.replace(/\.$/, '') + ' — what questions do you have?');
+                    }
+                  }} style={{ fontSize:11, padding:'5px 12px', borderRadius:16, border: activeTone === tone ? `1.5px solid ${T.ink}` : `1px solid ${T.lightGray}`, cursor:'pointer', color: activeTone === tone ? '#fff' : T.ink, fontWeight:500, background: activeTone === tone ? T.ink : '#fff', transition:'all .15s ease' }}>{tone}</span>
+                ))}
+              </div>
+              <div style={{ display:'flex', gap:6, marginTop:8 }}>
+                <button onClick={handleSendDraft} style={{ padding:'7px 16px', background:T.ink, color:'#fff', border:'none', borderRadius:20, fontSize:12, fontWeight:600, cursor:'pointer' }}>Send</button>
+                <button onClick={() => { setMode('draft'); setActiveTone(null); setEditVal(item.draft); }} style={{ padding:'7px 12px', background:'transparent', border:'none', fontSize:12, fontWeight:500, cursor:'pointer', color:T.gray }}>Cancel</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Cancel reason feedback */}
+        {mode === 'cancel-reason' && (
+          <div className="fade-up" style={{ marginBottom:12 }}>
+            <div style={{ background:T.warmGray, borderRadius:14, padding:'14px 16px', maxWidth:'88%' }}>
+              <div style={{ fontSize:14, color:T.ink, lineHeight:1.5, marginBottom:12 }}>What was wrong with the draft?</div>
+              <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+                {['Wrong tone', 'Too long', 'Inaccurate info', 'I want to say something different', 'Not the right moment'].map(reason => (
+                  <div key={reason} onClick={() => handleCancelReason(reason)}
+                    style={{ padding:'10px 14px', background:'#fff', borderRadius:10, border:`1px solid ${T.lightGray}`, cursor:'pointer', fontSize:13, color:T.ink }}>
+                    {reason}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Summary in chat body (for sensitive) */}
+        {mode === 'summary' && item.summary && (
+          <div className="fade-up" style={{ marginBottom:12 }}>
+            <div style={{ background:T.warmGray, borderRadius:14, padding:'14px 16px', maxWidth:'85%' }}>
+              <div style={{ fontSize:10, fontWeight:600, color:T.gray, letterSpacing:'0.05em', marginBottom:6 }}>SUMMARY</div>
+              <div style={{ fontSize:13, color:T.ink, lineHeight:1.55 }}>{item.summary}</div>
+            </div>
+          </div>
+        )}
+
         {/* Sent message */}
         {mode === 'sent' && (
           <div className="fade-up" style={{ marginBottom:12, display:'flex', justifyContent:'flex-end' }}>
-            <div style={{ maxWidth:'80%', padding:'12px 16px', borderRadius:16, borderTopRightRadius:4, background:T.ink, color:'#fff' }}>
-              <div style={{ fontSize:14, lineHeight:1.5 }}>{sentMsg}</div>
-              <div style={{ fontSize:10, color:'rgba(255,255,255,0.5)', marginTop:4, textAlign:'right' }}>Just now</div>
+            <div style={{ maxWidth:'80%', padding:'12px 16px', borderRadius:18, borderTopRightRadius:6, background:T.ink, color:'#fff' }}>
+              <div style={{ fontSize:14, lineHeight:1.5, letterSpacing:'-0.01em' }}>{sentMsg}</div>
+              <div style={{ fontSize:10, color:'rgba(255,255,255,0.4)', marginTop:4, textAlign:'right' }}>Just now</div>
             </div>
           </div>
         )}
       </div>
 
-      {/* Bottom area */}
-      <div style={{ flexShrink:0, borderTop:`1px solid ${T.lightGray}`, background:T.paper }}>
-
-        {/* Summary mode (for sensitive/needs-a-human) */}
-        {mode === 'summary' && (
-          <div style={{ padding:'16px 20px 40px' }}>
-            <div style={{ background:T.warmGray, borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
-              <div style={{ fontSize:10, fontWeight:600, color:T.gray, textTransform:'uppercase', letterSpacing:'0.05em', marginBottom:6 }}>Summary</div>
-              <div style={{ fontSize:13, color:T.ink, lineHeight:1.55 }}>{item.summary}</div>
-            </div>
-            <div style={{ display:'flex', gap:8, alignItems:'center' }}>
-              <div style={{ flex:1, padding:'12px 16px', background:'#fff', border:`1px solid ${T.lightGray}`, borderRadius:24, display:'flex', alignItems:'center', gap:8 }}>
-                <span style={{ fontSize:16, color:'#ccc' }}>+</span>
-                <input value={customVal} onChange={e => setCustomVal(e.target.value)} placeholder="Write your reply..." onKeyDown={e => e.key === 'Enter' && handleSendCustom()}
-                  style={{ border:'none', outline:'none', fontSize:14, color:T.ink, flex:1, background:'transparent', fontFamily:'Inter' }} />
-              </div>
-              <div onClick={handleSendCustom} style={{ width:40, height:40, borderRadius:20, background: customVal.trim() ? T.ink : T.lightGray, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'background .2s', flexShrink:0 }}>
-                <span style={{ color:'#fff', fontSize:14 }}>↑</span>
-              </div>
-            </div>
+      {/* Bottom — always show text input */}
+      <div style={{ flexShrink:0, borderTop:`1px solid ${T.lightGray}`, background:T.paper, padding:'12px 20px 40px' }}>
+        <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+          <span style={{ fontSize:20, color:'#ccc', cursor:'pointer', padding:'0 4px', flexShrink:0 }}>+</span>
+          <div style={{ flex:1, padding:'12px 16px', background:'#fff', border:`1px solid ${T.lightGray}`, borderRadius:24 }}>
+            <input value={customVal} onChange={e => {
+              const val = e.target.value;
+              setCustomVal(val);
+              if (mode === 'draft' && val.length >= 10) { setMode('custom'); }
+            }}
+              placeholder="Type your message..."
+              onKeyDown={e => { if (e.key === 'Enter' && customVal.trim()) { if (mode === 'draft') setMode('custom'); handleSendCustom(); } }}
+              style={{ border:'none', outline:'none', fontSize:14, color:T.ink, width:'100%', background:'transparent', fontFamily:'Inter, system-ui, sans-serif' }} />
           </div>
-        )}
-
-        {/* Draft mode */}
-        {mode === 'draft' && (
-          <div style={{ padding:'16px 20px 40px' }}>
-            <div style={{ position:'relative', background:T.warmGray, borderRadius:12, overflow:'hidden', marginBottom:12 }}>
-              <div onClick={handleDismissDraft} style={{ position:'absolute', top:8, right:8, width:32, height:32, borderRadius:16, background:'rgba(0,0,0,0.08)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', fontSize:16, color:T.ink, fontWeight:300, zIndex:2 }}>x</div>
-              <div style={{ padding:'14px 16px 12px', paddingRight:28 }}>
-                <div style={{ fontSize:15, color:T.ink, lineHeight:1.6 }}>{item.draft}</div>
-              </div>
-              {item.reason && (
-                <div style={{ padding:'8px 16px 10px', borderTop:'1px solid rgba(0,0,0,0.06)' }}>
-                  <div style={{ fontSize:11, color:T.gray, lineHeight:1.45 }}>{item.reason}</div>
-                </div>
-              )}
-            </div>
-            <div style={{ display:'flex', gap:8 }}>
-              <button onClick={handleSendDraft} style={{ flex:1, padding:'13px 0', background:T.ink, color:'#fff', border:'none', borderRadius:50, fontSize:14, fontWeight:600, cursor:'pointer' }}>Send</button>
-              <button onClick={() => { setMode('editing'); setEditVal(item.draft); }} style={{ padding:'13px 28px', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:50, fontSize:14, fontWeight:500, cursor:'pointer', color:T.ink }}>Edit</button>
-            </div>
+          <div onClick={() => { if (customVal.trim()) { if (mode === 'draft') setMode('custom'); handleSendCustom(); } }}
+            style={{ width:40, height:40, borderRadius:20, background: customVal.trim() ? T.ink : T.lightGray, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'background .2s', flexShrink:0 }}>
+            <span style={{ color:'#fff', fontSize:14 }}>↑</span>
           </div>
-        )}
-
-        {/* Editing mode */}
-        {mode === 'editing' && (
-          <div style={{ padding:'16px 20px 40px' }}>
-            <textarea value={editVal} onChange={e => setEditVal(e.target.value)}
-              style={{ width:'100%', fontSize:14, color:T.ink, lineHeight:1.5, padding:'14px 16px', border:`1.5px solid ${T.ink}`, borderRadius:12, resize:'none', height:90, fontFamily:'Inter', background:'#fff', outline:'none' }} />
-            <div style={{ display:'flex', gap:6, marginTop:8, marginBottom:12, flexWrap:'wrap' }}>
-              {['Friendly','Formal','Shorter','Direct','Add a question'].map(tone => (
-                <span key={tone} onClick={() => {
-                  setActiveTone(tone);
-                  const base = originalDraft;
-                  if (tone === 'Shorter') {
-                    const sentences = base.split(/(?<=[.!?])\s+/);
-                    setEditVal(sentences.slice(0, Math.ceil(sentences.length / 2)).join(' '));
-                  } else if (tone === 'Friendly') {
-                    setEditVal('Hey! ' + base.charAt(0).toLowerCase() + base.slice(1).replace(/\.$/, '') + ' 😊');
-                  } else if (tone === 'Formal') {
-                    setEditVal('Thank you for reaching out. ' + base.replace(/!/g, '.').replace(/Hey!?\s*/gi, ''));
-                  } else if (tone === 'Direct') {
-                    const sentences = base.split(/(?<=[.!?])\s+/);
-                    setEditVal(sentences.filter(s => s.length > 20).join(' '));
-                  } else if (tone === 'Add a question') {
-                    setEditVal(base.replace(/\.$/, '') + ' — what questions do you have?');
-                  }
-                }} style={{ fontSize:11, padding:'6px 14px', borderRadius:20, border: activeTone === tone ? `1.5px solid ${T.ink}` : `1px solid ${T.lightGray}`, cursor:'pointer', color: activeTone === tone ? '#fff' : T.ink, fontWeight:500, background: activeTone === tone ? T.ink : '#fff', transition:'all .15s ease' }}>{tone}</span>
-              ))}
-            </div>
-            <div style={{ display:'flex', gap:8, alignItems:'center' }}>
-              <span style={{ fontSize:20, color:'#ccc', cursor:'pointer', padding:'0 4px' }}>+</span>
-              <div style={{ flex:1 }}></div>
-              <div onClick={handleSendDraft} style={{ width:40, height:40, borderRadius:20, background:T.ink, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0 }}>
-                <span style={{ color:'#fff', fontSize:14 }}>↑</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Custom mode (draft dismissed) */}
-        {mode === 'custom' && (
-          <div style={{ padding:'16px 20px 40px' }}>
-            <div style={{ display:'flex', gap:8, alignItems:'center' }}>
-              <span style={{ fontSize:20, color:'#ccc', cursor:'pointer', padding:'0 4px', flexShrink:0 }}>+</span>
-              <div style={{ flex:1, padding:'12px 16px', background:'#fff', border:`1px solid ${T.lightGray}`, borderRadius:24 }}>
-                <input value={customVal} onChange={e => setCustomVal(e.target.value)} placeholder="Type your message..." onKeyDown={e => e.key === 'Enter' && handleSendCustom()}
-                  style={{ border:'none', outline:'none', fontSize:14, color:T.ink, width:'100%', background:'transparent', fontFamily:'Inter' }} />
-              </div>
-              <div onClick={handleSendCustom} style={{ width:40, height:40, borderRadius:20, background: customVal.trim() ? T.ink : T.lightGray, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'background .2s', flexShrink:0 }}>
-                <span style={{ color:'#fff', fontSize:14 }}>↑</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Sent mode — back to normal input */}
-        {mode === 'sent' && (
-          <div style={{ padding:'16px 20px 40px' }}>
-            <div style={{ display:'flex', gap:8, alignItems:'center' }}>
-              <span style={{ fontSize:20, color:'#ccc', padding:'0 4px', flexShrink:0 }}>+</span>
-              <div style={{ flex:1, padding:'12px 16px', background:'#fff', border:`1px solid ${T.lightGray}`, borderRadius:24 }}>
-                <input placeholder="Type your message..." style={{ border:'none', outline:'none', fontSize:14, color:T.ink, width:'100%', background:'transparent', fontFamily:'Inter' }} />
-              </div>
-              <div style={{ width:40, height:40, borderRadius:20, background:T.lightGray, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                <span style={{ color:'#fff', fontSize:14 }}>↑</span>
-              </div>
-            </div>
-          </div>
-        )}
+        </div>
       </div>
 
       {/* Toast */}
       {showToast && (
-        <div style={{ position:'absolute', bottom:100, left:'50%', transform:'translateX(-50%)', background:T.ink, color:'#fff', padding:'10px 20px', borderRadius:20, fontSize:13, fontWeight:500, animation:'fadeUp .3s ease-out', whiteSpace:'nowrap', zIndex:110 }}>
+        <div style={{ position:'absolute', bottom:100, left:'50%', transform:'translateX(-50%)', background:T.ink, color:'#fff', padding:'10px 20px', borderRadius:10, fontSize:13, fontWeight:500, animation:'fadeUp .3s ease-out', whiteSpace:'nowrap', zIndex:110, boxShadow:'0 4px 16px rgba(28,26,22,.15)', letterSpacing:'-0.01em' }}>
           {toastMsg}
         </div>
       )}
@@ -1147,16 +1220,17 @@ function ImportantTab({ onOpenChat, answeredChats }) {
       <>
         {pending.map((item,i) => (
           <MsgRow key={`p${item.user}`} user={item.user} msg={item.msg} time={item.time} badge={isSensitive ? item.flag : badgeText} badgeColor={badgeColor}
+            hasDraft={!isSensitive && !!item.draft}
             onClick={() => onOpenChat(item, isSensitive ? item.flag : badgeText, badgeColor, isSensitive)} />
         ))}
         {answered.map((item,i) => (
           <div key={`a${item.user}`} onClick={() => onOpenChat(item, isSensitive ? item.flag : badgeText, badgeColor, isSensitive)}
-            style={{ padding:'10px 16px', background:T.cardBg, borderRadius:10, border:`1px solid ${T.lightGray}`, marginBottom:4, opacity:0.45, cursor:'pointer', transform:'scale(0.97)', transformOrigin:'left center' }}>
+            style={{ padding:'12px 16px', background:T.cardBg, borderRadius:12, border:`1px solid ${T.lightGray}`, marginBottom:4, opacity:0.45, cursor:'pointer', transform:'scale(0.97)', transformOrigin:'left center' }}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:2 }}>
-              <span style={{ fontSize:13, fontWeight:500, color:T.gray }}>{item.user}</span>
-              <span style={{ fontSize:9, fontWeight:500, color:'#16a34a', background:'#f0fdf4', padding:'2px 8px', borderRadius:10 }}>seen</span>
+              <span style={{ fontSize:13, fontWeight:500, color:T.gray, letterSpacing:'-0.01em' }}>{item.user}</span>
+              <span style={{ fontSize:9, fontWeight:500, color:'#3D7A3D', background:'#F0F5EC', padding:'2px 8px', borderRadius:6 }}>seen</span>
             </div>
-            <div style={{ fontSize:12, color:'#bbb', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.msg}</div>
+            <div style={{ fontSize:12, color:T.gray, opacity:0.6, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.msg}</div>
           </div>
         ))}
       </>
@@ -1165,7 +1239,7 @@ function ImportantTab({ onOpenChat, answeredChats }) {
 
   return (
     <div>
-      <div style={{ fontSize:12, color:T.gray, lineHeight:1.5, marginBottom:16, padding:'0 4px' }}>
+      <div style={{ fontSize:13, color:T.gray, lineHeight:1.5, marginBottom:16, padding:'0 4px', letterSpacing:'-0.01em' }}>
         Conversations that need your personal touch. I flagged these for you.
       </div>
       <SectionLabel label="Interested in your services" count={IMPORTANT_DATA.services.length} />
@@ -1232,7 +1306,7 @@ function InProgressDetail({ item, onClose }) {
             </div>
           </div>
         </div>
-        <span style={{ fontSize:10, fontWeight:600, color:T.accent, background:T.accent+'18', padding:'3px 10px', borderRadius:10, textTransform:'uppercase' }}>in progress</span>
+        <span style={{ fontSize:10, fontWeight:500, color:T.accent, background:T.accent+'14', padding:'4px 10px', borderRadius:6 }}>in progress</span>
       </div>
 
       {/* Conversation */}
@@ -1241,9 +1315,9 @@ function InProgressDetail({ item, onClose }) {
           <div key={i} style={{ marginBottom:12 }}>
             <div style={{ display:'flex', justifyContent: m.from === 'ai' ? 'flex-end' : 'flex-start' }}>
               <div style={{ maxWidth:'80%' }}>
-                {m.from === 'ai' && <div style={{ fontSize:10, color:T.gray, marginBottom:3, textAlign:'right' }}>Chatty</div>}
-                <div style={{ padding:'11px 15px', borderRadius:14, background: m.from === 'ai' ? T.warmGray : '#fff', border: m.from === 'them' ? `1px solid ${T.lightGray}` : 'none', borderTopLeftRadius: m.from === 'them' ? 4 : 14, borderTopRightRadius: m.from === 'ai' ? 4 : 14 }}>
-                  <div style={{ fontSize:14, color:T.ink, lineHeight:1.5 }}>{m.text}</div>
+                {m.from === 'ai' && <div style={{ fontSize:11, color:T.gray, marginBottom:3, textAlign:'right' }}>Inbox</div>}
+                <div style={{ padding:'12px 16px', borderRadius:18, background: m.from === 'ai' ? T.warmGray : T.cardBg, border: m.from === 'them' ? `1px solid ${T.lightGray}` : 'none', borderTopLeftRadius: m.from === 'them' ? 6 : 18, borderTopRightRadius: m.from === 'ai' ? 6 : 18 }}>
+                  <div style={{ fontSize:14, color:T.ink, lineHeight:1.5, letterSpacing:'-0.01em' }}>{m.text}</div>
                 </div>
                 {/* Feedback buttons for AI messages */}
                 {m.from === 'ai' && feedbackMsg === null && (
@@ -1264,7 +1338,7 @@ function InProgressDetail({ item, onClose }) {
         {/* Feedback flow: reason selection */}
         {feedbackStep === 'reason' && (
           <div className="fade-up" style={{ padding:'14px 16px', background:T.warmGray, borderRadius:12, marginBottom:12 }}>
-            <div style={{ fontSize:11, color:T.gray, fontWeight:500, letterSpacing:'0.04em', textTransform:'uppercase', marginBottom:8 }}>Chatty</div>
+            <div style={{ fontSize:11, color:T.gray, fontWeight:500, letterSpacing:'0.04em', textTransform:'none', marginBottom:8 }}>Inbox</div>
             <div style={{ fontSize:13, color:T.ink, marginBottom:12 }}>What went wrong?</div>
             <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
               {reasons.map(r => (
@@ -1281,7 +1355,7 @@ function InProgressDetail({ item, onClose }) {
         {/* Feedback flow: correction proposal */}
         {feedbackStep === 'correction' && (
           <div className="fade-up" style={{ padding:'14px 16px', background:T.warmGray, borderRadius:12, marginBottom:12 }}>
-            <div style={{ fontSize:11, color:T.gray, fontWeight:500, letterSpacing:'0.04em', textTransform:'uppercase', marginBottom:8 }}>Chatty</div>
+            <div style={{ fontSize:11, color:T.gray, fontWeight:500, letterSpacing:'0.04em', textTransform:'none', marginBottom:8 }}>Inbox</div>
             <div style={{ fontSize:13, color:T.ink, marginBottom:10 }}>Got it — {selectedReason.toLowerCase()}. Next time I'd say something like this:</div>
             <div style={{ padding:'10px 14px', background:'#fff', borderRadius:8, border:`1px solid ${T.lightGray}`, fontSize:13, color:T.ink, lineHeight:1.5, marginBottom:10 }}>
               {correctedDraft}
@@ -1324,12 +1398,12 @@ function AllTab({ onOpenChat }) {
       <SectionLabel label="All messages" count={ALL_MESSAGES.length} />
       {ALL_MESSAGES.map((m, i) => (
         <div key={i} onClick={() => handleClick(m)}
-          style={{ padding:'13px 16px', background:T.cardBg, borderRadius:10, border:`1px solid ${T.lightGray}`, marginBottom:6, cursor:'pointer', transition:'background .15s', opacity: getOpacity(m.category) }}>
+          style={{ padding:'14px 16px', background:T.cardBg, borderRadius:12, border:`1px solid ${T.lightGray}`, marginBottom:6, cursor:'pointer', transition:'all .15s ease', opacity: getOpacity(m.category) }}>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:4 }}>
-            <span style={{ fontSize:14, fontWeight:600, color:T.ink }}>{m.user}</span>
+            <span style={{ fontSize:14, fontWeight:600, color:T.ink, letterSpacing:'-0.01em' }}>{m.user}</span>
             <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-              {m.badge && <span style={{ fontSize:9, fontWeight:600, color: m.badgeColor || T.gray, background: (m.badgeColor || T.gray) + '18', padding:'2px 8px', borderRadius:10, textTransform:'uppercase', letterSpacing:'0.04em' }}>{m.badge}</span>}
-              <span style={{ fontSize:11, color:'#ccc' }}>{m.time}</span>
+              {m.badge && <span style={{ fontSize:10, fontWeight:500, color: m.badgeColor || T.gray, background: (m.badgeColor || T.gray) + '12', padding:'3px 9px', borderRadius:6, letterSpacing:'0em' }}>{m.badge}</span>}
+              <span style={{ fontSize:11, color:T.gray }}>{m.time}</span>
             </div>
           </div>
           <div style={{ fontSize:13, color:T.gray, lineHeight:1.4, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{m.msg}</div>
@@ -1345,9 +1419,9 @@ function MorningBrief({ onDismiss }) {
   const [showBtn, setShowBtn] = useState(false);
 
   return (
-    <div className="fade-up" style={{ position:'absolute', inset:0, zIndex:90, background:T.paper, display:'flex', flexDirection:'column', justifyContent:'center', padding:'0 32px' }}>
+    <div className="fade-up" style={{ position:'absolute', inset:0, zIndex:90, background:T.paper, display:'flex', flexDirection:'column', justifyContent:'center', padding:'0 28px' }}>
       <div style={{ marginBottom:40 }}>
-        <ChattyMessages
+        <InboxMessages
           messages={[
             "Here's your morning update.",
             "34 new DMs overnight. I sorted them by priority.",
@@ -1365,22 +1439,139 @@ function MorningBrief({ onDismiss }) {
   );
 }
 
-function InboxV2() {
-  const [morningDismissed, setMorningDismissed] = useState(false);
+/* ─── Lead Definition Overlay (full-screen, reuses onboarding pattern) ─── */
+function LeadDefOverlay({ onDismiss }) {
+  const [leadInput, setLeadInput] = useState('someone interested in my coaching program who is ready to invest in themselves');
+  const [expanded, setExpanded] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+
+  const handleSave = () => {
+    setShowToast(true);
+    setTimeout(() => onDismiss(), 1800);
+  };
+
+  return (
+    <div className="fade-up" style={{ position:'absolute', inset:0, zIndex:160, background:T.paper, display:'flex', flexDirection:'column', padding:'60px 28px 40px', overflowY:'auto' }}>
+      <div style={{ flex:1 }}>
+        <InboxMessages
+          messages={[
+            "Let's make sure I get this right.",
+            "Right now, a lead for you is someone interested in your services. But you can be more specific."
+          ]}
+          onAllDone={() => setShowForm(true)}
+        />
+
+        {showForm && (
+          <div className="fade-up" style={{ marginTop:20 }}>
+            <div style={{ fontSize:11, color:T.gray, marginBottom:6, fontWeight:500, letterSpacing:'0.04em', textTransform:'uppercase' }}>Inbox</div>
+            <div style={{ background:T.warmGray, borderRadius:14, padding:'16px 18px' }}>
+              <div style={{ fontSize:15, color:T.ink, lineHeight:1.5, marginBottom:12 }}>
+                A lead for you is...
+              </div>
+              <textarea
+                value={leadInput}
+                onChange={e => setLeadInput(e.target.value)}
+                onFocus={() => setExpanded(true)}
+                style={{ width:'100%', fontSize:14, color:T.ink, lineHeight:1.55, padding:'14px 16px', border:`1.5px solid ${T.lightGray}`, borderRadius:12, resize:'none', height: expanded ? 120 : 70, fontFamily:'Inter, system-ui, sans-serif', background:'#fff', outline:'none', transition:'height .2s ease' }}
+              />
+              <div style={{ fontSize:12, color:T.gray, marginTop:8, lineHeight:1.4 }}>
+                Be specific — age, interests, budget, geographic zone...
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {showToast && (
+        <div className="fade-up" style={{ position:'fixed', top:60, left:'50%', transform:'translateX(-50%)', background:T.ink, color:'#fff', padding:'10px 24px', borderRadius:50, fontSize:13, fontWeight:500, zIndex:100 }}>
+          Adjusting your lead criteria...
+        </div>
+      )}
+
+      <div style={{ paddingTop:20, opacity: showForm ? 1 : 0, transform: showForm ? 'translateY(0)' : 'translateY(12px)', transition:'all .4s ease' }}>
+        <BlackBtn label="Save" onClick={handleSave} />
+      </div>
+    </div>
+  );
+}
+
+/* ─── Lead Walkthrough Popup ─── */
+function LeadWalkthrough({ onNow, onLater }) {
+  return (
+    <div className="fade-up" style={{ position:'absolute', inset:0, zIndex:150, display:'flex', alignItems:'center', justifyContent:'center' }}>
+      <div onClick={onLater} style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.25)' }} />
+      <div style={{ position:'relative', zIndex:151, background:T.paper, borderRadius:20, padding:'28px 24px', maxWidth:320, width:'90%', boxShadow:'0 12px 40px rgba(0,0,0,0.15)' }}>
+        <div style={{ fontSize:11, color:T.gray, marginBottom:8, fontWeight:500, letterSpacing:'0.04em', textTransform:'uppercase' }}>Inbox</div>
+        <div style={{ fontSize:16, fontWeight:600, color:T.ink, lineHeight:1.4, marginBottom:8 }}>
+          Want to adjust what a lead means to you?
+        </div>
+        <div style={{ fontSize:13, color:T.gray, lineHeight:1.5, marginBottom:20 }}>
+          The more specific you are, the better I can prioritize the right conversations for you.
+        </div>
+        <div style={{ display:'flex', gap:8 }}>
+          <button onClick={onNow} style={{ flex:1, padding:'12px 0', background:T.ink, color:'#fff', border:'none', borderRadius:50, fontSize:14, fontWeight:600, cursor:'pointer' }}>
+            Yes, now
+          </button>
+          <button onClick={onLater} style={{ flex:1, padding:'12px 0', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:50, fontSize:14, fontWeight:500, cursor:'pointer', color:T.gray }}>
+            Later
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function InboxV2({ onOverlayChange }) {
+  const [morningDismissed, setMorningDismissed] = useState(true); // skip morning report on first setup
   const [reportCollapsed, setReportCollapsed] = useState(true);
+  const [summaryOpen, setSummaryOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('important');
   const [openChat, setOpenChat] = useState(null);
-  const [answeredChats, setAnsweredChats] = useState(new Set()); // track answered by user key
+  const [answeredChats, setAnsweredChats] = useState(new Set());
+  const [leadWalkthroughDone, setLeadWalkthroughDone] = useState(false);
+  const [showLeadWalkthrough, setShowLeadWalkthrough] = useState(false);
+  const [showLeadDef, setShowLeadDef] = useState(false);
+  const [chatCloseCount, setChatCloseCount] = useState(0);
+  const [showNotifModal, setShowNotifModal] = useState(false);
+  const [notifModalDone, setNotifModalDone] = useState(false);
+  const [headerHidden, setHeaderHidden] = useState(false);
   const scrollRef = useRef(null);
+  const lastScrollTop = useRef(0);
+
+  // Report overlay state AND scroll-hide to parent for nav visibility
+  useEffect(() => {
+    const anyOverlay = !!openChat || summaryOpen || showLeadWalkthrough || showLeadDef || showNotifModal;
+    if (onOverlayChange) onOverlayChange(anyOverlay || headerHidden);
+  }, [openChat, summaryOpen, showLeadWalkthrough, showLeadDef, showNotifModal, headerHidden]);
 
   const handleScroll = () => {
-    if (scrollRef.current && scrollRef.current.scrollTop > 20 && !reportCollapsed) {
-      setReportCollapsed(true);
+    if (!scrollRef.current) return;
+    const st = scrollRef.current.scrollTop;
+    const delta = st - lastScrollTop.current;
+
+    if (delta > 5 && st > 40) {
+      // Scrolling down
+      setHeaderHidden(true);
+    } else if (delta < -5) {
+      // Scrolling up
+      setHeaderHidden(false);
     }
+    lastScrollTop.current = st;
   };
 
   const handleOpenChat = (item, label, labelColor, isSensitive) => {
     setOpenChat({ item, label, labelColor, isSensitive });
+    // First time opening a lead? Show walkthrough after 1 sec delay
+    if (label === 'lead' && !leadWalkthroughDone) {
+      setTimeout(() => setShowLeadWalkthrough(true), 500);
+    }
+  };
+
+  const handleLeadWalkthroughDone = () => {
+    setLeadWalkthroughDone(true);
+    setShowLeadDef(false);
+    setShowLeadWalkthrough(false);
   };
 
   const counts = {
@@ -1396,15 +1587,53 @@ function InboxV2() {
         <MorningBrief onDismiss={() => setMorningDismissed(true)} />
       )}
 
-      {/* Fixed header area */}
-      <div style={{ padding:'52px 20px 0', flexShrink:0 }}>
-        <DailyReport collapsed={reportCollapsed} onToggle={() => setReportCollapsed(!reportCollapsed)} />
+      {summaryOpen && (
+        <SummaryOverlay onDismiss={() => setSummaryOpen(false)} />
+      )}
+
+      {showLeadWalkthrough && !showLeadDef && (
+        <LeadWalkthrough
+          onNow={() => { setShowLeadWalkthrough(false); setShowLeadDef(true); }}
+          onLater={() => handleLeadWalkthroughDone()}
+        />
+      )}
+
+      {showLeadDef && (
+        <LeadDefOverlay onDismiss={() => handleLeadWalkthroughDone()} />
+      )}
+
+      {showNotifModal && (
+        <div className="fade-up" style={{ position:'absolute', inset:0, zIndex:150, display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <div onClick={() => { setShowNotifModal(false); setNotifModalDone(true); }} style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.25)' }} />
+          <div style={{ position:'relative', zIndex:151, background:T.paper, borderRadius:20, padding:'28px 24px', maxWidth:320, width:'90%', boxShadow:'0 12px 40px rgba(0,0,0,0.15)' }}>
+            <div style={{ fontSize:11, color:T.gray, marginBottom:8, fontWeight:500, letterSpacing:'0.04em', textTransform:'uppercase' }}>Inbox</div>
+            <div style={{ fontSize:16, fontWeight:600, color:T.ink, lineHeight:1.4, marginBottom:8 }}>
+              Want a morning report?
+            </div>
+            <div style={{ fontSize:13, color:T.gray, lineHeight:1.5, marginBottom:20 }}>
+              Every morning I'll send you a summary of what happened overnight — new leads, messages sorted, and anything that needs your attention. One quick read before you start your day.
+            </div>
+            <div style={{ display:'flex', gap:8 }}>
+              <button onClick={() => { setShowNotifModal(false); setNotifModalDone(true); }} style={{ flex:1, padding:'12px 0', background:T.ink, color:'#fff', border:'none', borderRadius:50, fontSize:14, fontWeight:600, cursor:'pointer' }}>
+                Enable notifications
+              </button>
+              <button onClick={() => { setShowNotifModal(false); setNotifModalDone(true); }} style={{ padding:'12px 20px', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:50, fontSize:14, fontWeight:500, cursor:'pointer', color:T.gray }}>
+                Skip
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fixed header area — hides on scroll down, shows on scroll up */}
+      <div style={{ padding:'52px 20px 0', flexShrink:0, transform: headerHidden ? 'translateY(-100%)' : 'translateY(0)', maxHeight: headerHidden ? 0 : 500, opacity: headerHidden ? 0 : 1, overflow:'hidden', transition:'all .3s ease' }}>
+        <DailyReport collapsed={true} onToggle={() => setSummaryOpen(true)} />
         <TabBar active={activeTab} setActive={setActiveTab} counts={counts} />
       </div>
 
       {/* Scrollable content */}
       <div ref={scrollRef} onScroll={handleScroll}
-        style={{ flex:1, overflowY:'auto', padding:'0 10px 100px 20px' }}>
+        style={{ flex:1, overflowY:'auto', overflowX:'hidden', padding:'0 20px 100px 20px' }}>
         {activeTab === 'important' && <ImportantTab onOpenChat={handleOpenChat} answeredChats={answeredChats} />}
         {activeTab === 'all' && <AllTab onOpenChat={handleOpenChat} />}
       </div>
@@ -1416,7 +1645,14 @@ function InboxV2() {
           label={openChat.label}
           labelColor={openChat.labelColor}
           isSensitive={openChat.isSensitive}
-          onClose={() => setOpenChat(null)}
+          onClose={() => {
+            setOpenChat(null);
+            const newCount = chatCloseCount + 1;
+            setChatCloseCount(newCount);
+            if (newCount === 3 && !notifModalDone) {
+              setTimeout(() => setShowNotifModal(true), 400);
+            }
+          }}
           onSent={(user) => setAnsweredChats(prev => new Set([...prev, user]))}
         />
       )}
@@ -1488,13 +1724,13 @@ function FocusMode({ reviewIdx, setReviewIdx }) {
           <div className="fade-up" style={{ display:'flex', flexDirection:'column', alignItems:'flex-start', paddingTop:40 }}>
             <div style={{ fontSize:48, marginBottom:32 }}>💬</div>
             <div style={{ marginBottom:12 }}>
-              <div style={{ fontSize:11, color:T.gray, marginBottom:5 }}>Chatty</div>
+              <div style={{ fontSize:11, color:T.gray, marginBottom:5 }}>Inbox</div>
               <div style={{ background:T.warmGray, borderRadius:16, borderTopLeftRadius:4, padding:'16px 20px', maxWidth:'90%' }}>
                 <div style={{ fontSize:16, color:T.ink, lineHeight:1.5 }}>
                   Good morning ☀️
                 </div>
                 <div style={{ fontSize:14, color:T.ink, lineHeight:1.6, marginTop:10 }}>
-                  Chatty drafted responses for 2 lead inquiries and 1 FAQ. Ready when you are.
+                  Inbox drafted responses for 2 lead inquiries and 1 FAQ. Ready when you are.
                 </div>
                 <div style={{ fontSize:14, color:T.ink, marginTop:12, fontWeight:500 }}>
                   {REVIEWS.length} replies to review. Wanna take a look?
@@ -1517,7 +1753,7 @@ function FocusMode({ reviewIdx, setReviewIdx }) {
               <div className="fade-up">
                 <div style={{ marginBottom:10 }}>
                   <div style={{ fontSize:11, color:T.gray, marginBottom:5, display:'flex', alignItems:'center', gap:5 }}>
-                    💬 Chatty · {reviewIdx+1} of {REVIEWS.length}
+                    💬 Inbox · {reviewIdx+1} of {REVIEWS.length}
                   </div>
                   <div style={{ background:T.warmGray, borderRadius:14, borderTopLeftRadius:4, padding:'14px 16px', maxWidth:'90%' }}>
                     <div style={{ fontSize:14, fontWeight:600, color:T.ink, marginBottom:4 }}>
@@ -1538,7 +1774,7 @@ function FocusMode({ reviewIdx, setReviewIdx }) {
 
                 {/* Draft intro + draft */}
                 <div style={{ marginBottom:6 }}>
-                  <div style={{ fontSize:11, color:T.gray, marginBottom:5 }}>💬 Chatty</div>
+                  <div style={{ fontSize:11, color:T.gray, marginBottom:5 }}>💬 Inbox</div>
                   <div style={{ background:T.warmGray, borderRadius:14, borderTopLeftRadius:4, padding:'10px 16px', maxWidth:'55%', fontSize:13, color:T.ink }}>
                     I'd answer with this:
                   </div>
@@ -1567,7 +1803,7 @@ function FocusMode({ reviewIdx, setReviewIdx }) {
             {phase === 'batch' && (
               <div className="fade-up">
                 <div style={{ marginBottom:10 }}>
-                  <div style={{ fontSize:11, color:T.gray, marginBottom:5 }}>💬 Chatty</div>
+                  <div style={{ fontSize:11, color:T.gray, marginBottom:5 }}>💬 Inbox</div>
                   <div style={{ background:T.warmGray, borderRadius:14, borderTopLeftRadius:4, padding:'14px 16px', maxWidth:'90%' }}>
                     <div style={{ fontSize:14, color:T.ink, lineHeight:1.5 }}>
                       These {batchItems.length} are very similar — all FAQ replies about your program. Want to approve them all?
@@ -1600,7 +1836,7 @@ function FocusMode({ reviewIdx, setReviewIdx }) {
             {phase === 'takeover' && currentItem && (
               <div className="fade-up">
                 <div style={{ marginBottom:10 }}>
-                  <div style={{ fontSize:11, color:T.gray, marginBottom:5 }}>💬 Chatty</div>
+                  <div style={{ fontSize:11, color:T.gray, marginBottom:5 }}>💬 Inbox</div>
                   <div style={{ background:T.warmGray, borderRadius:14, borderTopLeftRadius:4, padding:'12px 16px', maxWidth:'65%', fontSize:14, color:T.ink }}>
                     All yours! Write your reply:
                   </div>
@@ -1623,7 +1859,7 @@ function FocusMode({ reviewIdx, setReviewIdx }) {
             <div className="fade-up" style={{ textAlign:'center', padding:'40px 20px' }}>
               <div style={{ fontSize:48, marginBottom:16 }}>✨</div>
               <h2 style={{ fontSize:22, fontWeight:700, color:T.ink, marginBottom:8 }}>All caught up</h2>
-              <p style={{ fontSize:14, color:T.gray, lineHeight:1.5 }}>Chatty learned 2 new preferences from your edits.</p>
+              <p style={{ fontSize:14, color:T.gray, lineHeight:1.5 }}>Inbox learned 2 new preferences from your edits.</p>
               <p style={{ fontSize:13, color:'#bbb', marginTop:20 }}>Go create something.</p>
             </div>
           </>
@@ -1633,10 +1869,10 @@ function FocusMode({ reviewIdx, setReviewIdx }) {
       {/* ─── Pinned bottom bar ─── */}
       {phase === 'greeting' && (
         <div style={{ padding:'12px 24px 28px', display:'flex', gap:10 }}>
-          <button style={{ flex:1, padding:'14px 0', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:50, fontSize:14, fontWeight:500, cursor:'pointer', color:T.ink }}>
+          <button style={{ flex:1, padding:'14px 0', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:12, fontSize:14, fontWeight:500, cursor:'pointer', color:T.ink }}>
             Summary first
           </button>
-          <button onClick={startReviewing} style={{ flex:1, padding:'14px 0', background:T.ink, color:'#fff', border:'none', borderRadius:50, fontSize:14, fontWeight:600, cursor:'pointer' }}>
+          <button onClick={startReviewing} style={{ flex:1, padding:'14px 0', background:T.ink, color:'#fff', border:'none', borderRadius:12, fontSize:14, fontWeight:600, cursor:'pointer' }}>
             Start reviewing
           </button>
         </div>
@@ -1644,14 +1880,14 @@ function FocusMode({ reviewIdx, setReviewIdx }) {
 
       {phase === 'reviewing' && currentItem && !isBatch && (
         <div style={{ padding:'12px 24px 28px', borderTop:`1px solid ${T.lightGray}`, display:'flex', gap:8, alignItems:'center' }}>
-          <button onClick={handleApprove} style={{ flex:1, padding:'14px 0', background:T.ink, color:'#fff', border:'none', borderRadius:50, fontSize:14, fontWeight:600, cursor:'pointer' }}>
+          <button onClick={handleApprove} style={{ flex:1, padding:'14px 0', background:T.ink, color:'#fff', border:'none', borderRadius:12, fontSize:14, fontWeight:600, cursor:'pointer' }}>
             {editing ? 'Send edited' : 'Approve'}
           </button>
           <button onClick={() => { setEditing(!editing); if(currentItem) setEditVal(currentItem.draft); }}
-            style={{ padding:'14px 20px', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:50, fontSize:13, fontWeight:500, cursor:'pointer', color:T.ink }}>
+            style={{ padding:'14px 20px', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:12, fontSize:13, fontWeight:500, cursor:'pointer', color:T.ink }}>
             {editing ? 'Cancel' : 'Edit'}
           </button>
-          <button onClick={handleSkip} style={{ padding:'14px 16px', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:50, fontSize:13, fontWeight:500, cursor:'pointer', color:T.gray }}>
+          <button onClick={handleSkip} style={{ padding:'14px 16px', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:12, fontSize:13, fontWeight:500, cursor:'pointer', color:T.gray }}>
             Skip
           </button>
           <button onClick={() => setPhase('takeover')} style={{ padding:'14px 0', background:'transparent', border:'none', fontSize:11, fontWeight:500, cursor:'pointer', color:'#bbb' }}>
@@ -1662,10 +1898,10 @@ function FocusMode({ reviewIdx, setReviewIdx }) {
 
       {phase === 'batch' && (
         <div style={{ padding:'12px 24px 28px', borderTop:`1px solid ${T.lightGray}`, display:'flex', gap:8 }}>
-          <button onClick={handleBatchApprove} style={{ flex:1, padding:'14px 0', background:T.ink, color:'#fff', border:'none', borderRadius:50, fontSize:14, fontWeight:600, cursor:'pointer' }}>
+          <button onClick={handleBatchApprove} style={{ flex:1, padding:'14px 0', background:T.ink, color:'#fff', border:'none', borderRadius:12, fontSize:14, fontWeight:600, cursor:'pointer' }}>
             Approve all {batchItems.length}
           </button>
-          <button onClick={() => { setBatchMode(false); setPhase('reviewing'); }} style={{ padding:'14px 20px', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:50, fontSize:13, fontWeight:500, cursor:'pointer', color:T.ink }}>
+          <button onClick={() => { setBatchMode(false); setPhase('reviewing'); }} style={{ padding:'14px 20px', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:12, fontSize:13, fontWeight:500, cursor:'pointer', color:T.ink }}>
             One by one
           </button>
         </div>
@@ -1674,10 +1910,10 @@ function FocusMode({ reviewIdx, setReviewIdx }) {
       {phase === 'takeover' && (
         <div style={{ padding:'12px 24px 28px', borderTop:`1px solid ${T.lightGray}`, display:'flex', gap:8 }}>
           <button onClick={() => { setSentItems(s => [...s, currentItem]); setReviewIdx(i=>i+1); setPhase('reviewing'); }}
-            style={{ flex:1, padding:'14px 0', background:T.ink, color:'#fff', border:'none', borderRadius:50, fontSize:14, fontWeight:600, cursor:'pointer' }}>
+            style={{ flex:1, padding:'14px 0', background:T.ink, color:'#fff', border:'none', borderRadius:12, fontSize:14, fontWeight:600, cursor:'pointer' }}>
             Send my reply
           </button>
-          <button onClick={() => setPhase('reviewing')} style={{ padding:'14px 20px', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:50, fontSize:13, fontWeight:500, cursor:'pointer', color:T.gray }}>
+          <button onClick={() => setPhase('reviewing')} style={{ padding:'14px 20px', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:12, fontSize:13, fontWeight:500, cursor:'pointer', color:T.gray }}>
             Back
           </button>
         </div>
@@ -1699,7 +1935,7 @@ function StackedMode() {
       {/* Needs You */}
       <div style={{ marginBottom:28 }}>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
-          <div style={{ fontSize:11, fontWeight:600, letterSpacing:'0.08em', color:T.ink, textTransform:'uppercase' }}>
+          <div style={{ fontSize:11, fontWeight:600, letterSpacing:'0.08em', color:T.ink, textTransform:'none' }}>
             Needs you <span style={{ fontWeight:400, color:T.gray }}>· {STACKED_DATA.needsYou.length}</span>
           </div>
           <span style={{ fontSize:16, color:'#ccc', cursor:'grab' }}>≡</span>
@@ -1718,7 +1954,7 @@ function StackedMode() {
       {/* Review Drafts */}
       <div style={{ marginBottom:28 }}>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
-          <div style={{ fontSize:11, fontWeight:600, letterSpacing:'0.08em', color:T.ink, textTransform:'uppercase' }}>
+          <div style={{ fontSize:11, fontWeight:600, letterSpacing:'0.08em', color:T.ink, textTransform:'none' }}>
             Review drafts <span style={{ fontWeight:400, color:T.gray }}>· {STACKED_DATA.reviewDrafts.length}</span>
           </div>
           <span style={{ fontSize:16, color:'#ccc', cursor:'grab' }}>≡</span>
@@ -1740,7 +1976,7 @@ function StackedMode() {
       {/* Questions */}
       <div style={{ marginBottom:28 }}>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
-          <div style={{ fontSize:11, fontWeight:600, letterSpacing:'0.08em', color:T.ink, textTransform:'uppercase' }}>
+          <div style={{ fontSize:11, fontWeight:600, letterSpacing:'0.08em', color:T.ink, textTransform:'none' }}>
             Questions <span style={{ fontWeight:400, color:T.gray }}>· {STACKED_DATA.questions.length}</span>
           </div>
           <span style={{ fontSize:16, color:'#ccc', cursor:'grab' }}>≡</span>
@@ -1754,7 +1990,7 @@ function StackedMode() {
       </div>
 
       <div style={{ textAlign:'center', fontSize:12, color:'#ccc', padding:'10px 0 30px' }}>
-        Drag sections to reorganize · Chatty remembers your layout
+        Drag sections to reorganize · Inbox remembers your layout
       </div>
     </div>
   );
@@ -1768,20 +2004,20 @@ function AIPanel({ onClose }) {
     <div style={{ background:T.darkBg, height:'100%', overflowY:'auto', padding:'0 0 40px' }}>
       {/* Header */}
       <div style={{ padding:'56px 24px 16px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-        <div onClick={onClose} style={{ fontSize:14, color:'#888', cursor:'pointer', fontWeight:500 }}>← Paper</div>
-        <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:12, color:T.mint }}>
-          <div style={{ width:6, height:6, borderRadius:3, background:T.mint, animation:'pulse 2s infinite' }} />
+        <div onClick={onClose} style={{ fontSize:14, color:'#888', cursor:'pointer', fontWeight:500, letterSpacing:'-0.01em' }}>← Back</div>
+        <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:12, color:T.accent }}>
+          <div style={{ width:6, height:6, borderRadius:3, background:T.accent, animation:'pulse 2s infinite' }} />
           live
         </div>
       </div>
 
       <div style={{ padding:'0 24px' }}>
         {/* Title */}
-        <div style={{ fontSize:13, color:'#555', marginBottom:28, fontWeight:500 }}>Chatty is working</div>
+        <div style={{ fontSize:13, color:'#555', marginBottom:28, fontWeight:500 }}>Inbox is working</div>
 
         {/* Handled today */}
         <div style={{ background:T.darkSurface, borderRadius:16, padding:'20px', marginBottom:20, border:`1px solid ${T.darkBorder}` }}>
-          <div style={{ fontSize:13, fontWeight:600, color:'#999', marginBottom:14, letterSpacing:'0.05em', textTransform:'uppercase' }}>Handled today</div>
+          <div style={{ fontSize:13, fontWeight:600, color:'#999', marginBottom:14, letterSpacing:'0.05em', textTransform:'none' }}>Handled today</div>
           <div style={{ display:'flex', gap:16, marginBottom:16 }}>
             <div><span style={{ fontSize:24, fontWeight:700, color:'#fff' }}>34</span><span style={{ fontSize:11, color:'#666', marginLeft:4 }}>DMs</span></div>
             <div><span style={{ fontSize:24, fontWeight:700, color:'#fff' }}>126</span><span style={{ fontSize:11, color:'#666', marginLeft:4 }}>comments</span></div>
@@ -1789,14 +2025,14 @@ function AIPanel({ onClose }) {
           </div>
           {/* Mini bar */}
           <div style={{ height:4, background:'#2a2a2c', borderRadius:2, overflow:'hidden', marginBottom:10 }}>
-            <div style={{ width:'85%', height:'100%', background:T.mint, borderRadius:2 }} />
+            <div style={{ width:'85%', height:'100%', background:T.accent, borderRadius:2 }} />
           </div>
           <div style={{ fontSize:12, color:'#666' }}>2m avg response time</div>
         </div>
 
         {/* Approval rates */}
         <div style={{ background:T.darkSurface, borderRadius:16, padding:'20px', marginBottom:20, border:`1px solid ${T.darkBorder}` }}>
-          <div style={{ fontSize:13, fontWeight:600, color:'#999', marginBottom:16, letterSpacing:'0.05em', textTransform:'uppercase' }}>Approval rates</div>
+          <div style={{ fontSize:13, fontWeight:600, color:'#999', marginBottom:16, letterSpacing:'0.05em', textTransform:'none' }}>Approval rates</div>
           {[
             { name:'FAQ replies', pct:82 },
             { name:'Lead qualification', pct:74 },
@@ -1805,10 +2041,10 @@ function AIPanel({ onClose }) {
             <div key={i} style={{ marginBottom:i<2?16:0 }}>
               <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
                 <span style={{ fontSize:13, color:'#ccc' }}>{s.name}</span>
-                <span style={{ fontSize:13, color:T.mint, fontWeight:600 }}>{s.pct}%</span>
+                <span style={{ fontSize:13, color:T.accent, fontWeight:600 }}>{s.pct}%</span>
               </div>
               <div style={{ height:4, background:'#2a2a2c', borderRadius:2, overflow:'hidden' }}>
-                <div style={{ width:`${s.pct}%`, height:'100%', background:T.mint, borderRadius:2, transition:'width .5s ease' }} />
+                <div style={{ width:`${s.pct}%`, height:'100%', background:T.accent, borderRadius:2, transition:'width .5s ease' }} />
               </div>
             </div>
           ))}
@@ -1816,7 +2052,7 @@ function AIPanel({ onClose }) {
 
         {/* Recent auto-handled */}
         <div style={{ marginBottom:20 }}>
-          <div style={{ fontSize:13, fontWeight:600, color:'#999', marginBottom:14, letterSpacing:'0.05em', textTransform:'uppercase' }}>Recently handled</div>
+          <div style={{ fontSize:13, fontWeight:600, color:'#999', marginBottom:14, letterSpacing:'0.05em', textTransform:'none' }}>Recently handled</div>
           {AI_HANDLED.map((item,i) => (
             <div key={i}>
               <div onClick={() => setExpanded(expanded===i?null:i)}
@@ -1826,7 +2062,7 @@ function AIPanel({ onClose }) {
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                   <span style={{ fontSize:14, fontWeight:500, color:'#ddd' }}>{item.user}</span>
                   <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                    <span style={{ fontSize:10, color:T.mintDim, background:'rgba(79,255,176,0.1)', padding:'2px 10px', borderRadius:20 }}>{item.type}</span>
+                    <span style={{ fontSize:10, color:T.accent, background:'rgba(217,119,87,0.15)', padding:'2px 10px', borderRadius:6 }}>{item.type}</span>
                     <span style={{ fontSize:11, color:'#555' }}>{item.status}</span>
                   </div>
                 </div>
@@ -1836,10 +2072,10 @@ function AIPanel({ onClose }) {
                 <div className="fade-in" style={{ background:T.darkSurface, borderRadius:'0 0 14px 14px', padding:'0 18px 16px', marginBottom:8,
                   border:`1px solid ${T.darkBorder}`, borderTop:'none' }}>
                   <div style={{ borderTop:`1px solid ${T.darkBorder}`, paddingTop:14 }}>
-                    <div style={{ fontSize:12, color:'#666', marginBottom:6 }}>Chatty replied:</div>
+                    <div style={{ fontSize:12, color:'#666', marginBottom:6 }}>Inbox replied:</div>
                     <div style={{ fontSize:13, color:'#bbb', lineHeight:1.5, marginBottom:14 }}>{item.draft}</div>
                     <div style={{ display:'flex', gap:8 }}>
-                      <span style={{ fontSize:12, padding:'6px 16px', background:'rgba(79,255,176,0.15)', color:T.mint, borderRadius:20, cursor:'pointer', fontWeight:500 }}>Looks good</span>
+                      <span style={{ fontSize:12, padding:'6px 16px', background:'rgba(217,119,87,0.15)', color:T.accent, borderRadius:8, cursor:'pointer', fontWeight:500 }}>Looks good</span>
                       <span style={{ fontSize:12, padding:'6px 16px', border:`1px solid ${T.darkBorder}`, color:'#888', borderRadius:20, cursor:'pointer' }}>Flag this</span>
                     </div>
                   </div>
@@ -1851,8 +2087,8 @@ function AIPanel({ onClose }) {
 
         {/* Patterns learned */}
         <div style={{ background:T.darkSurface, borderRadius:16, padding:'20px', border:`1px solid ${T.darkBorder}` }}>
-          <div style={{ fontSize:13, fontWeight:600, color:'#999', marginBottom:10, letterSpacing:'0.05em', textTransform:'uppercase' }}>Patterns learned</div>
-          <div style={{ fontSize:13, color:T.mint, marginBottom:10 }}>3 new this week</div>
+          <div style={{ fontSize:13, fontWeight:600, color:'#999', marginBottom:10, letterSpacing:'0.05em', textTransform:'none' }}>Patterns learned</div>
+          <div style={{ fontSize:13, color:T.accent, marginBottom:10 }}>3 new this week</div>
           <div style={{ fontSize:12, color:'#777', lineHeight:1.6 }}>
             Shorter lead replies · Emoji-free FAQs ·<br/>Warmer tone for comments
           </div>
@@ -1866,10 +2102,29 @@ function AIPanel({ onClose }) {
 function InputBar() {
   return (
     <div style={{ position:'absolute', bottom:0, left:0, right:0, padding:'10px 24px 30px', background:`linear-gradient(transparent, ${T.paper} 20%)` }}>
-      <div style={{ display:'flex', alignItems:'center', background:T.cardBg, borderRadius:28, border:`1px solid ${T.lightGray}`, padding:'12px 20px' }}>
-        <span style={{ fontSize:14, color:'#bbb', flex:1 }}>Talk to Chatty...</span>
-        <span style={{ fontSize:18, color:'#ccc' }}>↑</span>
+      <div style={{ display:'flex', alignItems:'center', background:T.cardBg, borderRadius:14, border:`1px solid ${T.lightGray}`, padding:'12px 18px' }}>
+        <span style={{ fontSize:14, color:T.gray, flex:1, letterSpacing:'-0.01em' }}>Talk to Inbox...</span>
+        <span style={{ fontSize:16, color:T.gray }}>↑</span>
       </div>
+    </div>
+  );
+}
+
+/* ─── iOS 26 Bottom Navigation ─── */
+function BottomNav() {
+  return (
+    <div style={{ position:'absolute', bottom:0, left:0, right:0, zIndex:80, background:'rgba(255,255,255,0.92)', backdropFilter:'blur(20px)', WebkitBackdropFilter:'blur(20px)', borderTop:`1px solid ${T.lightGray}`, padding:'8px 0 22px', display:'flex', justifyContent:'space-around', alignItems:'center' }}>
+      {[
+        { icon: '⌂', label: 'Home', active: false },
+        { icon: '☐', label: 'Inbox', active: true },
+        { icon: '☺', label: 'Contacts', active: false },
+        { icon: '⚙', label: 'Automations', active: false },
+      ].map((item, i) => (
+        <div key={i} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:2, cursor:'pointer', padding:'4px 16px', borderRadius:12, background: item.active ? T.warmGray : 'transparent' }}>
+          <span style={{ fontSize:18, color: item.active ? T.accent : T.gray, lineHeight:1 }}>{item.icon}</span>
+          <span style={{ fontSize:10, color: item.active ? T.accent : T.gray, fontWeight: item.active ? 600 : 400 }}>{item.label}</span>
+        </div>
+      ))}
     </div>
   );
 }
@@ -1880,32 +2135,23 @@ function InputBar() {
 function App() {
   const [screen, setScreen] = useState(window.location.hash === '#inbox' ? 'main' : 'ob-welcome');
   const [confidence, setConfidence] = useState('mid');
+  const [hideNav, setHideNav] = useState(false);
 
   return (
     <div style={{ width:'100%', height:'100%', position:'relative', overflow:'hidden' }}>
 
       {/* ─── Onboarding ─── */}
-      {screen === 'ob-welcome' && <ObWelcome onNext={() => setScreen('ob-workflow')} />}
-      {screen === 'ob-workflow' && <ObWorkflow onNext={() => setScreen('ob-analyzing')} onBack={() => setScreen('ob-welcome')} />}
-      {screen === 'ob-analyzing' && <ObAnalyzing onNext={() => setScreen('ob-insights')} onBack={() => setScreen('ob-workflow')} />}
-      {screen === 'ob-insights' && <ObInsights onNext={() => setScreen('ob-leaddef')} />}
-      {screen === 'ob-leaddef' && <ObLeadDef onNext={() => setScreen('ob-settingup')} onBack={() => setScreen('ob-insights')} />}
-      {screen === 'ob-settingup' && <ObSettingUp onNext={() => setScreen('ob-stats')} />}
-      {screen === 'ob-stats' && <ObStats onNext={() => setScreen('ob-loading')} onBack={() => setScreen('ob-settingup')} />}
+      {screen === 'ob-welcome' && <ObWelcome onNext={() => setScreen('ob-analyzing')} />}
+      {screen === 'ob-analyzing' && <ObAnalyzing onNext={() => setScreen('ob-stats')} onBack={() => setScreen('ob-welcome')} />}
+      {screen === 'ob-stats' && <ObStats onNext={() => setScreen('ob-voice')} onBack={() => setScreen('ob-analyzing')} />}
+      {screen === 'ob-voice' && <ObVoice onNext={() => setScreen('ob-loading')} onBack={() => setScreen('ob-stats')} />}
       {screen === 'ob-loading' && <ObLoading onNext={() => setScreen('main')} />}
 
       {/* ─── V2 Inbox ─── */}
-      {screen === 'main' && <InboxV2 />}
+      {screen === 'main' && <InboxV2 onOverlayChange={(open) => setHideNav(open)} />}
 
-      {/* ──────────────────────────────────────────────────────────
-          PROTOTYPE ONLY — Skip onboarding button for testing.
-          This will NOT exist in production for real users.
-          ────────────────────────────────────────────────────────── */}
-      {screen !== 'main' && (
-        <div onClick={() => setScreen('main')} style={{ position:'absolute', bottom:12, right:20, zIndex:999, fontSize:11, color:'#dc2626', cursor:'pointer', padding:'6px 14px', background:'rgba(220,38,38,0.08)', borderRadius:20, fontWeight:500 }}>
-          skip →
-        </div>
-      )}
+      {/* iOS 26 Bottom Nav — only on welcome + main inbox, hidden when overlays open */}
+      {(screen === 'ob-welcome' || (screen === 'main' && !hideNav)) && <BottomNav />}
     </div>
   );
 }
