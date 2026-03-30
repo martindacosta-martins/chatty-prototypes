@@ -22,23 +22,99 @@ p.subtitle{color:#999;font-size:13px;margin-bottom:32px}
   max-height:0;overflow:hidden;transition:max-height .35s ease,opacity .25s ease;opacity:0;
   padding-bottom:0;
 }
-.section.open .section-content{max-height:800px;opacity:1;padding-bottom:16px}
+.section.open .section-content{max-height:1200px;opacity:1;padding-bottom:16px}
 
 .entry{display:flex;flex-direction:column;gap:4px}
+.entry-header{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .entry-title{font-size:15px;font-weight:600;color:#1A1A1A}
+.tag{
+  font-size:10px;font-weight:500;padding:2px 8px;border-radius:4px;
+  text-transform:uppercase;letter-spacing:0.03em;white-space:nowrap;
+}
+.tag.in-progress{background:#DBEAFE;color:#2563EB}
+.tag.wireframes{background:#F3E8FF;color:#7C3AED}
+.tag.prototype{background:#E0E7FF;color:#4338CA}
+.tag.playful{background:#FEF3C7;color:#B45309}
+.tag.stat{background:#F3E8FF;color:#7C3AED;display:inline-flex;align-items:center;gap:3px}
 .entry-desc{font-size:13px;color:#999;line-height:1.4}
-.entry a{
-  display:inline-block;margin-top:6px;
+.entry-desc a{
+  color:#999;text-decoration:underline;text-underline-offset:2px;
+  font-size:13px;font-weight:400;background:none;padding:0;border-radius:0;
+  display:inline;margin-top:0;
+}
+.entry-desc a:hover{color:#666}
+.entry>a{
+  display:inline-block;margin-top:6px;width:fit-content;
   padding:6px 14px;background:#1A1A1A;color:#fff;text-decoration:none;
   border-radius:6px;font-size:12px;font-weight:500;transition:opacity .15s;
 }
-.entry a:hover{opacity:.85}
+.entry>a:hover{opacity:.85}
 </style>
 </head><body>
-<h1>Chatty — AI Native Inbox</h1>
+<h1>AI Native Inbox</h1>
 <p class="subtitle">Prototype explorations</p>
 
 <div class="accordion">
+
+  <div class="divider"></div>
+  <div class="section open" id="mini-v1">
+    <div class="section-header" onclick="toggle('mini-v1')">
+      <span class="arrow">▶</span> Mini-v1
+    </div>
+    <div class="section-content">
+      <div class="entry">
+        <div class="entry-header">
+          <span class="entry-title">Prioritized Inbox</span>
+          <span class="tag in-progress">in-progress</span>
+        </div>
+        <span class="entry-desc">First experiment we're defining with the team. <a href="https://www.notion.so/manychat/Mini-V1-First-Testable-Scope-2-Week-Build-32eb12e9aa1a81348c51e49c66839676?source=copy_link">More info</a></span>
+        <a href="inbox-mini-v1-list.html">Open prototype</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <div class="section" id="rough">
+    <div class="section-header" onclick="toggle('rough')">
+      <span class="arrow">▶</span> Rough concepts
+    </div>
+    <div class="section-content">
+      <div class="entry">
+        <div class="entry-header">
+          <span class="entry-title">Progressive</span>
+          <span class="tag wireframes">wireframes</span>
+          <span class="tag stat"><svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M2 12L6 4l4 5 4-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </div>
+        <span class="entry-desc">The layout shows less info as the agent learns more</span>
+        <a href="progressive-autonomy-wireframes/">Open wireframes</a>
+      </div>
+      <div class="entry">
+        <div class="entry-header">
+          <span class="entry-title">Front and Back System</span>
+          <span class="tag prototype">prototype</span>
+        </div>
+        <span class="entry-desc">Agent working in the background, tinder-like navigation in the front</span>
+        <a href="chatty-system.html">Open prototype</a>
+      </div>
+      <div class="entry">
+        <div class="entry-header">
+          <span class="entry-title">Conversation</span>
+          <span class="tag prototype">prototype</span>
+        </div>
+        <span class="entry-desc">Reviewing and answering throughout one chat</span>
+        <a href="chatty-conversation/">Open prototype</a>
+      </div>
+      <div class="entry">
+        <div class="entry-header">
+          <span class="entry-title">Agents</span>
+          <span class="tag prototype">prototype</span>
+          <span class="tag playful">playful concept</span>
+        </div>
+        <span class="entry-desc">Conversations with different agents</span>
+        <a href="chatty-agents/">Open prototype</a>
+      </div>
+    </div>
+  </div>
 
   <div class="divider"></div>
   <div class="section" id="first-ideas">
@@ -53,48 +129,6 @@ p.subtitle{color:#999;font-size:13px;margin-bottom:32px}
       <div class="entry">
         <span class="entry-title">v3 — Latest with UX fixes</span>
         <a href="v3.html">Open prototype</a>
-      </div>
-    </div>
-  </div>
-
-  <div class="divider"></div>
-  <div class="section open" id="mini-v1">
-    <div class="section-header" onclick="toggle('mini-v1')">
-      <span class="arrow">▶</span> Mini-v1
-    </div>
-    <div class="section-content">
-      <div class="entry">
-        <span class="entry-title">Prioritized Inbox</span>
-        <a href="inbox-mini-v1-list.html">Open prototype</a>
-      </div>
-    </div>
-  </div>
-
-  <div class="divider"></div>
-  <div class="section" id="rough">
-    <div class="section-header" onclick="toggle('rough')">
-      <span class="arrow">▶</span> Rough concepts
-    </div>
-    <div class="section-content">
-      <div class="entry">
-        <span class="entry-title">Progressive</span>
-        <span class="entry-desc">The layout shows less info as the agent learns more</span>
-        <a href="progressive-autonomy-wireframes/">Open prototype</a>
-      </div>
-      <div class="entry">
-        <span class="entry-title">chatty-system</span>
-        <span class="entry-desc">Agent working in the background, tinder-like navigation in the front</span>
-        <a href="chatty-system.html">Open prototype</a>
-      </div>
-      <div class="entry">
-        <span class="entry-title">chatty-conversation</span>
-        <span class="entry-desc">Reviewing and answering throughout one chat</span>
-        <a href="chatty-conversation/">Open prototype</a>
-      </div>
-      <div class="entry">
-        <span class="entry-title">chatty-agents</span>
-        <span class="entry-desc">Conversations with different agents</span>
-        <a href="chatty-agents/">Open prototype</a>
       </div>
     </div>
   </div>
