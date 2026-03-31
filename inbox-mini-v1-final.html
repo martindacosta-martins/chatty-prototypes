@@ -23,6 +23,27 @@
   @keyframes ringProgress { from { stroke-dashoffset: 283; } }
   .fade-up { animation: fadeUp .4s cubic-bezier(.25,.46,.45,.94) both; }
   .fade-in { animation: fadeIn .3s ease both; }
+
+  /* ── Agent takeover: gradient wave erupts from button, fills screen ── */
+  @keyframes agent-takeover {
+    0%   { clip-path: circle(0%   at 50% 94%); opacity: 0.85; }
+    60%  { clip-path: circle(80%  at 50% 94%); opacity: 1;    }
+    100% { clip-path: circle(160% at 50% 94%); opacity: 1;    }
+  }
+  /* ── Text wave: each line floats up as the gradient passes through ── */
+  @keyframes text-wave {
+    0%   { transform: translateY(0)    scaleX(1);    filter: blur(0px);   opacity: 1;   }
+    25%  { transform: translateY(-14px) scaleX(1.015); filter: blur(2px);  opacity: 0.7; }
+    55%  { transform: translateY(6px)  scaleX(0.99); filter: blur(0.5px); opacity: 0.9; }
+    80%  { transform: translateY(-2px) scaleX(1);    filter: blur(0px);   opacity: 1;   }
+    100% { transform: translateY(0)    scaleX(1);    filter: blur(0px);   opacity: 1;   }
+  }
+  /* ── Button pulse on press ── */
+  @keyframes btn-ignite {
+    0%   { box-shadow: 0 0 0   0px rgba(124,58,237,0);   }
+    40%  { box-shadow: 0 0 28px 12px rgba(124,58,237,0.5); }
+    100% { box-shadow: 0 0 0   0px rgba(124,58,237,0);   }
+  }
   .slide-up { animation: slideUp .35s cubic-bezier(.25,.46,.45,.94) both; }
 
   /* Scrollbar hide */
@@ -216,14 +237,14 @@ function BlueBtn({ label, onClick, disabled }) {
 }
 
 /* ─── Shared: Progress Ring (SVG) ─── */
-function ProgressRing({ progress, size = 120, stroke = 6 }) {
+function ProgressRing({ progress, size = 120, stroke = 6, trackColor, fillColor }) {
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (progress / 100) * circumference;
   return (
     <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-      <circle cx={size/2} cy={size/2} r={radius} fill="none" stroke={T.lightGray} strokeWidth={stroke} />
-      <circle cx={size/2} cy={size/2} r={radius} fill="none" stroke={T.accent} strokeWidth={stroke}
+      <circle cx={size/2} cy={size/2} r={radius} fill="none" stroke={trackColor || T.lightGray} strokeWidth={stroke} />
+      <circle cx={size/2} cy={size/2} r={radius} fill="none" stroke={fillColor || T.accent} strokeWidth={stroke}
         strokeDasharray={circumference} strokeDashoffset={offset}
         strokeLinecap="round" style={{ transition: 'stroke-dashoffset 0.6s ease' }} />
     </svg>
@@ -231,21 +252,27 @@ function ProgressRing({ progress, size = 120, stroke = 6 }) {
 }
 
 /* ─── Shared: Selectable Chip (Claude-style) ─── */
-function SelectChip({ label, desc, selected, onClick }) {
+function SelectChip({ label, desc, selected, onClick, isDark }) {
+  const selBorder = isDark ? '#7C3AED' : T.accent;
+  const selBg     = isDark ? 'rgba(124,58,237,0.18)' : '#EBF4FF';
+  const trackBg   = isDark ? 'rgba(255,255,255,0.08)' : T.cardBg;
+  const borderOff = isDark ? 'rgba(255,255,255,0.12)' : T.lightGray;
+  const inkColor  = isDark ? '#fff' : T.ink;
+  const grayColor = isDark ? 'rgba(255,255,255,0.45)' : T.gray;
   return (
     <div onClick={onClick}
       style={{ display:'flex', alignItems:'center', gap:14, padding:'14px 16px', borderRadius:14,
-        border: `1.5px solid ${selected ? T.accent : T.lightGray}`,
-        background: selected ? '#EBF4FF' : T.cardBg,
+        border: `1.5px solid ${selected ? selBorder : borderOff}`,
+        background: selected ? selBg : trackBg,
         cursor:'pointer', transition:'all .2s ease' }}>
-      <div style={{ width:24, height:24, borderRadius:12, border: `2px solid ${selected ? T.accent : T.lightGray}`,
-        background: selected ? T.accent : 'transparent', display:'flex', alignItems:'center', justifyContent:'center',
+      <div style={{ width:24, height:24, borderRadius:12, border: `2px solid ${selected ? selBorder : borderOff}`,
+        background: selected ? selBorder : 'transparent', display:'flex', alignItems:'center', justifyContent:'center',
         flexShrink:0, transition:'all .2s ease' }}>
         {selected && <span style={{ color:'#fff', fontSize:12, lineHeight:1 }}>✓</span>}
       </div>
       <div>
-        <div style={{ fontSize:15, fontWeight:500, color:T.ink, letterSpacing:'-0.01em' }}>{label}</div>
-        {desc && <div style={{ fontSize:12, color:T.gray, marginTop:2 }}>{desc}</div>}
+        <div style={{ fontSize:15, fontWeight:500, color:inkColor, letterSpacing:'-0.01em' }}>{label}</div>
+        {desc && <div style={{ fontSize:12, color:grayColor, marginTop:2 }}>{desc}</div>}
       </div>
     </div>
   );
@@ -276,7 +303,7 @@ function InboxMessages({ messages, onAllDone }) {
         <div key={i} style={{ marginBottom: 10, opacity: i < visibleCount ? 1 : 0, transform: i < visibleCount ? 'translateY(0)' : 'translateY(12px)', transition: 'all .35s ease-out' }}>
           {i === 0 && (
             <div style={{ fontSize: 12, color: T.gray, marginBottom: 6, fontWeight: 500, letterSpacing: '0em' }}>
-              Inbox
+              Inbox Agent
             </div>
           )}
           <div style={{ background: T.warmGray, borderRadius: 18, borderTopLeftRadius: i === 0 ? 18 : 6, padding: '14px 18px', maxWidth: '88%', display: 'inline-block' }}>
@@ -337,12 +364,12 @@ function ObWelcomeNew({ onNext, onSkip }) {
 
         {/* Headline */}
         <h1 className="fade-up" style={{ fontSize: 30, fontWeight: 700, color: T.ink, textAlign: 'center', lineHeight: 1.15, letterSpacing: '-0.03em', marginBottom: 12, animationDelay: '0.1s' }}>
-          Your DMs, sorted
+          Your DMs, handled
         </h1>
 
         {/* Subtitle */}
         <p className="fade-up" style={{ fontSize: 15, color: T.gray, textAlign: 'center', lineHeight: 1.55, maxWidth: 300, marginBottom: 40, animationDelay: '0.2s' }}>
-          Sofia, you deal with 140 DMs a week. Inbox can sort them out to show you what really matters to you.
+          Sofia, 140 DMs a week is a lot. Between real leads and quick replies, knowing where to start takes more time than it should. That's Inbox Agent's job.
         </p>
 
         {/* Feature pills */}
@@ -352,8 +379,8 @@ function ObWelcomeNew({ onNext, onSkip }) {
               <span style={{ fontSize: 18 }}>↕</span>
             </div>
             <div>
-              <div style={{ fontSize: 15, fontWeight: 600, color: T.ink, letterSpacing: '-0.01em' }}>Priority sorting</div>
-              <div style={{ fontSize: 13, color: T.gray, marginTop: 2 }}>I show you what matters first</div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: T.ink, letterSpacing: '-0.01em' }}>What needs you first</div>
+              <div style={{ fontSize: 13, color: T.gray, marginTop: 2 }}>Inbox Agent reads everything and tells you where to start</div>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 20px', background: T.warmGray, borderRadius: 14 }}>
@@ -362,7 +389,7 @@ function ObWelcomeNew({ onNext, onSkip }) {
             </div>
             <div>
               <div style={{ fontSize: 15, fontWeight: 600, color: T.ink, letterSpacing: '-0.01em' }}>Replies in your voice</div>
-              <div style={{ fontSize: 13, color: T.gray, marginTop: 2 }}>I'll write them — you approve before they go out</div>
+              <div style={{ fontSize: 13, color: T.gray, marginTop: 2 }}>Inbox Agent drafts them — you have the final word</div>
             </div>
           </div>
         </div>
@@ -370,15 +397,61 @@ function ObWelcomeNew({ onNext, onSkip }) {
 
       {/* CTA */}
       <div className="fade-up" style={{ padding: '0 28px 90px', width: '100%', animationDelay: '0.4s' }}>
-        <BlueBtn label="Sort my inbox" onClick={onNext} />
+        <BlueBtn label="Set up Inbox Agent" onClick={onNext} />
 
       </div>
     </div>
   );
 }
 
+/* ─── Conversational single-sentence feed ─── */
+function ConversationalFeed({ sentences, onDone, isDark }) {
+  const inkColor = isDark ? '#FFFFFF' : '#1A1A1A';
+  const [idx, setIdx] = useState(0);
+  const [phase, setPhase] = useState('in'); // 'in' | 'out'
+  const t1 = useRef(null); const t2 = useRef(null);
+
+  useEffect(() => {
+    clearTimeout(t1.current); clearTimeout(t2.current);
+    setPhase('in'); // always fade in when idx changes
+
+    if (idx >= sentences.length - 1) {
+      t1.current = setTimeout(onDone, 2200);
+      return () => clearTimeout(t1.current);
+    }
+    // hold for 2s → fade out → bump idx (which re-triggers this effect)
+    t1.current = setTimeout(() => {
+      setPhase('out');
+      t2.current = setTimeout(() => setIdx(n => n + 1), 420);
+    }, 2000);
+    return () => { clearTimeout(t1.current); clearTimeout(t2.current); };
+  }, [idx]);
+
+  return (
+    <div style={{ padding:'0 36px' }}>
+      <div style={{
+        fontSize: 20,
+        fontWeight: 500,
+        color: inkColor,
+        opacity: phase === 'in' ? 1 : 0,
+        transform: phase === 'in' ? 'translateY(0)' : 'translateY(-8px)',
+        transition: 'opacity 0.42s ease, transform 0.42s ease',
+        letterSpacing: '-0.025em',
+        lineHeight: 1.35,
+      }}>
+        {sentences[idx]}
+      </div>
+    </div>
+  );
+}
+
 /* ─── NEW Step 2: Sorting (loading + question + loading) ─── */
-function ObSorting({ onNext, onSkip }) {
+function ObSorting({ onNext, onSkip, isDark }) {
+  const TH = isDark ? {
+    paper: '#0F0F0F', ink: '#FFFFFF', gray: 'rgba(255,255,255,0.45)',
+    lightGray: 'rgba(255,255,255,0.12)', accent: '#7C3AED',
+    cardBg: 'rgba(255,255,255,0.06)', warmGray: 'rgba(255,255,255,0.08)',
+  } : T;
   const [phase, setPhase] = useState('loading1'); // loading1 | question | loading2
   const [count, setCount] = useState(0);
   const [statusIdx, setStatusIdx] = useState(0);
@@ -389,15 +462,18 @@ function ObSorting({ onNext, onSkip }) {
   const timers = useRef([]);
 
   const loading1Status = [
-    'Let me pull in your messages...',
-    'Going through your DMs...',
-    'Found some that look interesting...',
-    'Filtering out the noise...',
+    'Reading your DMs...',
+    'Your 12-week course is very popular 👀',
+    'Found a few leads who are ready to talk...',
+    'A few things in here need you...',
+    'Some of it I can handle...',
+    'Got a clear picture now.',
   ];
   const loading2Status = [
-    'Setting things up for you...',
-    'Sorting by what matters most...',
-    'Matching your tone and voice...',
+    'Reading how you write...',
+    'You\'re warm and direct ✨',
+    'Figuring out what needs you first...',
+    'Almost ready...',
   ];
   const countSteps = [0, 46, 87, 118, 142];
 
@@ -416,7 +492,7 @@ function ObSorting({ onNext, onSkip }) {
       loading1Status.forEach((_, i) => {
         timers.current.push(setTimeout(() => setStatusIdx(i), i * 1200));
       });
-      timers.current.push(setTimeout(() => setPhase('question'), loading1Status.length * 1200 + 600));
+      timers.current.push(setTimeout(() => setPhase('loading2'), loading1Status.length * 1200 + 600));
     }
     if (phase === 'loading2') {
       setStatusIdx(0);
@@ -432,46 +508,46 @@ function ObSorting({ onNext, onSkip }) {
 
   if (phase === 'question') {
     return (
-      <div className="fade-up" style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      <div className="fade-up" style={{ background: TH.paper, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
         {/* Compact progress at top */}
         <div style={{ padding: '52px 28px 0' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 28 }}>
-            <ProgressRing progress={65} size={36} stroke={3} />
-            <span style={{ fontSize: 13, color: T.gray, fontWeight: 500 }}>142 DMs scanned</span>
+            <ProgressRing progress={65} size={36} stroke={3} trackColor={TH.lightGray} fillColor={TH.accent} />
+            <span style={{ fontSize: 13, color: TH.gray, fontWeight: 500 }}>142 DMs scanned</span>
           </div>
 
           {/* Question */}
-          <div style={{ fontSize: 11, color: T.gray, marginBottom: 8, fontWeight: 500 }}>Inbox</div>
-          <h2 style={{ fontSize: 22, fontWeight: 700, color: T.ink, lineHeight: 1.2, letterSpacing: '-0.02em', marginBottom: 8 }}>
-            While I sort your messages — what matters most to you?
+          <div style={{ fontSize: 11, color: TH.gray, marginBottom: 8, fontWeight: 500 }}>Inbox Agent</div>
+          <h2 style={{ fontSize: 22, fontWeight: 700, color: TH.ink, lineHeight: 1.2, letterSpacing: '-0.02em', marginBottom: 8 }}>
+            While I go through your messages, what matters most to you?
           </h2>
-          <p style={{ fontSize: 14, color: T.gray, lineHeight: 1.5, marginBottom: 24 }}>
-            Based on your business <span style={{ fontWeight: 600, color: T.ink }}>Sofia Reyes Coaching</span>, I suggest:
+          <p style={{ fontSize: 14, color: TH.gray, lineHeight: 1.5, marginBottom: 24 }}>
+            Based on your business <span style={{ fontWeight: 600, color: TH.ink }}>Sofia Reyes Coaching</span>, I suggest:
           </p>
 
           {/* Options */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <SelectChip label="People interested in coaching" desc="Leads asking about your services" selected={selected.leads} onClick={() => setSelected(s => ({...s, leads: !s.leads}))} />
-            <SelectChip label="Comments on my posts" desc="Engage with your audience" selected={selected.comments} onClick={() => setSelected(s => ({...s, comments: !s.comments}))} />
-            <SelectChip label="Collaboration requests" desc="Brand deals and partnerships" selected={selected.collabs} onClick={() => setSelected(s => ({...s, collabs: !s.collabs}))} />
-            <SelectChip label="Scheduling and booking" desc="Session requests and reschedules" selected={selected.scheduling} onClick={() => setSelected(s => ({...s, scheduling: !s.scheduling}))} />
+            <SelectChip label="People interested in coaching" desc="Leads asking about your services" selected={selected.leads} onClick={() => setSelected(s => ({...s, leads: !s.leads}))} isDark={isDark} />
+            <SelectChip label="Comments on my posts" desc="Engage with your audience" selected={selected.comments} onClick={() => setSelected(s => ({...s, comments: !s.comments}))} isDark={isDark} />
+            <SelectChip label="Collaboration requests" desc="Brand deals and partnerships" selected={selected.collabs} onClick={() => setSelected(s => ({...s, collabs: !s.collabs}))} isDark={isDark} />
+            <SelectChip label="Scheduling and booking" desc="Session requests and reschedules" selected={selected.scheduling} onClick={() => setSelected(s => ({...s, scheduling: !s.scheduling}))} isDark={isDark} />
 
             {/* Custom "Other" option */}
             {!showCustom ? (
               <div onClick={() => { setShowCustom(true); setTimeout(() => customRef.current?.focus(), 100); }}
                 style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', borderRadius: 14,
-                  border: `1.5px dashed ${T.lightGray}`, background: T.cardBg, cursor: 'pointer', transition: 'all .2s ease' }}>
-                <div style={{ width: 24, height: 24, borderRadius: 12, border: `2px solid ${T.lightGray}`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 14, color: T.gray, lineHeight: 1 }}>+</div>
-                <div style={{ fontSize: 15, fontWeight: 500, color: T.gray, letterSpacing: '-0.01em' }}>Something else...</div>
+                  border: `1.5px dashed ${TH.lightGray}`, background: TH.cardBg, cursor: 'pointer', transition: 'all .2s ease' }}>
+                <div style={{ width: 24, height: 24, borderRadius: 12, border: `2px solid ${TH.lightGray}`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 14, color: TH.gray, lineHeight: 1 }}>+</div>
+                <div style={{ fontSize: 15, fontWeight: 500, color: TH.gray, letterSpacing: '-0.01em' }}>Something else...</div>
               </div>
             ) : (
               <div className="fade-up" style={{ padding: '14px 16px', borderRadius: 14,
-                border: `1.5px solid ${customText.trim() ? T.accent : T.lightGray}`,
-                background: customText.trim() ? '#EBF4FF' : T.cardBg, transition: 'all .2s ease' }}>
+                border: `1.5px solid ${customText.trim() ? TH.accent : TH.lightGray}`,
+                background: customText.trim() ? (isDark ? 'rgba(124,58,237,0.18)' : '#EBF4FF') : TH.cardBg, transition: 'all .2s ease' }}>
                 <textarea ref={customRef} value={customText} onChange={e => setCustomText(e.target.value)}
                   placeholder="Type what matters to you..."
-                  style={{ width: '100%', fontSize: 14, color: T.ink, lineHeight: 1.5, padding: 0, border: 'none', resize: 'none',
+                  style={{ width: '100%', fontSize: 14, color: TH.ink, lineHeight: 1.5, padding: 0, border: 'none', resize: 'none',
                     height: 48, fontFamily: 'Inter', background: 'transparent', outline: 'none',
                     letterSpacing: '-0.01em' }} />
               </div>
@@ -480,33 +556,24 @@ function ObSorting({ onNext, onSkip }) {
         </div>
 
         <div style={{ marginTop: 'auto', padding: '16px 28px 50px' }}>
-          <BlackBtn label="Set up Inbox" onClick={() => setPhase('loading2')} disabled={!Object.values(selected).some(Boolean) && !customText.trim()} />
+          {isDark
+            ? <button onClick={() => setPhase('loading2')} disabled={!Object.values(selected).some(Boolean) && !customText.trim()} style={{ width:'100%', padding:'16px', background:'#fff', color:'#0F0F0F', border:'none', borderRadius:50, fontSize:16, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em', opacity: (!Object.values(selected).some(Boolean) && !customText.trim()) ? 0.4 : 1 }}>Get Inbox Agent started</button>
+            : <BlackBtn label="Get Inbox Agent started" onClick={() => setPhase('loading2')} disabled={!Object.values(selected).some(Boolean) && !customText.trim()} />
+          }
         </div>
       </div>
     );
   }
 
-  // Loading phases (1 and 2)
+  // Loading phases (1 and 2) — conversational rolling feed
   return (
-    <div className="fade-up" style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
-      {/* Progress ring with counter */}
-      <div style={{ position: 'relative', marginBottom: 24 }}>
-        <ProgressRing progress={progress} size={120} stroke={6} />
-        <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ fontSize: 32, fontWeight: 700, color: T.ink, letterSpacing: '-0.03em', lineHeight: 1 }}>{phase === 'loading1' ? count : 142}</div>
-          <div style={{ fontSize: 11, color: T.gray, marginTop: 4 }}>DMs scanned</div>
-        </div>
-      </div>
-
-      {/* Status text */}
-      <div style={{ fontSize: 15, color: T.gray, letterSpacing: '-0.01em', textAlign: 'center', minHeight: 24 }}>
-        {statusLines[statusIdx]}
-      </div>
-
-      {/* Skip */}
-      <div style={{ position: 'absolute', bottom: 50, left: 0, right: 0 }}>
-
-      </div>
+    <div className="fade-up" style={{ background: TH.paper, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', position: 'relative' }}>
+      <ConversationalFeed
+        key={phase}
+        sentences={phase === 'loading1' ? loading1Status : loading2Status}
+        onDone={phase === 'loading1' ? () => setPhase('question') : onNext}
+        isDark={isDark}
+      />
     </div>
   );
 }
@@ -517,20 +584,23 @@ function ObResultsNew({ onNext }) {
     <div className="fade-up" style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '0 28px' }}>
         {/* Heading */}
-        <h1 className="fade-up" style={{ fontSize: 28, fontWeight: 700, color: T.ink, letterSpacing: '-0.03em', marginBottom: 8 }}>
-          You're all set, Sofia
+        <h1 className="fade-up" style={{ fontSize: 28, fontWeight: 700, color: T.ink, letterSpacing: '-0.03em', marginBottom: 10 }}>
+          Ready to go, Sofia
         </h1>
-        <p className="fade-up" style={{ fontSize: 15, color: T.gray, lineHeight: 1.5, marginBottom: 28, animationDelay: '0.1s' }}>
-          I sorted your messages. Here's what I found.
+        <p className="fade-up" style={{ fontSize: 17, fontWeight: 600, color: T.ink, lineHeight: 1.4, marginBottom: 6, animationDelay: '0.05s' }}>
+          No more "Am I missing something?"
+        </p>
+        <p className="fade-up" style={{ fontSize: 14, color: T.gray, lineHeight: 1.5, marginBottom: 24, animationDelay: '0.1s' }}>
+          Here's what Inbox Agent did for you
         </p>
 
         {/* Stats grid */}
         <div className="fade-up" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, animationDelay: '0.2s' }}>
           {[
-            { n: '142', label: 'DMs sorted' },
-            { n: '12', label: 'replies written' },
-            { n: '8', label: 'need your review' },
-            { n: '34', label: 'leads found' },
+            { n: '142', label: 'DMs reviewed' },
+            { n: '8', label: 'messages that truly need you' },
+            { n: '18', label: 'people interested in your 12-week course' },
+            { n: '12', label: 'replies ready to send' },
           ].map((s, i) => (
             <div key={i} style={{ padding: '18px 16px', border: `1px solid ${T.lightGray}`, borderRadius: 14, background: T.cardBg }}>
               <div style={{ fontSize: 26, fontWeight: 700, color: T.ink, letterSpacing: '-0.03em' }}>{s.n}</div>
@@ -542,7 +612,7 @@ function ObResultsNew({ onNext }) {
 
       {/* CTA */}
       <div className="fade-up" style={{ padding: '0 28px 90px', animationDelay: '0.3s' }}>
-        <BlueBtn label="Open Inbox" onClick={onNext} />
+        <BlueBtn label="Let's go" onClick={onNext} />
       </div>
     </div>
   );
@@ -577,7 +647,7 @@ function ObWelcome({ onNext, onSkip }) {
           messages={[
             "Hi Sofia. You receive around 140 messages per week. That's a lot.",
             "Some of them are interested in your services. Others just need a quick reply.",
-            "I'll sort everything so you see the important ones first. For the rest, I'll write replies and ask before sending.",
+            "I'll go through everything so you see the important ones first. For the rest, I'll write replies and ask before sending.",
             "It only takes 1 minute."
           ]}
           onAllDone={() => setShowBtn(true)}
@@ -585,7 +655,7 @@ function ObWelcome({ onNext, onSkip }) {
       </div>
 
       <div style={{ marginTop: 'auto', padding: '0 28px 90px', opacity: showBtn ? 1 : 0, transform: showBtn ? 'translateY(0)' : 'translateY(12px)', transition: 'all .4s ease' }}>
-        <BlackBtn label="Sort my Inbox" onClick={onNext} />
+        <BlackBtn label="Set up Inbox Agent" onClick={onNext} />
 
       </div>
     </div>
@@ -611,11 +681,11 @@ function ObWorkflow({ onNext, onBack, saveLabel }) {
       <ProgressBar step={3} total={8} label="Workflow" />
       <ObBackBtn onClick={onBack} />
       <div style={{ padding: '60px 28px 0', flex: 1, overflowY: 'auto' }}>
-        <div style={{ fontSize: 11, color: T.gray, marginBottom: 6, fontWeight: 500, letterSpacing: '0em' }}>Inbox</div>
+        <div style={{ fontSize: 11, color: T.gray, marginBottom: 6, fontWeight: 500, letterSpacing: '0em' }}>Inbox Agent</div>
         <h1 style={{ fontSize: 26, fontWeight: 700, color: T.ink, lineHeight: 1.15, marginBottom: 8, letterSpacing: '-0.02em' }}>
           If you had 10 minutes, what would you check first?
         </h1>
-        <p style={{ fontSize: 14, color: T.gray, marginBottom: 28, lineHeight: 1.5 }}>Tap in order of priority — this helps me organize your inbox.</p>
+        <p style={{ fontSize: 14, color: T.gray, marginBottom: 28, lineHeight: 1.5 }}>Tap in order of priority so I know what to surface first.</p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {priorities.map((p) => {
@@ -638,7 +708,7 @@ function ObWorkflow({ onNext, onBack, saveLabel }) {
       </div>
 
       <div style={{ padding: '16px 28px 50px' }}>
-        <BlackBtn label={saveLabel || "Next →"} onClick={onNext} disabled={selected.length === 0} />
+        <BlackBtn label={saveLabel || "Review my voice"} onClick={onNext} disabled={selected.length === 0} />
       </div>
     </div>
   );
@@ -649,7 +719,7 @@ function ObAnalyzing({ onNext, onBack, onSkip }) {
   const [lines, setLines] = useState([]);
   const allLines = [
     'Syncing your DMs...',
-    'Categorizing your messages...',
+    'Reading through your messages...',
     'Identifying leads and questions...',
     'Drafting replies...',
     'Matching your tone and voice...',
@@ -667,7 +737,7 @@ function ObAnalyzing({ onNext, onBack, onSkip }) {
       {/* No progress bar on analyzing */}
       <ObBackBtn onClick={onBack} />
       <div style={{ padding: '0 36px' }}>
-        <div style={{ fontSize: 11, color: T.gray, marginBottom: 12, fontWeight: 500, letterSpacing: '0em' }}>Inbox</div>
+        <div style={{ fontSize: 11, color: T.gray, marginBottom: 12, fontWeight: 500, letterSpacing: '0em' }}>Inbox Agent</div>
         {lines.map((line, i) => (
           <div key={i} className="fade-up" style={{ fontSize: 15, color: i === lines.length - 1 ? T.ink : T.gray, marginBottom: 18, display: 'flex', alignItems: 'center', gap: 12, transition: 'color .3s', letterSpacing: '-0.01em' }}>
             <span style={{ width: 18, height: 18, borderRadius: 9, border: `1.5px solid ${i < lines.length - 1 ? T.accent : T.lightGray}`, background: i < lines.length - 1 ? T.accent : 'transparent', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all .3s ease' }}>
@@ -707,7 +777,7 @@ function ObInsights({ onNext, onBack }) {
         />
       </div>
       <div style={{ padding: '0 28px 50px', opacity: showBtn ? 1 : 0, transform: showBtn ? 'translateY(0)' : 'translateY(12px)', transition: 'all .4s ease' }}>
-        <BlackBtn label="About my business →" onClick={onNext} />
+        <BlackBtn label="Define my leads" onClick={onNext} />
       </div>
     </div>
   );
@@ -734,7 +804,7 @@ function ObLeadDef({ onNext, onBack }) {
 
         {showBtn && (
           <div className="fade-up" style={{ marginTop: 24 }}>
-            <div style={{ fontSize: 11, color: T.gray, marginBottom: 8, fontWeight: 500, letterSpacing: '0em' }}>Inbox</div>
+            <div style={{ fontSize: 11, color: T.gray, marginBottom: 8, fontWeight: 500, letterSpacing: '0em' }}>Inbox Agent</div>
             <div style={{ background: T.warmGray, borderRadius: 14, padding: '16px 18px' }}>
               <div style={{ fontSize: 14, color: T.ink, lineHeight: 1.5, marginBottom: 12 }}>
                 A lead for you is...
@@ -753,7 +823,7 @@ function ObLeadDef({ onNext, onBack }) {
         )}
       </div>
       <div style={{ padding: '0 28px 50px', opacity: showBtn ? 1 : 0, transform: showBtn ? 'translateY(0)' : 'translateY(12px)', transition: 'all .4s ease' }}>
-        <BlackBtn label="Got it, next →" onClick={onNext} />
+        <BlackBtn label="Save and continue" onClick={onNext} />
       </div>
     </div>
   );
@@ -772,9 +842,9 @@ function ObTrustFeel({ onNext, setConfidence }) {
   ];
 
   const responses = {
-    low: "Totally fair.\n\nI'll sort your messages and draft replies — but nothing gets sent without you. You review everything.",
-    mid: "Great.\n\nI'll handle common questions and sort your leads automatically. For the rest, I'll draft and you review.",
-    high: "Let's go.\n\nI'll reply to comments, sort your leads, and after a few reviews, start replying on your behalf."
+    low: "Totally fair.\n\nI'll go through your messages and draft replies, but nothing gets sent without you. You review everything.",
+    mid: "Great.\n\nI'll handle common questions and surface your leads automatically. For the rest, I'll draft and you review.",
+    high: "Let's go.\n\nI'll reply to comments, surface your leads, and after a few reviews, start replying on your behalf."
   };
 
   const pick = (id) => {
@@ -788,7 +858,7 @@ function ObTrustFeel({ onNext, setConfidence }) {
     <div className="fade-up" style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
       <ProgressBar step={5} total={8} />
       <div style={{ padding: '60px 28px 0', flex: 1, overflowY: 'auto' }}>
-        <div style={{ fontSize: 11, color: T.gray, marginBottom: 6, fontWeight: 500, letterSpacing: '0em' }}>Inbox</div>
+        <div style={{ fontSize: 11, color: T.gray, marginBottom: 6, fontWeight: 500, letterSpacing: '0em' }}>Inbox Agent</div>
         <h1 style={{ fontSize: 26, fontWeight: 700, color: T.ink, lineHeight: 1.15, marginBottom: 6, letterSpacing: '-0.02em' }}>
           Real talk — how do you feel about AI?
         </h1>
@@ -809,7 +879,7 @@ function ObTrustFeel({ onNext, setConfidence }) {
 
         {showResponse && (
           <div className="fade-up" style={{ marginTop: 24 }}>
-            <div style={{ fontSize: 11, color: T.gray, marginBottom: 5, fontWeight: 500, letterSpacing: '0em' }}>Inbox</div>
+            <div style={{ fontSize: 11, color: T.gray, marginBottom: 5, fontWeight: 500, letterSpacing: '0em' }}>Inbox Agent</div>
             <div style={{ background: T.warmGray, borderRadius: 14, padding: '14px 18px' }}>
               <div style={{ fontSize: 14, color: T.ink, lineHeight: 1.6, whiteSpace: 'pre-line' }}>{responses[selected]}</div>
             </div>
@@ -818,7 +888,7 @@ function ObTrustFeel({ onNext, setConfidence }) {
       </div>
 
       <div style={{ padding: '16px 28px 50px', opacity: showBtn ? 1 : 0, transform: showBtn ? 'translateY(0)' : 'translateY(12px)', transition: 'all .4s ease' }}>
-        <BlackBtn label="Sounds good, next →" onClick={onNext} />
+        <BlackBtn label="Set it up" onClick={onNext} />
         <div style={{ textAlign: 'center', marginTop: 10, fontSize: 12, color: '#bbb' }}>You can always change this later</div>
       </div>
     </div>
@@ -835,7 +905,7 @@ function ObSettingUp({ onNext }) {
     <div style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
       <ProgressBar step={6} total={8} label="Setting up" />
       <div style={{ textAlign: 'center' }}>
-        <div style={{ animation: 'pulse 1.2s infinite', fontSize: 15, color: T.gray, marginBottom: 8 }}>Setting up your inbox...</div>
+        <div style={{ animation: 'pulse 1.2s infinite', fontSize: 15, color: T.gray, marginBottom: 8 }}>Inbox Agent is getting ready...</div>
       </div>
     </div>
   );
@@ -877,7 +947,7 @@ function ObExamples({ onNext, onBack }) {
       <ProgressBar step={7} total={8} label="Examples" />
       <ObBackBtn onClick={onBack} />
       <div style={{ padding: '60px 28px 0', flex: 1 }}>
-        <div style={{ fontSize: 12, color: T.gray, marginBottom: 6, fontWeight: 500 }}>Inbox</div>
+        <div style={{ fontSize: 12, color: T.gray, marginBottom: 6, fontWeight: 500 }}>Inbox Agent</div>
         <div style={{ background: T.warmGray, borderRadius: 18, borderTopLeftRadius: 18, padding: '13px 18px', marginBottom: 20, display: 'inline-block' }}>
           <div style={{ fontSize: 15, color: T.ink, letterSpacing: '-0.01em' }}>Here's a draft I'd write for this one.</div>
         </div>
@@ -888,7 +958,7 @@ function ObExamples({ onNext, onBack }) {
             <div style={{ fontSize: 15, color: T.ink, lineHeight: 1.5, letterSpacing: '-0.01em' }}>{ex.msg}</div>
           </div>
 
-          <div style={{ fontSize: 11, color: T.gray, marginBottom: 6 }}>Inbox's draft</div>
+          <div style={{ fontSize: 11, color: T.gray, marginBottom: 6 }}>Inbox Agent's draft</div>
           <div style={{ background: T.cardBg, border: `1.5px solid ${T.ink}`, borderRadius: 16, padding: '14px 18px', marginBottom: 12, transition: 'opacity 0.2s ease', opacity: draftFading ? 0 : 1 }}>
             <div style={{ fontSize: 15, color: T.ink, lineHeight: 1.5, letterSpacing: '-0.01em' }}>{displayedDraft}</div>
           </div>
@@ -922,7 +992,7 @@ function ObInboxPreview({ onNext }) {
         <InboxMessages
           messages={[
             "This is what your inbox looks like.",
-            "I organized everything into four sections so you can work through it fast."
+            "I went through everything and broke it down into four sections so you can work through it fast."
           ]}
           onAllDone={() => setShowBtn(true)}
         />
@@ -952,7 +1022,7 @@ function ObInboxPreview({ onNext }) {
       </div>
 
       <div style={{ padding: '16px 28px 50px', opacity: showBtn ? 1 : 0, transform: showBtn ? 'translateY(0)' : 'translateY(12px)', transition: 'all .4s ease' }}>
-        <BlackBtn label="Got it →" onClick={onNext} />
+        <BlackBtn label="Open Inbox" onClick={onNext} />
       </div>
     </div>
   );
@@ -969,7 +1039,7 @@ function ObStats({ onNext, onBack, onSkip }) {
         <InboxMessages
           messages={[
             "You're set, Sofia.",
-            "I sorted 142 messages."
+            "I went through 142 messages."
           ]}
           onAllDone={() => setShowBtn(true)}
         />
@@ -978,7 +1048,7 @@ function ObStats({ onNext, onBack, onSkip }) {
         {showBtn && (
           <div className="fade-up" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 20 }}>
             {[
-              { n: '142', label: 'DMs sorted' },
+              { n: '142', label: 'DMs reviewed' },
               { n: '12', label: 'replies written' },
               { n: '8', label: 'need your review' },
               { n: '34', label: 'leads found' },
@@ -994,7 +1064,7 @@ function ObStats({ onNext, onBack, onSkip }) {
         {/* Lead teaser */}
         {showBtn && (
           <div className="fade-up" style={{ marginTop: 24, animationDelay: '0.4s' }}>
-            <div style={{ fontSize: 11, color: T.gray, marginBottom: 5, fontWeight: 500, letterSpacing: '0.04em', textTransform: 'uppercase' }}>· Inbox</div>
+            <div style={{ fontSize: 11, color: T.gray, marginBottom: 5, fontWeight: 500, letterSpacing: '0.04em', textTransform: 'uppercase' }}>· Inbox Agent</div>
             <div style={{ background: T.warmGray, borderRadius: 14, padding: '12px 16px', maxWidth: '88%' }}>
               <div style={{ fontSize: 14, color: T.ink, lineHeight: 1.5 }}>There's somebody already interested in your mid-level course.</div>
             </div>
@@ -1018,7 +1088,7 @@ function ObStats({ onNext, onBack, onSkip }) {
       </div>
 
       <div style={{ padding: '16px 28px 50px', opacity: showBtn ? 1 : 0, transform: showBtn ? 'translateY(0)' : 'translateY(12px)', transition: 'all .4s ease' }}>
-        <BlackBtn label="Next →" onClick={onNext} />
+        <BlackBtn label="See my inbox" onClick={onNext} />
 
       </div>
     </div>
@@ -1062,7 +1132,7 @@ function ObLoading({ onNext }) {
   return (
     <div style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
       {/* No progress bar on loading */}
-      <div style={{ animation: 'pulse 1.2s infinite', fontSize: 15, color: T.gray }}>Loading your inbox...</div>
+      <div style={{ animation: 'pulse 1.2s infinite', fontSize: 15, color: T.gray }}>Inbox Agent is getting ready...</div>
     </div>
   );
 }
@@ -1104,7 +1174,7 @@ function InboxMsg({ children, delay=0 }) {
   return (
     <div className="fade-up" style={{ marginBottom:16 }}>
       <div style={{ fontSize:12, color:T.gray, marginBottom:6, display:'flex', alignItems:'center', gap:6 }}>
-        <span style={{ width:18, height:18, borderRadius:9, background:T.accent, display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:9, color:'#fff', fontWeight:700 }}>C</span> Inbox
+        <span style={{ width:18, height:18, borderRadius:9, background:T.accent, display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:9, color:'#fff', fontWeight:700 }}>IA</span> Inbox Agent
       </div>
       <div style={{ background:T.warmGray, borderRadius:18, borderTopLeftRadius:6, padding:'14px 18px', maxWidth:'88%', fontSize:15, lineHeight:1.5, color:T.ink, letterSpacing:'-0.01em' }}>
         {children}
@@ -1139,44 +1209,69 @@ const NARRATIONS = {
    ═══════════════════════════════════════════ */
 
 /* ─── Collapsible AI Value Summary (top of inbox) ─── */
+const AGENT_STATUS = [
+  'Analyzing your DMs',
+  'Watching for new messages',
+  'Keeping an eye on your leads',
+  'Ready when something needs you',
+  'Monitoring your conversations',
+];
+
 function DailyReport({ collapsed, onToggle }) {
+  const [statusIdx, setStatusIdx] = useState(0);
+  const [statusVisible, setStatusVisible] = useState(true);
+  const t1 = useRef(null); const t2 = useRef(null); const t3 = useRef(null);
+
+  useEffect(() => {
+    const cycle = () => {
+      t1.current = setTimeout(() => {
+        setStatusVisible(false);
+        t2.current = setTimeout(() => {
+          setStatusIdx(i => (i + 1) % AGENT_STATUS.length);
+          t3.current = setTimeout(() => setStatusVisible(true), 60);
+        }, 500);
+        cycle();
+      }, 4000);
+    };
+    cycle();
+    return () => { clearTimeout(t1.current); clearTimeout(t2.current); clearTimeout(t3.current); };
+  }, []);
+
   return (
-    <div style={{ marginBottom:16 }}>
-      <div onClick={onToggle} style={{
-        background: 'linear-gradient(135deg, #006BE2 0%, #7C3AED 100%)',
-        borderRadius:20, padding:'22px 24px 20px', cursor:'pointer', position:'relative', overflow:'hidden'
-      }}>
-        {/* Subtle sparkle decoration */}
-        <div style={{ position:'absolute', top:12, right:16, fontSize:16, opacity:0.3 }}>✦</div>
-        <div style={{ position:'absolute', bottom:14, right:40, fontSize:10, opacity:0.2 }}>✦</div>
+    <div onClick={onToggle} style={{
+      margin:'0 -20px', padding:'0 22px 20px',
+      background:'#0F0F0F', cursor:'pointer',
+    }}>
+      {/* Header label */}
+      <div style={{ fontSize:10, fontWeight:700, color:'rgba(255,255,255,0.3)', letterSpacing:'0.07em', textTransform:'uppercase', marginBottom:12 }}>
+        Inbox Agent
+      </div>
 
-        {/* Header row */}
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
-          <span style={{ fontSize:11, fontWeight:600, color:'rgba(255,255,255,0.7)', letterSpacing:'0.04em', textTransform:'uppercase' }}>Inbox Summary</span>
-          <div style={{ width:24, height:24, borderRadius:12, background:'rgba(255,255,255,0.15)', display:'flex', alignItems:'center', justifyContent:'center' }}>
-            <span style={{ fontSize:12, color:'#fff' }}>↗</span>
+      {/* Status line — blinking dot + cycling text */}
+      <div style={{ display:'flex', alignItems:'center', gap:7, marginBottom:18 }}>
+        <div style={{ width:7, height:7, borderRadius:4, background:'#0095F6', flexShrink:0, animation:'pulse 1.4s ease-in-out infinite' }} />
+        <div style={{
+          fontSize:16, fontWeight:600, color:'#fff', letterSpacing:'-0.02em',
+          opacity: statusVisible ? 1 : 0,
+          transform: statusVisible ? 'translateY(0)' : 'translateY(-3px)',
+          transition: 'opacity 0.45s ease, transform 0.45s ease',
+        }}>
+          {AGENT_STATUS[statusIdx]}
+        </div>
+      </div>
+
+      {/* Stats row */}
+      <div style={{ display:'flex', gap:0 }}>
+        {[
+          { n:'34',  label:'interested' },
+          { n:'32',  label:'replies ready' },
+          { n:'4m',  label:'saved in replies' },
+        ].map((s, i) => (
+          <div key={i} style={{ flex:1 }}>
+            <div style={{ fontSize:18, fontWeight:700, color:'#fff', letterSpacing:'-0.03em', lineHeight:1.1 }}>{s.n}</div>
+            <div style={{ fontSize:11, color:'rgba(255,255,255,0.38)', marginTop:3 }}>{s.label}</div>
           </div>
-        </div>
-
-        {/* Hero stat */}
-        <div style={{ marginBottom:14 }}>
-          <div style={{ fontSize:28, fontWeight:700, color:'#FFFFFF', letterSpacing:'-0.03em', lineHeight:1.1 }}>34 people interested</div>
-          <div style={{ fontSize:14, color:'rgba(255,255,255,0.75)', marginTop:4, letterSpacing:'-0.01em' }}>in your coaching program</div>
-        </div>
-
-        {/* Secondary stats row */}
-        <div style={{ display:'flex', gap:8 }}>
-          {[
-            { n:'47', label:'sorted' },
-            { n:'83%', label:'noise filtered' },
-            { n:'12', label:'replies ready' },
-          ].map((s, i) => (
-            <div key={i} style={{ padding:'6px 12px', background:'rgba(255,255,255,0.15)', borderRadius:10 }}>
-              <span style={{ fontSize:13, fontWeight:600, color:'#fff' }}>{s.n}</span>
-              <span style={{ fontSize:11, color:'rgba(255,255,255,0.7)', marginLeft:4 }}>{s.label}</span>
-            </div>
-          ))}
-        </div>
+        ))}
       </div>
     </div>
   );
@@ -1185,37 +1280,32 @@ function DailyReport({ collapsed, onToggle }) {
 /* ─── Summary Overlay (full-screen unified gradient) ─── */
 function SummaryOverlay({ onDismiss }) {
   return (
-    <div className="fade-in" style={{ position:'absolute', inset:0, zIndex:90, background:'linear-gradient(165deg, #006BE2 0%, #5B21B6 40%, #3B1280 100%)', display:'flex', flexDirection:'column', overflowY:'auto' }}>
-      {/* Sparkle decorations */}
-      <div style={{ position:'absolute', top:60, right:24, fontSize:20, opacity:0.12, color:'#fff' }}>✦</div>
-      <div style={{ position:'absolute', top:180, left:16, fontSize:10, opacity:0.08, color:'#fff' }}>✦</div>
-      <div style={{ position:'absolute', bottom:160, right:50, fontSize:14, opacity:0.06, color:'#fff' }}>✦</div>
+    <div className="fade-in" style={{ position:'absolute', inset:0, zIndex:90, background:'#0F0F0F', display:'flex', flexDirection:'column', overflowY:'auto' }}>
 
       {/* Close button */}
-      <div onClick={onDismiss} style={{ position:'absolute', top:16, right:16, width:32, height:32, borderRadius:16, background:'rgba(255,255,255,0.12)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', zIndex:2 }}>
-        <span style={{ fontSize:16, color:'#fff', lineHeight:1 }}>×</span>
+      <div onClick={onDismiss} style={{ position:'absolute', top:16, right:16, width:32, height:32, borderRadius:16, background:'rgba(255,255,255,0.07)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', zIndex:2 }}>
+        <span style={{ fontSize:16, color:'rgba(255,255,255,0.6)', lineHeight:1 }}>×</span>
       </div>
 
       {/* Hero section */}
       <div style={{ padding:'52px 28px 0' }}>
-        <span style={{ fontSize:11, fontWeight:600, color:'rgba(255,255,255,0.5)', letterSpacing:'0.04em', textTransform:'uppercase' }}>Inbox Summary</span>
+        <span style={{ fontSize:10, fontWeight:700, color:'rgba(255,255,255,0.35)', letterSpacing:'0.07em', textTransform:'uppercase' }}>Inbox Agent</span>
 
-        <div style={{ marginTop:16, marginBottom:24 }}>
-          <div style={{ fontSize:34, fontWeight:700, color:'#fff', letterSpacing:'-0.03em', lineHeight:1.1 }}>34 people interested</div>
-          <div style={{ fontSize:16, color:'rgba(255,255,255,0.6)', marginTop:6 }}>in your coaching program</div>
+        <div style={{ marginTop:14, marginBottom:24 }}>
+          <div style={{ fontSize:34, fontWeight:800, color:'#fff', letterSpacing:'-0.04em', lineHeight:1.05 }}>34 people interested</div>
+          <div style={{ fontSize:14, color:'rgba(255,255,255,0.38)', marginTop:6 }}>in your coaching program</div>
         </div>
 
-        {/* Stats grid */}
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:32 }}>
+        {/* Stats — matches DailyReport card */}
+        <div style={{ display:'flex', gap:0, borderTop:'1px solid rgba(255,255,255,0.07)', paddingTop:20, marginBottom:32 }}>
           {[
-            { n:'47', label:'DMs sorted' },
-            { n:'83%', label:'noise filtered' },
-            { n:'12', label:'replies ready' },
-            { n:'~4 min', label:'saved per reply' },
+            { n:'34',  label:'interested' },
+            { n:'32',  label:'replies ready' },
+            { n:'4m',  label:'saved in replies' },
           ].map((s, i) => (
-            <div key={i} style={{ padding:'14px 16px', background:'rgba(255,255,255,0.08)', borderRadius:14, border:'1px solid rgba(255,255,255,0.1)' }}>
-              <div style={{ fontSize:22, fontWeight:700, color:'#fff', letterSpacing:'-0.02em' }}>{s.n}</div>
-              <div style={{ fontSize:12, color:'rgba(255,255,255,0.5)', marginTop:2 }}>{s.label}</div>
+            <div key={i} style={{ flex:1 }}>
+              <div style={{ fontSize:22, fontWeight:700, color:'#fff', letterSpacing:'-0.03em' }}>{s.n}</div>
+              <div style={{ fontSize:11, color:'rgba(255,255,255,0.38)', marginTop:3 }}>{s.label}</div>
             </div>
           ))}
         </div>
@@ -1223,28 +1313,28 @@ function SummaryOverlay({ onDismiss }) {
 
       {/* Content section */}
       <div style={{ flex:1, padding:'0 28px' }}>
-        <div style={{ fontSize:11, fontWeight:500, color:'rgba(255,255,255,0.4)', letterSpacing:'0.04em', textTransform:'uppercase', marginBottom:12 }}>Inbox</div>
+        <div style={{ fontSize:10, fontWeight:700, color:'rgba(255,255,255,0.35)', letterSpacing:'0.07em', textTransform:'uppercase', marginBottom:14 }}>Inbox Agent says</div>
 
-        <div style={{ background:'rgba(255,255,255,0.1)', borderRadius:14, padding:'14px 18px', marginBottom:10, maxWidth:'88%', border:'1px solid rgba(255,255,255,0.08)' }}>
-          <div style={{ fontSize:15, color:'rgba(255,255,255,0.9)', lineHeight:1.5 }}>My replies are getting closer to how you'd say it.</div>
+        <div style={{ background:'rgba(255,255,255,0.05)', borderRadius:14, padding:'14px 18px', marginBottom:10, maxWidth:'88%', border:'1px solid rgba(255,255,255,0.07)' }}>
+          <div style={{ fontSize:15, color:'rgba(255,255,255,0.85)', lineHeight:1.5 }}>My replies are getting closer to how you'd say it.</div>
         </div>
 
-        <div style={{ background:'rgba(255,255,255,0.1)', borderRadius:14, padding:'14px 18px', marginBottom:16, maxWidth:'88%', border:'1px solid rgba(255,255,255,0.08)' }}>
-          <div style={{ fontSize:15, color:'rgba(255,255,255,0.9)', lineHeight:1.5 }}>Also, your audience cares about you. Like Jess:</div>
+        <div style={{ background:'rgba(255,255,255,0.05)', borderRadius:14, padding:'14px 18px', marginBottom:16, maxWidth:'88%', border:'1px solid rgba(255,255,255,0.07)' }}>
+          <div style={{ fontSize:15, color:'rgba(255,255,255,0.85)', lineHeight:1.5 }}>Also, your audience cares about you. Like Jess:</div>
         </div>
 
         {/* Quote */}
-        <div style={{ marginLeft:12, padding:'14px 16px', background:'rgba(255,255,255,0.06)', borderRadius:12, border:'1px solid rgba(255,255,255,0.12)', maxWidth:'85%', marginBottom:16 }}>
-          <div style={{ fontSize:14, color:'rgba(255,255,255,0.85)', lineHeight:1.5, fontStyle:'italic' }}>"Thanks for answering so quickly, I really appreciate it"</div>
-          <div style={{ fontSize:11, color:'rgba(255,255,255,0.4)', marginTop:6 }}>@jess.wellness</div>
+        <div style={{ marginLeft:12, padding:'14px 16px', background:'rgba(255,255,255,0.03)', borderRadius:12, border:'1px solid rgba(255,255,255,0.08)', maxWidth:'85%', marginBottom:16 }}>
+          <div style={{ fontSize:14, color:'rgba(255,255,255,0.7)', lineHeight:1.5, fontStyle:'italic' }}>"Thanks for answering so quickly, I really appreciate it"</div>
+          <div style={{ fontSize:11, color:'rgba(255,255,255,0.3)', marginTop:6 }}>@jess.wellness</div>
         </div>
       </div>
 
       <div style={{ padding:'16px 28px 40px' }}>
         <button onClick={onDismiss}
-          style={{ width:'100%', padding:'14px 0', background:'rgba(255,255,255,0.15)', color:'#fff',
-            border:'1px solid rgba(255,255,255,0.2)', borderRadius:12, fontSize:15, fontWeight:600, cursor:'pointer',
-            letterSpacing:'-0.01em', backdropFilter:'blur(8px)' }}>
+          style={{ width:'100%', padding:'14px 0', background:'transparent', color:'rgba(255,255,255,0.7)',
+            border:'1.5px solid rgba(255,255,255,0.15)', borderRadius:50, fontSize:15, fontWeight:500, cursor:'pointer',
+            letterSpacing:'-0.01em' }}>
           Got it
         </button>
       </div>
@@ -1413,7 +1503,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
       </div>
 
       {/* Chat body — always scrollable, never covered */}
-      <div ref={chatBodyRef} style={{ flex:1, overflowY:'auto', padding:'20px 20px 12px' }}>
+      <div ref={chatBodyRef} style={{ flex:1, overflowY:'auto', padding:'20px 20px 12px', paddingBottom: mode === 'suggest' ? '300px' : '12px' }}>
         {chatHistory.map((m, i) => (
           <div key={i} style={{ marginBottom:12, display:'flex', justifyContent: m.from === 'you' ? 'flex-end' : 'flex-start' }}>
             <div style={{ maxWidth:'80%', padding:'12px 16px', borderRadius:18, background: m.from === 'you' ? T.ink : T.cardBg, color: m.from === 'you' ? '#fff' : T.ink, border: m.from === 'them' ? `1px solid ${T.lightGray}` : 'none', borderTopLeftRadius: m.from === 'them' ? 6 : 18, borderTopRightRadius: m.from === 'you' ? 6 : 18 }}>
@@ -1436,7 +1526,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
         {/* Inline draft (fallback mode — draft shown in chat body) */}
         {mode === 'inline' && item.draft && (
           <div className="fade-up" style={{ marginBottom:12 }}>
-            <div style={{ fontSize:11, color:T.gray, marginBottom:4, fontWeight:500 }}>Inbox</div>
+            <div style={{ fontSize:11, color:T.gray, marginBottom:4, fontWeight:500 }}>Inbox Agent</div>
             <div style={{ display:'flex', justifyContent:'flex-end' }}>
               <div style={{ maxWidth:'85%' }}>
                 <div style={{ padding:'13px 16px', borderRadius:18, borderTopRightRadius:6, border:`1.5px dashed ${T.lightGray}`, background:T.warmGray }}>
@@ -1462,42 +1552,46 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
         )}
       </div>
 
-      {/* ═══ Bottom: AI suggestion (next action) ═══ */}
+      {/* ═══ Inbox Agent bottom sheet — floats over conversation, no dim ═══ */}
       {mode === 'suggest' && item.draft && (
-        <div className="fade-up" style={{ flexShrink:0, background:T.paper, padding:'0 20px 40px' }}>
-          <div style={{ height:1, background:T.lightGray, marginBottom:16 }} />
+        <div className="fade-up" style={{
+          position:'absolute', bottom:0, left:0, right:0, zIndex:10,
+          background:'#0F0F0F',
+          borderRadius:'22px 22px 0 0',
+          padding:'10px 22px 48px',
+          boxShadow:'0 -1px 0 rgba(255,255,255,0.06)',
+        }}>
+          {/* Sheet handle */}
+          <div style={{ width:36, height:4, background:'rgba(255,255,255,0.14)', borderRadius:2, margin:'0 auto 20px' }} />
 
-          {/* Conversational agent message */}
-          <div style={{ marginBottom:14 }}>
-            <div style={{ fontSize:11, color:T.gray, marginBottom:6, fontWeight:500, letterSpacing:'0em' }}>Inbox</div>
-            <div style={{ fontSize:14, color:T.ink, lineHeight:1.55, letterSpacing:'-0.01em' }}>
-              {item.reason}
-            </div>
+          {/* Reason — white, light weight */}
+          <div style={{ fontSize:15, fontWeight:400, color:'#ffffff', lineHeight:1.5, letterSpacing:'-0.01em', marginBottom:14 }}>
+            {item.reason}
           </div>
 
-          {/* Proposed message */}
-          <div style={{ background:T.warmGray, borderRadius:14, padding:'13px 16px', marginBottom:12 }}>
-            <div style={{ fontSize:14, color:T.ink, lineHeight:1.5, letterSpacing:'-0.01em' }}>{item.draft}</div>
+          {/* Draft */}
+          <div style={{ fontSize:14, color:'rgba(255,255,255,0.55)', lineHeight:1.55, letterSpacing:'-0.01em', marginBottom:16, padding:'12px 14px', background:'rgba(255,255,255,0.05)', borderRadius:12, border:'1px solid rgba(255,255,255,0.07)' }}>
+            {item.draft}
           </div>
 
-          {/* Permission ask */}
-          <div style={{ fontSize:14, color:T.ink, lineHeight:1.55, letterSpacing:'-0.01em', marginBottom:16 }}>
-            Can I send this?
+          {/* Question — bold Pillowtalk */}
+          <div style={{ fontSize:20, fontWeight:800, color:'#fff', letterSpacing:'-0.03em', marginBottom:18, lineHeight:1.2 }}>
+            Should I send this?
           </div>
 
           {/* Actions */}
           <div style={{ display:'flex', gap:8, alignItems:'center' }}>
             <button onClick={handleSend}
-              style={{ flex:1, padding:'12px 0', background:T.ink, color:'#fff', border:'none', borderRadius:12, fontSize:14, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em' }}>
-              Send it
+              style={{ flex:1, padding:'13px 0', background:'#fff', color:'#0F0F0F', border:'none', borderRadius:50, fontSize:14, fontWeight:700, cursor:'pointer', letterSpacing:'-0.01em' }}>
+              Yes, send
             </button>
             <button onClick={() => { setMode('editing'); setEditVal(item.draft); }}
-              style={{ flex:1, padding:'12px 0', background:'transparent', border:`1.5px solid ${T.lightGray}`, borderRadius:12, fontSize:14, fontWeight:500, cursor:'pointer', color:T.ink, letterSpacing:'-0.01em' }}>
+              style={{ flex:1, padding:'13px 0', background:'transparent', border:'1.5px solid rgba(255,255,255,0.18)', borderRadius:50, fontSize:14, fontWeight:500, cursor:'pointer', color:'rgba(255,255,255,0.8)', letterSpacing:'-0.01em' }}>
               Let me edit
             </button>
             <button onClick={handleIllReply}
-              style={{ padding:'12px 14px', background:'transparent', border:'none', fontSize:13, fontWeight:500, cursor:'pointer', color:T.gray, flexShrink:0 }}>
-              I'll write this one
+              style={{ padding:'13px 10px', background:'transparent', border:'none', fontSize:13, fontWeight:500, cursor:'pointer', color:'rgba(255,255,255,0.35)', flexShrink:0, whiteSpace:'nowrap' }}>
+              I'll write
             </button>
           </div>
         </div>
@@ -1551,7 +1645,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
           <div style={{ height:1, background:T.lightGray, marginBottom:16 }} />
 
           <div style={{ marginBottom:14 }}>
-            <div style={{ fontSize:11, color:T.gray, marginBottom:6, fontWeight:500 }}>Inbox</div>
+            <div style={{ fontSize:11, color:T.gray, marginBottom:6, fontWeight:500 }}>Inbox Agent</div>
             <div style={{ fontSize:14, color:T.ink, lineHeight:1.55, letterSpacing:'-0.01em' }}>
               I noticed you prefer writing your own replies. That's totally fine — but it'd help me improve. What's off about my drafts?
             </div>
@@ -1643,15 +1737,14 @@ function ImportantTab({ onOpenChat, answeredChats }) {
 
   const renderAnsweredRow = (item) => (
     <div key={`a${item.user}`} onClick={() => onOpenChat(item, '', T.gray, !!item._sensitive)}
-      style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 4px', opacity:0.4, cursor:'pointer' }}>
-      <img src={item.avatar} alt="" style={{ width:40, height:40, borderRadius:20, objectFit:'cover', flexShrink:0, background:T.lightGray, filter:'grayscale(0.5)' }} />
-      <div style={{ flex:1, minWidth:0 }}>
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:2 }}>
-          <span style={{ fontSize:14, fontWeight:500, color:T.gray, letterSpacing:'-0.01em' }}>{item.name || item.user}</span>
-          <span style={{ fontSize:10, fontWeight:500, color:'#3D7A3D' }}>answered</span>
+      style={{ display:'flex', alignItems:'center', gap:10, padding:'7px 4px', cursor:'pointer' }}>
+      <div style={{ position:'relative', flexShrink:0 }}>
+        <img src={item.avatar} alt="" style={{ width:28, height:28, borderRadius:14, objectFit:'cover', background:T.lightGray, display:'block' }} />
+        <div style={{ position:'absolute', bottom:-2, right:-2, width:12, height:12, borderRadius:6, background:'#3D7A3D', display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <span style={{ fontSize:7, color:'#fff', lineHeight:1 }}>✓</span>
         </div>
-        <div style={{ fontSize:13, color:T.gray, opacity:0.6, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.msg}</div>
       </div>
+      <span style={{ fontSize:13, fontWeight:500, color:T.ink, letterSpacing:'-0.01em', flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.name || item.user}</span>
     </div>
   );
 
@@ -1664,7 +1757,7 @@ function ImportantTab({ onOpenChat, answeredChats }) {
         const allDone = pending.length === 0;
 
         return (
-          <div key={gi} style={{ opacity: allDone ? 0.5 : 1, transition:'opacity .3s ease' }}>
+          <div key={gi}>
             <IntentionHeader label={group.intention} count={allDone ? `${answered.length} answered` : group.items.length} />
             {pending.map((item) => (
               <MsgRow key={item.user} user={item.user} name={item.name} avatar={item.avatar} msg={item.msg} time={item.time}
@@ -1737,7 +1830,7 @@ function InProgressDetail({ item, onClose }) {
           <div key={i} style={{ marginBottom:12 }}>
             <div style={{ display:'flex', justifyContent: m.from === 'ai' ? 'flex-end' : 'flex-start' }}>
               <div style={{ maxWidth:'80%' }}>
-                {m.from === 'ai' && <div style={{ fontSize:11, color:T.gray, marginBottom:3, textAlign:'right' }}>Inbox</div>}
+                {m.from === 'ai' && <div style={{ fontSize:11, color:T.gray, marginBottom:3, textAlign:'right' }}>Inbox Agent</div>}
                 <div style={{ padding:'12px 16px', borderRadius:18, background: m.from === 'ai' ? T.warmGray : T.cardBg, border: m.from === 'them' ? `1px solid ${T.lightGray}` : 'none', borderTopLeftRadius: m.from === 'them' ? 6 : 18, borderTopRightRadius: m.from === 'ai' ? 6 : 18 }}>
                   <div style={{ fontSize:14, color:T.ink, lineHeight:1.5, letterSpacing:'-0.01em' }}>{m.text}</div>
                 </div>
@@ -1760,7 +1853,7 @@ function InProgressDetail({ item, onClose }) {
         {/* Feedback flow: reason selection */}
         {feedbackStep === 'reason' && (
           <div className="fade-up" style={{ padding:'14px 16px', background:T.warmGray, borderRadius:12, marginBottom:12 }}>
-            <div style={{ fontSize:11, color:T.gray, fontWeight:500, letterSpacing:'0.04em', textTransform:'none', marginBottom:8 }}>Inbox</div>
+            <div style={{ fontSize:11, color:T.gray, fontWeight:500, letterSpacing:'0.04em', textTransform:'none', marginBottom:8 }}>Inbox Agent</div>
             <div style={{ fontSize:13, color:T.ink, marginBottom:12 }}>What went wrong?</div>
             <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
               {reasons.map(r => (
@@ -1777,7 +1870,7 @@ function InProgressDetail({ item, onClose }) {
         {/* Feedback flow: correction proposal */}
         {feedbackStep === 'correction' && (
           <div className="fade-up" style={{ padding:'14px 16px', background:T.warmGray, borderRadius:12, marginBottom:12 }}>
-            <div style={{ fontSize:11, color:T.gray, fontWeight:500, letterSpacing:'0.04em', textTransform:'none', marginBottom:8 }}>Inbox</div>
+            <div style={{ fontSize:11, color:T.gray, fontWeight:500, letterSpacing:'0.04em', textTransform:'none', marginBottom:8 }}>Inbox Agent</div>
             <div style={{ fontSize:13, color:T.ink, marginBottom:10 }}>Got it — {selectedReason.toLowerCase()}. Next time I'd say something like this:</div>
             <div style={{ padding:'10px 14px', background:'#fff', borderRadius:8, border:`1px solid ${T.lightGray}`, fontSize:13, color:T.ink, lineHeight:1.5, marginBottom:10 }}>
               {correctedDraft}
@@ -1844,7 +1937,7 @@ function MorningBrief({ onDismiss }) {
         <InboxMessages
           messages={[
             "Here's your morning update.",
-            "34 new DMs overnight. I sorted them by priority.",
+            "34 new DMs overnight. I went through them and flagged what matters.",
             "3 look like potential leads — I wrote replies for them. I'll ask before sending.",
             "2 felt sensitive. I wrote summaries but left them for you.",
             "12 were spam or empty — I moved those to the bottom."
@@ -1881,12 +1974,12 @@ function PrioritiesOverlay({ onDismiss }) {
       </div>
 
       <div style={{ flex:1, overflowY:'auto', padding:'20px 28px 0' }}>
-        <div style={{ fontSize:11, color:T.gray, marginBottom:6, fontWeight:500 }}>Inbox</div>
+        <div style={{ fontSize:11, color:T.gray, marginBottom:6, fontWeight:500 }}>Inbox Agent</div>
         <h1 style={{ fontSize:26, fontWeight:700, color:T.ink, lineHeight:1.15, marginBottom:10, letterSpacing:'-0.02em' }}>
           What matters most to you right now?
         </h1>
         <p style={{ fontSize:14, color:T.gray, marginBottom:28, lineHeight:1.5 }}>
-          I'll prioritize your inbox around these. You can change this anytime.
+          I'll focus on these first. You can change this anytime.
         </p>
 
         <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
@@ -1961,7 +2054,7 @@ function LeadDefOverlay({ onDismiss }) {
 
         {showForm && (
           <div className="fade-up" style={{ marginTop:20 }}>
-            <div style={{ fontSize:11, color:T.gray, marginBottom:6, fontWeight:500, letterSpacing:'0.04em' }}>Inbox</div>
+            <div style={{ fontSize:11, color:T.gray, marginBottom:6, fontWeight:500, letterSpacing:'0.04em' }}>Inbox Agent</div>
             <div style={{ background:T.warmGray, borderRadius:14, padding:'16px 18px' }}>
               <div style={{ fontSize:15, color:T.ink, lineHeight:1.5, marginBottom:12 }}>
                 A lead for you is...
@@ -1999,7 +2092,7 @@ function LeadWalkthrough({ onNow, onLater }) {
     <div className="fade-up" style={{ position:'absolute', inset:0, zIndex:150, display:'flex', alignItems:'center', justifyContent:'center' }}>
       <div onClick={onLater} style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.25)' }} />
       <div style={{ position:'relative', zIndex:151, background:T.paper, borderRadius:20, padding:'28px 24px', maxWidth:320, width:'90%', boxShadow:'0 12px 40px rgba(0,0,0,0.15)' }}>
-        <div style={{ fontSize:11, color:T.gray, marginBottom:8, fontWeight:500, letterSpacing:'0.04em', textTransform:'uppercase' }}>Inbox</div>
+        <div style={{ fontSize:11, color:T.gray, marginBottom:8, fontWeight:500, letterSpacing:'0.04em', textTransform:'uppercase' }}>Inbox Agent</div>
         <div style={{ fontSize:16, fontWeight:600, color:T.ink, lineHeight:1.4, marginBottom:8 }}>
           Want to adjust what a lead means to you?
         </div>
@@ -2034,6 +2127,7 @@ function InboxV2({ onOverlayChange }) {
   const [notifModalDone, setNotifModalDone] = useState(false);
   const [headerHidden, setHeaderHidden] = useState(false);
   const [showPriorities, setShowPriorities] = useState(false);
+  const [priorityFeedbackDone, setPriorityFeedbackDone] = useState(false);
   const [skipDraftCount, setSkipDraftCount] = useState(0);
   const [draftMode, setDraftMode] = useState('suggest'); // 'suggest' | 'inline'
   const scrollRef = useRef(null);
@@ -2110,12 +2204,12 @@ function InboxV2({ onOverlayChange }) {
         <div className="fade-up" style={{ position:'absolute', inset:0, zIndex:150, display:'flex', alignItems:'center', justifyContent:'center' }}>
           <div onClick={() => { setShowNotifModal(false); setNotifModalDone(true); }} style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.25)' }} />
           <div style={{ position:'relative', zIndex:151, background:T.paper, borderRadius:20, padding:'28px 24px', maxWidth:320, width:'90%', boxShadow:'0 12px 40px rgba(0,0,0,0.15)' }}>
-            <div style={{ fontSize:11, color:T.gray, marginBottom:8, fontWeight:500, letterSpacing:'0.04em', textTransform:'uppercase' }}>Inbox</div>
+            <div style={{ fontSize:11, color:T.gray, marginBottom:8, fontWeight:500, letterSpacing:'0.04em', textTransform:'uppercase' }}>Inbox Agent</div>
             <div style={{ fontSize:16, fontWeight:600, color:T.ink, lineHeight:1.4, marginBottom:8 }}>
               Want a morning report?
             </div>
             <div style={{ fontSize:13, color:T.gray, lineHeight:1.5, marginBottom:20 }}>
-              Every morning I'll send you a summary of what happened overnight — new leads, messages sorted, and anything that needs your attention. One quick read before you start your day.
+              Every morning I'll send you a summary of what happened overnight: new leads, messages I've handled, and anything that needs your attention. One quick read before you start your day.
             </div>
             <div style={{ display:'flex', gap:8 }}>
               <button onClick={() => { setShowNotifModal(false); setNotifModalDone(true); }} style={{ flex:1, padding:'12px 0', background:T.ink, color:'#fff', border:'none', borderRadius:50, fontSize:14, fontWeight:600, cursor:'pointer' }}>
@@ -2130,20 +2224,40 @@ function InboxV2({ onOverlayChange }) {
       )}
 
       {/* Fixed header area — hides on scroll down, shows on scroll up */}
-      <div style={{ padding:'52px 20px 0', flexShrink:0, transform: headerHidden ? 'translateY(-100%)' : 'translateY(0)', maxHeight: headerHidden ? 0 : 500, opacity: headerHidden ? 0 : 1, overflow:'hidden', transition:'all .3s ease' }}>
+      <div style={{ padding:'52px 20px 0', flexShrink:0, background:'#0F0F0F', transform: headerHidden ? 'translateY(-100%)' : 'translateY(0)', maxHeight: headerHidden ? 0 : 500, opacity: headerHidden ? 0 : 1, overflow:'hidden', transition:'all .3s ease' }}>
         <DailyReport collapsed={true} onToggle={() => setSummaryOpen(true)} />
       </div>
 
       {/* Scrollable content */}
       <div ref={scrollRef} onScroll={handleScroll}
         style={{ flex:1, overflowY:'auto', overflowX:'hidden', padding:'0 20px 100px 20px' }}>
-        {/* Soft header */}
-        <div style={{ padding:'4px 0 12px' }}>
-          <div style={{ fontSize:12, color:T.gray, lineHeight:1.5, letterSpacing:'-0.01em' }}>
-            Based on what you told me matters. <span onClick={() => setShowPriorities(true)} style={{ color:T.ink, fontWeight:500, cursor:'pointer', textDecoration:'underline', textDecorationColor:T.lightGray, textUnderlineOffset:2 }}>Change priorities</span>
-          </div>
-        </div>
         <ImportantTab onOpenChat={handleOpenChat} answeredChats={answeredChats} />
+
+        {/* Feedback bar at bottom */}
+        {!priorityFeedbackDone && (
+          <div style={{ padding:'24px 0 16px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+            <span style={{ fontSize:13, color:T.gray, letterSpacing:'-0.01em' }}>What do you think of this prioritization?</span>
+            <div style={{ display:'flex', gap:4 }}>
+              <div onClick={() => { setPriorityFeedbackDone(true); }}
+                style={{ width:32, height:32, borderRadius:16, border:`1px solid ${T.lightGray}`, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'all .15s ease' }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#F0F5EC'; e.currentTarget.style.borderColor = '#3D7A3D'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = T.lightGray; }}>
+                <span style={{ fontSize:14 }}>👍</span>
+              </div>
+              <div onClick={() => setShowPriorities(true)}
+                style={{ width:32, height:32, borderRadius:16, border:`1px solid ${T.lightGray}`, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'all .15s ease' }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#FFF0F0'; e.currentTarget.style.borderColor = '#E53935'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = T.lightGray; }}>
+                <span style={{ fontSize:14 }}>👎</span>
+              </div>
+            </div>
+          </div>
+        )}
+        {priorityFeedbackDone && (
+          <div className="fade-in" style={{ padding:'24px 0 16px', textAlign:'center' }}>
+            <span style={{ fontSize:12, color:T.gray }}>Thanks — I'll keep learning from how you use your inbox.</span>
+          </div>
+        )}
       </div>
 
       {/* Chat Detail Overlay */}
@@ -2239,13 +2353,13 @@ function FocusMode({ reviewIdx, setReviewIdx }) {
           <div className="fade-up" style={{ display:'flex', flexDirection:'column', alignItems:'flex-start', paddingTop:40 }}>
             <div style={{ fontSize:48, marginBottom:32 }}>💬</div>
             <div style={{ marginBottom:12 }}>
-              <div style={{ fontSize:11, color:T.gray, marginBottom:5 }}>Inbox</div>
+              <div style={{ fontSize:11, color:T.gray, marginBottom:5 }}>Inbox Agent</div>
               <div style={{ background:T.warmGray, borderRadius:16, borderTopLeftRadius:4, padding:'16px 20px', maxWidth:'90%' }}>
                 <div style={{ fontSize:16, color:T.ink, lineHeight:1.5 }}>
                   Good morning ☀️
                 </div>
                 <div style={{ fontSize:14, color:T.ink, lineHeight:1.6, marginTop:10 }}>
-                  Inbox drafted responses for 2 lead inquiries and 1 FAQ. Ready when you are.
+                  Inbox Agent drafted responses for 2 lead inquiries and 1 FAQ. Ready when you are.
                 </div>
                 <div style={{ fontSize:14, color:T.ink, marginTop:12, fontWeight:500 }}>
                   {REVIEWS.length} replies to review. Wanna take a look?
@@ -2268,7 +2382,7 @@ function FocusMode({ reviewIdx, setReviewIdx }) {
               <div className="fade-up">
                 <div style={{ marginBottom:10 }}>
                   <div style={{ fontSize:11, color:T.gray, marginBottom:5, display:'flex', alignItems:'center', gap:5 }}>
-                    💬 Inbox · {reviewIdx+1} of {REVIEWS.length}
+                    💬 Inbox Agent · {reviewIdx+1} of {REVIEWS.length}
                   </div>
                   <div style={{ background:T.warmGray, borderRadius:14, borderTopLeftRadius:4, padding:'14px 16px', maxWidth:'90%' }}>
                     <div style={{ fontSize:14, fontWeight:600, color:T.ink, marginBottom:4 }}>
@@ -2289,7 +2403,7 @@ function FocusMode({ reviewIdx, setReviewIdx }) {
 
                 {/* Draft intro + draft */}
                 <div style={{ marginBottom:6 }}>
-                  <div style={{ fontSize:11, color:T.gray, marginBottom:5 }}>💬 Inbox</div>
+                  <div style={{ fontSize:11, color:T.gray, marginBottom:5 }}>💬 Inbox Agent</div>
                   <div style={{ background:T.warmGray, borderRadius:14, borderTopLeftRadius:4, padding:'10px 16px', maxWidth:'55%', fontSize:13, color:T.ink }}>
                     I'd answer with this:
                   </div>
@@ -2318,7 +2432,7 @@ function FocusMode({ reviewIdx, setReviewIdx }) {
             {phase === 'batch' && (
               <div className="fade-up">
                 <div style={{ marginBottom:10 }}>
-                  <div style={{ fontSize:11, color:T.gray, marginBottom:5 }}>💬 Inbox</div>
+                  <div style={{ fontSize:11, color:T.gray, marginBottom:5 }}>💬 Inbox Agent</div>
                   <div style={{ background:T.warmGray, borderRadius:14, borderTopLeftRadius:4, padding:'14px 16px', maxWidth:'90%' }}>
                     <div style={{ fontSize:14, color:T.ink, lineHeight:1.5 }}>
                       These {batchItems.length} are very similar — all FAQ replies about your program. Want to approve them all?
@@ -2351,7 +2465,7 @@ function FocusMode({ reviewIdx, setReviewIdx }) {
             {phase === 'takeover' && currentItem && (
               <div className="fade-up">
                 <div style={{ marginBottom:10 }}>
-                  <div style={{ fontSize:11, color:T.gray, marginBottom:5 }}>💬 Inbox</div>
+                  <div style={{ fontSize:11, color:T.gray, marginBottom:5 }}>💬 Inbox Agent</div>
                   <div style={{ background:T.warmGray, borderRadius:14, borderTopLeftRadius:4, padding:'12px 16px', maxWidth:'65%', fontSize:14, color:T.ink }}>
                     All yours! Write your reply:
                   </div>
@@ -2505,7 +2619,7 @@ function StackedMode() {
       </div>
 
       <div style={{ textAlign:'center', fontSize:12, color:'#ccc', padding:'10px 0 30px' }}>
-        Drag sections to reorganize · Inbox remembers your layout
+        Drag sections to reorder · Inbox Agent remembers your layout
       </div>
     </div>
   );
@@ -2528,7 +2642,7 @@ function AIPanel({ onClose }) {
 
       <div style={{ padding:'0 24px' }}>
         {/* Title */}
-        <div style={{ fontSize:13, color:'#555', marginBottom:28, fontWeight:500 }}>Inbox is working</div>
+        <div style={{ fontSize:13, color:'#555', marginBottom:28, fontWeight:500 }}>Inbox Agent is working</div>
 
         {/* Handled today */}
         <div style={{ background:T.darkSurface, borderRadius:16, padding:'20px', marginBottom:20, border:`1px solid ${T.darkBorder}` }}>
@@ -2587,7 +2701,7 @@ function AIPanel({ onClose }) {
                 <div className="fade-in" style={{ background:T.darkSurface, borderRadius:'0 0 14px 14px', padding:'0 18px 16px', marginBottom:8,
                   border:`1px solid ${T.darkBorder}`, borderTop:'none' }}>
                   <div style={{ borderTop:`1px solid ${T.darkBorder}`, paddingTop:14 }}>
-                    <div style={{ fontSize:12, color:'#666', marginBottom:6 }}>Inbox replied:</div>
+                    <div style={{ fontSize:12, color:'#666', marginBottom:6 }}>Inbox Agent replied:</div>
                     <div style={{ fontSize:13, color:'#bbb', lineHeight:1.5, marginBottom:14 }}>{item.draft}</div>
                     <div style={{ display:'flex', gap:8 }}>
                       <span style={{ fontSize:12, padding:'6px 16px', background:'rgba(217,119,87,0.15)', color:T.accent, borderRadius:8, cursor:'pointer', fontWeight:500 }}>Looks good</span>
@@ -2618,7 +2732,7 @@ function InputBar() {
   return (
     <div style={{ position:'absolute', bottom:0, left:0, right:0, padding:'10px 24px 30px', background:`linear-gradient(transparent, ${T.paper} 20%)` }}>
       <div style={{ display:'flex', alignItems:'center', background:T.cardBg, borderRadius:14, border:`1px solid ${T.lightGray}`, padding:'12px 18px' }}>
-        <span style={{ fontSize:14, color:T.gray, flex:1, letterSpacing:'-0.01em' }}>Talk to Inbox...</span>
+        <span style={{ fontSize:14, color:T.gray, flex:1, letterSpacing:'-0.01em' }}>Talk to Inbox Agent...</span>
         <span style={{ fontSize:16, color:T.gray }}>↑</span>
       </div>
     </div>
@@ -2645,7 +2759,136 @@ function BottomNav() {
 }
 
 /* ═══════════════════════════════════════════
-   MAIN APP — V2
+   ONBOARDING
+   ═══════════════════════════════════════════ */
+
+/* ─── Shared stats data ─── */
+const OB_STATS = [
+  { n:'142', label:'DMs reviewed' },
+  { n:'54',  label:'messages that truly need you' },
+  { n:'18',  label:'people interested in your 12-week course' },
+  { n:'32',  label:'replies ready to send' },
+];
+
+/* ══════════ ONBOARDING — DARK / WAVE ══════════ */
+function ObWelcomeV2b({ onNext }) {
+  const [fired, setFired] = useState(false);
+
+  const handleCTA = () => {
+    if (fired) return;
+    setFired(true);
+    setTimeout(onNext, 820);
+  };
+
+  const wave = (delay) => fired ? {
+    animation: `text-wave 0.65s cubic-bezier(.4,0,.2,1) ${delay}s both`
+  } : {};
+
+  return (
+    <div style={{ background:'#0F0F0F', height:'100%', display:'flex', flexDirection:'column', position:'relative', overflow:'hidden' }}>
+
+      {/* ── Gradient wave overlay — erupts from button, fills screen ── */}
+      {fired && (
+        <div style={{
+          position:'absolute', inset:0, zIndex:10, pointerEvents:'none',
+          background:'linear-gradient(165deg, #006BE2 0%, #5B21B6 40%, #3B1280 100%)',
+          animation:'agent-takeover 0.82s cubic-bezier(.4,0,.2,1) forwards',
+        }} />
+      )}
+
+      <div style={{ flex:1, display:'flex', flexDirection:'column', justifyContent:'center', padding:'0 32px', position:'relative', zIndex:1 }}>
+
+        <div style={{ marginBottom:36, ...wave(0) }}>
+          <div style={{ fontSize:48, fontWeight:800, color:'#fff', letterSpacing:'-0.05em', lineHeight:1 }}>Hi Sofia.</div>
+        </div>
+
+        <div style={{ ...wave(0.06) }}>
+          <p style={{ fontSize:22, fontWeight:600, color:'#fff', letterSpacing:'-0.03em', lineHeight:1.3, marginBottom:16 }}>
+            You're getting 140 DMs a week.
+          </p>
+        </div>
+
+        <div style={{ ...wave(0.12) }}>
+          <p style={{ fontSize:16, color:'rgba(255,255,255,0.45)', lineHeight:1.65, marginBottom:16 }}>
+            Between the real leads and quick replies, knowing where to start takes too much time.
+          </p>
+        </div>
+
+        <div style={{ ...wave(0.18) }}>
+          <p style={{ fontSize:16, fontWeight:600, color:'rgba(255,255,255,0.85)' }}>
+            My job is to find what matters to you.
+          </p>
+        </div>
+
+      </div>
+
+      <div style={{ padding:'0 28px 90px', position:'relative', zIndex:1 }}>
+        <button
+          onClick={handleCTA}
+          style={{ width:'100%', padding:'16px', background:'transparent', color:'rgba(255,255,255,0.8)', border:'1.5px solid rgba(255,255,255,0.18)', borderRadius:50, fontSize:16, fontWeight:500, cursor:'pointer', letterSpacing:'-0.01em' }}
+        >
+          Show me
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ObResultsV2b({ onNext }) {
+  const [fired, setFired] = useState(false);
+
+  const handleCTA = () => {
+    if (fired) return;
+    setFired(true);
+    setTimeout(onNext, 820);
+  };
+
+  const wave = (delay) => fired ? {
+    animation: `text-wave 0.65s cubic-bezier(.4,0,.2,1) ${delay}s both`
+  } : {};
+
+  return (
+    <div className="fade-up" style={{ background:'#0F0F0F', height:'100%', display:'flex', flexDirection:'column', position:'relative', overflow:'hidden' }}>
+
+      {/* ── Gradient wave — erupts from button, fills screen ── */}
+      {fired && (
+        <div style={{
+          position:'absolute', inset:0, zIndex:10, pointerEvents:'none',
+          background:'linear-gradient(165deg, #006BE2 0%, #5B21B6 40%, #3B1280 100%)',
+          animation:'agent-takeover 0.82s cubic-bezier(.4,0,.2,1) forwards',
+        }} />
+      )}
+
+      <div style={{ flex:1, display:'flex', flexDirection:'column', justifyContent:'center', padding:'0 32px', position:'relative', zIndex:1 }}>
+        <div style={{ marginBottom:6, ...wave(0) }}>
+          <div style={{ fontSize:34, fontWeight:800, color:'#fff', letterSpacing:'-0.04em', lineHeight:1.1 }}>Ready to go, Sofia.</div>
+        </div>
+        <div style={{ ...wave(0.06) }}>
+          <p style={{ fontSize:16, color:'rgba(255,255,255,0.4)', marginBottom:44 }}>
+            No more "Am I missing something?"
+          </p>
+        </div>
+        <div style={{ ...wave(0.12) }}>
+          {OB_STATS.map((s, i) => (
+            <div key={i} style={{ display:'flex', alignItems:'baseline', gap:18, padding:'14px 0', borderBottom: i < OB_STATS.length - 1 ? '1px solid rgba(255,255,255,0.07)' : 'none' }}>
+              <div style={{ fontSize:30, fontWeight:700, color:'#fff', letterSpacing:'-0.04em', minWidth:48 }}>{s.n}</div>
+              <div style={{ fontSize:13, color:'rgba(255,255,255,0.45)' }}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ padding:'0 28px 90px', position:'relative', zIndex:1 }}>
+        <button onClick={handleCTA} style={{ width:'100%', padding:'16px', background:'transparent', color:'rgba(255,255,255,0.8)', border:'1.5px solid rgba(255,255,255,0.18)', borderRadius:50, fontSize:16, fontWeight:500, cursor:'pointer', letterSpacing:'-0.01em' }}>
+          Let's go
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════
+   MAIN APP
    ═══════════════════════════════════════════ */
 function App() {
   const [screen, setScreen] = useState(window.location.hash === '#inbox' ? 'main' : 'ob-welcome');
@@ -2654,15 +2897,15 @@ function App() {
   return (
     <div style={{ width:'100%', height:'100%', position:'relative', overflow:'hidden' }}>
 
-      {/* ─── Onboarding (3-screen flow) ─── */}
-      {screen === 'ob-welcome' && <ObWelcomeNew onNext={() => setScreen('ob-sorting')} onSkip={() => setScreen('main')} />}
-      {screen === 'ob-sorting' && <ObSorting onNext={() => setScreen('ob-results')} onSkip={() => setScreen('main')} />}
-      {screen === 'ob-results' && <ObResultsNew onNext={() => setScreen('main')} />}
+      {/* ─── Onboarding (3-screen flow: welcome → loading → results) ─── */}
+      {screen === 'ob-welcome' && <ObWelcomeV2b onNext={() => setScreen('ob-loading')} />}
+      {screen === 'ob-loading' && <ObSorting onNext={() => setScreen('ob-results')} isDark={true} />}
+      {screen === 'ob-results' && <ObResultsV2b onNext={() => setScreen('main')} />}
 
-      {/* ─── V2 Inbox ─── */}
+      {/* ─── Inbox ─── */}
       {screen === 'main' && <InboxV2 onOverlayChange={(open) => setHideNav(open)} />}
 
-      {/* iOS 26 Bottom Nav — only on welcome + main inbox, hidden when overlays open */}
+      {/* Bottom Nav — visible on welcome + main inbox, hidden on loading/results/overlays */}
       {(screen === 'ob-welcome' || (screen === 'main' && !hideNav)) && <BottomNav />}
     </div>
   );
