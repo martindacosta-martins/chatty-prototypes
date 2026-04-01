@@ -91,34 +91,58 @@ const IMPORTANT_GROUPS = [
     intention: 'Interested in your 12-week course',
     desc: 'Asked about pricing, signing up, or your program.',
     items: [
-      { user:'@jayrunz', name:'Jay Ruiz', avatar:'https://i.pravatar.cc/88?u=jayrunz', msg:"I've been struggling for 2 years. Is it too late to start?", source:'DM', time:'2h', unread:3, intent:'Interested', draft:"It's never too late — 2 years tells me you're serious. Want to see what week 1 looks like?", reason:"They're interested but hesitant — I went with encouragement and a clear next step", agentRead:'Ready to sign up · Reply drafted' },
-      { user:'@emma.k', name:'Emma Kim', avatar:'https://i.pravatar.cc/88?u=emmak', msg:"I want to sign up but nervous about the cost", source:'DM', time:'4h', unread:2, intent:'Interested', draft:"Totally understand — I have a payment plan that breaks it into manageable chunks. Want details?", reason:"They're worried about price, so I'd mention your payment plan", agentRead:'Interested, hesitant about cost · Reply drafted' },
+      { user:'@jayrunz', name:'Jay Ruiz', avatar:'https://i.pravatar.cc/88?u=jayrunz', msg:"I've been struggling for 2 years. Is it too late to start?", source:'DM', time:'2h', unread:3, intent:'Interested',
+        draft:"It's never too late — 2 years of trying tells me you're serious about change. The 12-week Reboot program is built for people exactly where you are. Want to see what week 1 looks like?",
+        because:"He mentioned struggling for 2 years — that maps to your 12-Week Reboot, not the 4-Week Kickstart. He's not asking about price, he's asking if it's too late. So I led with validation, not a sales pitch. I also added a soft next step — showing week 1 lowers the commitment barrier.",
+        agentRead:'Ready to sign up · Reply drafted' },
+      { user:'@emma.k', name:'Emma Kim', avatar:'https://i.pravatar.cc/88?u=emmak', msg:"I want to sign up but nervous about the cost", source:'DM', time:'4h', unread:2, intent:'Interested',
+        draft:"Totally understand — investing in yourself is a big step. The 12-Week Reboot has a 3-payment plan at $197/mo. And there's a 7-day guarantee, so there's zero risk. Want me to send the details?",
+        because:"She said 'nervous about cost' — not 'too expensive.' That's a different signal. She wants to buy but needs reassurance. I pulled the exact payment plan for the 12-Week Reboot ($197/mo x 3) and mentioned your 7-day guarantee to remove risk. Didn't discount — just removed friction.",
+        agentRead:'Interested, hesitant about cost · Reply drafted' },
     ],
   },
   {
     intention: 'Want to collaborate',
     desc: 'Brands and media reaching out.',
     items: [
-      { user:'@fitbrand.co', name:'FitBrand', avatar:'https://i.pravatar.cc/88?u=fitbrand', msg:"Would love to explore a partnership. We have 200k followers", source:'DM', time:'6h', unread:1, intent:'Collab', draft:"Thanks for reaching out! I'd love to hear more about what you have in mind. Can you send over some details?", reason:"A brand in your space wants to collaborate — could be a good fit", agentRead:'Partnership request · Reply drafted' },
-      { user:'@wellness.mag', name:'Wellness Magazine', avatar:'https://i.pravatar.cc/88?u=wellnessmag', msg:"We'd like to feature you in our next issue", source:'DM', time:'1d', intent:'Collab', draft:"That sounds amazing! I'd be honored. What do you need from me to get started?", reason:"A magazine wants to feature you — great exposure", agentRead:'Media feature request · Reply drafted' },
+      { user:'@fitbrand.co', name:'FitBrand', avatar:'https://i.pravatar.cc/88?u=fitbrand', msg:"Would love to explore a partnership. We have 200k followers", source:'DM', time:'6h', unread:1, intent:'Collab',
+        draft:"Hey! Love FitBrand's content — especially the athlete recovery series. I'd be open to exploring something. What kind of partnership are you thinking? Affiliate, co-branded content, or something else?",
+        because:"FitBrand has 200k followers in the fitness/recovery space — directly overlaps with your audience. Their last 3 posts got 4-8% engagement, which is strong. I referenced their recovery series to show we actually looked. And I asked what type of collab to qualify them before committing your time.",
+        agentRead:'Partnership request · Reply drafted' },
+      { user:'@wellness.mag', name:'Wellness Magazine', avatar:'https://i.pravatar.cc/88?u=wellnessmag', msg:"We'd like to feature you in our next issue", source:'DM', time:'1d', intent:'Collab',
+        draft:"That sounds amazing — I'd be honored! I have some recent client transformation stories that could work well. What's the angle for the piece, and what do you need from me?",
+        because:"Wellness Magazine has 85k followers and publishes monthly. A feature there could drive traffic to your 12-Week Reboot landing page. I offered client stories because that's their format — real transformations, not just tips. Asking about the angle helps you prepare the right material.",
+        agentRead:'Media feature request · Reply drafted' },
     ],
   },
   {
     intention: 'Questions about your services',
     desc: 'Pricing, shipping, and scheduling.',
     items: [
-      { user:'@mike.coach', name:'Mike Chen', avatar:'https://i.pravatar.cc/88?u=mikecoach', msg:"What's included in the premium program?", source:'DM', time:'3h', intent:'FAQ', draft:"Great question! The premium includes 12 weeks of coaching, weekly check-ins, and a custom meal plan.", reason:"Direct question about your product — I pulled from what you shared with me", agentRead:'Product question · Reply drafted' },
-      { user:'@carlos.m', name:'Carlos Mendez', avatar:'https://i.pravatar.cc/88?u=carlosm', msg:"Do you ship internationally?", source:'DM', time:'2h', intent:'FAQ', draft:"Yes! We ship worldwide. Shipping times vary by region — usually 5-7 business days. Want me to check rates for your location?", reason:"Direct shipping question — I gave a clear answer with a next step", agentRead:'Shipping question · Reply drafted' },
-      { user:'@alex.j', name:'Alex Jordan', avatar:'https://i.pravatar.cc/88?u=alexj', msg:"Is there a refund policy?", source:'DM', time:'5h', intent:'FAQ', draft:"Yes, there's a 7-day money-back guarantee. No questions asked. Want me to send the full details?", reason:"Policy question — I gave the key info and offered more detail", agentRead:'Refund policy question · Reply drafted' },
-      { user:'@maria.v', name:'María Vargas', avatar:'https://i.pravatar.cc/88?u=mariav', msg:"Can I reschedule my session to next week?", source:'DM', time:'3h', intent:'FAQ', draft:"Of course! Let me know what day works best for you next week and I'll get it moved.", reason:"Scheduling request — I kept it simple and friendly", agentRead:'Scheduling request · Reply drafted' },
+      { user:'@mike.coach', name:'Mike Chen', avatar:'https://i.pravatar.cc/88?u=mikecoach', msg:"What's included in the premium program?", source:'DM', time:'3h', intent:'FAQ',
+        draft:"Great question! The 12-Week Reboot includes weekly 1-on-1 coaching calls, a custom meal plan updated every 4 weeks, access to the private community, and a workout library with 60+ videos. Want me to send the full breakdown?",
+        because:"He asked about 'premium' — that's your 12-Week Reboot (not the 4-Week Kickstart). I listed the specific inclusions: 1-on-1 calls, custom meal plan, private community, 60+ video library. These are the four things that differentiate it from the basic tier. The question about a 'full breakdown' gives you a reason to send the sales page.",
+        agentRead:'Product question · Reply drafted' },
+      { user:'@carlos.m', name:'Carlos Mendez', avatar:'https://i.pravatar.cc/88?u=carlosm', msg:"Do you ship internationally?", source:'DM', time:'2h', intent:'FAQ',
+        draft:"Yes! The program is 100% online, so it works from anywhere. You get instant access to everything — coaching calls are via Zoom, and the meal plans adapt to what's available in your region. Where are you based?",
+        because:"He's asking about shipping, but your product is digital — no shipping needed. Instead of just saying 'yes,' I reframed: it's online, works anywhere, and Zoom-based. Asking where he's based opens the door to personalize the meal plan conversation and qualify him as a lead.",
+        agentRead:'Shipping question · Reply drafted' },
+      { user:'@alex.j', name:'Alex Jordan', avatar:'https://i.pravatar.cc/88?u=alexj', msg:"Is there a refund policy?", source:'DM', time:'5h', intent:'FAQ',
+        draft:"Yes — there's a 7-day money-back guarantee on all programs, no questions asked. Most people know within the first week if it's the right fit. Want to take a look at what's included before deciding?",
+        because:"Refund questions usually mean they're close to buying but need safety. Your policy is 7 days, no questions. I added 'most people know within the first week' — that reframes the guarantee as confidence, not a safety net. Then I offered to show what's included, which is a softer push than 'ready to sign up?'",
+        agentRead:'Refund policy question · Reply drafted' },
+      { user:'@maria.v', name:'María Vargas', avatar:'https://i.pravatar.cc/88?u=mariav', msg:"Can I reschedule my session to next week?", source:'DM', time:'3h', intent:'FAQ',
+        draft:"Of course! Your next session is Thursday at 3pm. I can move it to any day next week — what works best for you?",
+        because:"She's an existing client in the 12-Week Reboot. Her next session is Thursday at 3pm (from your calendar). I confirmed the current time so she doesn't have to check, and offered flexibility for rescheduling. Kept it short — this doesn't need a sales angle.",
+        agentRead:'Scheduling request · Reply drafted' },
     ],
   },
   {
     intention: 'Shared something personal',
-    desc: 'I read these and decided not to write anything. They\'re too personal for a drafted reply — they need your voice, not mine.',
+    desc: 'These felt too personal for a drafted reply — they need your voice.',
     items: [
-      { user:'@lena.fit', name:'Lena Müller', avatar:'https://i.pravatar.cc/88?u=lenafit', msg:"You seem real. I've tried everything. I'm scared to spend more money.", source:'DM', time:'1h', intent:'Emotional', _sensitive:true, summary:"She's been trying different programs without success. Emotionally vulnerable — needs a personal, empathetic response. Not a sales moment.", agentRead:'Needs your personal reply' },
-      { user:'@ana.healing', name:'Ana Reyes', avatar:'https://i.pravatar.cc/88?u=anahealing', msg:"I'm going through a really hard time and need something to focus on", source:'DM', time:'5h', intent:'Emotional', _sensitive:true, summary:"Going through personal difficulties and looking for structure. Handle with care — acknowledge their situation before suggesting anything.", agentRead:'Needs your personal reply' },
+      { user:'@lena.fit', name:'Lena Müller', avatar:'https://i.pravatar.cc/88?u=lenafit', msg:"You seem real. I've tried everything. I'm scared to spend more money.", source:'DM', time:'1h', intent:'Emotional', _sensitive:true, summary:"She's been through at least 3 other programs (mentioned in previous DMs). She's not asking about your course — she's asking if she can trust you. This isn't a sales moment. She needs to hear from you, not a drafted reply.", agentRead:'Needs your personal reply' },
+      { user:'@ana.healing', name:'Ana Reyes', avatar:'https://i.pravatar.cc/88?u=anahealing', msg:"I'm going through a really hard time and need something to focus on", source:'DM', time:'5h', intent:'Emotional', _sensitive:true, summary:"She's going through something personal and looking for structure, not a program pitch. She's followed you for 8 months but never DM'd before. The fact that she reached out at all is significant. Handle with care.", agentRead:'Needs your personal reply' },
     ],
   },
 ];
@@ -476,67 +500,64 @@ function MsgRow({ user, name, avatar, msg, time, badge, badgeColor, onClick, has
 
 /* ─── Agent Sheet — conversational bottom panel with streaming text ─── */
 function AgentSheet({ item, onSend, onEdit, onSkip }) {
-  // Phase: skeleton → reason → draft → question → buttons
+  // Conversational flow: skeleton → "You could say" → draft → "Because" → reason → "Send?" → buttons
   const [phase, setPhase] = useState('skeleton');
 
-  const questions = [
-    'Want me to send this?',
-    'Ready to send?',
-    'Should I go ahead with this?',
-    'Does this work for you?',
-    'Good to send?',
-    'Send this one?',
-    'How does this look?',
-    'Want me to fire this off?',
-  ];
+  const questions = ['Want me to send this?','Ready to send?','Should I go ahead?','Does this work?','Good to send?','Send this one?'];
   const [question] = useState(() => questions[Math.floor(Math.random() * questions.length)]);
 
-  const textStyle = { fontSize:15, fontWeight:400, color:'#ffffff', lineHeight:1.55, letterSpacing:'-0.01em' };
+  const text = { fontSize:14, fontWeight:400, color:'rgba(255,255,255,0.85)', lineHeight:1.55, letterSpacing:'-0.01em' };
+  const label = { fontSize:12, fontWeight:500, color:'rgba(255,255,255,0.3)', letterSpacing:'-0.01em', marginBottom:6 };
 
-  // Skeleton → draft after brief pause
+  // Phase progression
   useEffect(() => {
-    const t = setTimeout(() => setPhase('draft'), 400);
+    const t = setTimeout(() => setPhase('suggest'), 600);
     return () => clearTimeout(t);
   }, []);
 
-  // Split reason into sentences for Claude-like streaming
-  const reasonSentences = (item.reason || '').match(/[^.!?]+[.!?]?\s*/g) || [item.reason];
-  const [visibleSentences, setVisibleSentences] = useState(0);
+  useEffect(() => {
+    if (phase !== 'suggest') return;
+    const t = setTimeout(() => setPhase('draft'), 300);
+    return () => clearTimeout(t);
+  }, [phase]);
 
   useEffect(() => {
-    if (phase !== 'reason') return;
+    if (phase !== 'draft') return;
+    const t = setTimeout(() => setPhase('because-label'), 500);
+    return () => clearTimeout(t);
+  }, [phase]);
+
+  // Stream the "because" sentences
+  const becauseSentences = (item.because || '').match(/[^.!?]+[.!?]?\s*/g) || [item.because || ''];
+  const [visibleBecause, setVisibleBecause] = useState(0);
+
+  useEffect(() => {
+    if (phase !== 'because-label') return;
+    const t = setTimeout(() => setPhase('because'), 200);
+    return () => clearTimeout(t);
+  }, [phase]);
+
+  useEffect(() => {
+    if (phase !== 'because') return;
     const timers = [];
-    reasonSentences.forEach((_, i) => {
+    becauseSentences.forEach((_, i) => {
       timers.push(setTimeout(() => {
-        setVisibleSentences(i + 1);
-        if (i === reasonSentences.length - 1) {
-          // Reason done → question
-          setTimeout(() => setPhase('question'), 400);
+        setVisibleBecause(i + 1);
+        if (i === becauseSentences.length - 1) {
+          setTimeout(() => setPhase('ask'), 500);
         }
-      }, i * 500 + 100));
+      }, i * 450 + 100));
     });
     return () => timers.forEach(t => clearTimeout(t));
   }, [phase]);
 
-  // Draft → reason
   useEffect(() => {
-    if (phase !== 'draft') return;
-    const t = setTimeout(() => setPhase('reason'), 300);
+    if (phase !== 'ask') return;
+    const t = setTimeout(() => setPhase('buttons'), 400);
     return () => clearTimeout(t);
   }, [phase]);
 
-  // Question sentences
-  const [visibleQ, setVisibleQ] = useState(0);
-  useEffect(() => {
-    if (phase !== 'question') return;
-    const t = setTimeout(() => {
-      setVisibleQ(1);
-      setTimeout(() => setPhase('buttons'), 400);
-    }, 200);
-    return () => clearTimeout(t);
-  }, [phase]);
-
-  const phaseOrder = ['skeleton','draft','reason','question','buttons'];
+  const phaseOrder = ['skeleton','suggest','draft','because-label','because','ask','buttons'];
   const phaseIdx = phaseOrder.indexOf(phase);
 
   return (
@@ -544,58 +565,64 @@ function AgentSheet({ item, onSend, onEdit, onSkip }) {
       position:'absolute', bottom:0, left:0, right:0, zIndex:10,
       background:'#0F0F0F',
       borderRadius:'22px 22px 0 0',
-      padding:'10px 22px 48px',
+      padding:'10px 22px 40px',
       boxShadow:'0 -8px 30px rgba(0,0,0,0.2)',
-      minHeight:260,
+      minHeight:280, maxHeight:'65%', overflowY:'auto',
     }}>
       {/* Sheet handle */}
-      <div style={{ width:36, height:4, background:'rgba(255,255,255,0.14)', borderRadius:2, margin:'0 auto 20px' }} />
+      <div style={{ width:36, height:4, background:'rgba(255,255,255,0.14)', borderRadius:2, margin:'0 auto 18px' }} />
 
-      {/* Skeleton — shows immediately, sets spatial expectation */}
+      {/* Skeleton */}
       {phase === 'skeleton' && (
         <div style={{ padding:'4px 0' }}>
-          <div className="skeleton-line" style={{ width:'85%' }} />
-          <div className="skeleton-line" style={{ width:'60%' }} />
-          <div className="skeleton-line" style={{ width:'70%', marginBottom:16 }} />
-          <div className="skeleton-line" style={{ width:'100%', height:56, borderRadius:10, marginBottom:12 }} />
-          <div className="skeleton-line" style={{ width:'45%' }} />
+          <div className="skeleton-line" style={{ width:'40%', marginBottom:12 }} />
+          <div className="skeleton-line" style={{ width:'100%', height:52, borderRadius:10, marginBottom:14 }} />
+          <div className="skeleton-line" style={{ width:'30%', marginBottom:10 }} />
+          <div className="skeleton-line" style={{ width:'90%' }} />
+          <div className="skeleton-line" style={{ width:'70%' }} />
         </div>
       )}
 
-      {/* Draft — fades in first */}
+      {/* "You could say" */}
       {phaseIdx >= 1 && (
-        <div className="fade-in" style={{ fontSize:14, color:'rgba(255,255,255,0.55)', lineHeight:1.55, letterSpacing:'-0.01em', marginBottom:16, padding:'12px 14px', background:'rgba(255,255,255,0.05)', borderRadius:12, border:'1px solid rgba(255,255,255,0.07)' }}>
+        <div className="fade-in" style={{ ...label }}>You could say</div>
+      )}
+
+      {/* Draft */}
+      {phaseIdx >= 2 && (
+        <div className="fade-in" style={{ ...text, marginBottom:16, padding:'12px 14px', background:'rgba(255,255,255,0.05)', borderRadius:12, border:'1px solid rgba(255,255,255,0.07)' }}>
           {item.draft}
         </div>
       )}
 
-      {/* Reason — sentence by sentence with soft fade */}
-      {phaseIdx >= 2 && (
-        <div style={{ ...textStyle, marginBottom:14, minHeight:24 }}>
-          {reasonSentences.map((s, i) => (
+      {/* "Because" label */}
+      {phaseIdx >= 3 && (
+        <div className="fade-in" style={{ ...label }}>Because</div>
+      )}
+
+      {/* Because — sentence by sentence */}
+      {phaseIdx >= 4 && (
+        <div style={{ ...text, fontSize:13, color:'rgba(255,255,255,0.5)', marginBottom:16, minHeight:20 }}>
+          {becauseSentences.map((s, i) => (
             <span key={i} style={{
-              opacity: i < visibleSentences ? 1 : 0,
-              transform: i < visibleSentences ? 'translateY(0)' : 'translateY(4px)',
+              opacity: i < visibleBecause ? 1 : 0,
+              transform: i < visibleBecause ? 'translateY(0)' : 'translateY(4px)',
               transition:'opacity .35s ease, transform .35s ease',
               display:'inline',
-            }}>{i < visibleSentences ? s : ''}</span>
+            }}>{i < visibleBecause ? s : ''}</span>
           ))}
         </div>
       )}
 
-      {/* Question — sentence fade */}
-      {phaseIdx >= 3 && (
-        <div style={{ ...textStyle, marginBottom: phaseIdx >= 4 ? 18 : 8, minHeight:24 }}>
-          <span style={{
-            opacity: visibleQ > 0 ? 1 : 0,
-            transform: visibleQ > 0 ? 'translateY(0)' : 'translateY(4px)',
-            transition:'opacity .35s ease, transform .35s ease',
-          }}>{visibleQ > 0 ? question : ''}</span>
+      {/* "Send?" */}
+      {phaseIdx >= 5 && (
+        <div className="fade-in" style={{ fontSize:14, fontWeight:500, color:'#fff', marginBottom:14, letterSpacing:'-0.01em' }}>
+          {question}
         </div>
       )}
 
-      {/* Buttons — fade in */}
-      {phaseIdx >= 4 && (
+      {/* Buttons */}
+      {phaseIdx >= 6 && (
         <div className="fade-in" style={{ display:'flex', gap:8, alignItems:'center' }}>
           <button onClick={onSend}
             style={{ flex:1, padding:'13px 0', background:'#fff', color:'#0F0F0F', border:'none', borderRadius:50, fontSize:14, fontWeight:700, cursor:'pointer', letterSpacing:'-0.01em' }}>
