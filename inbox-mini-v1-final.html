@@ -247,26 +247,24 @@ function ObSorting({ onNext, onSkip }) {
   const [phase, setPhase] = useState('processing');
   const feedRef = useRef(null);
   const timers = useRef([]);
-  const speedMap = { slow: 1200, medium: 550, fast: 55 };
+  const speedMap = { slow: 600, medium: 250, fast: 20 };
 
   useEffect(() => {
-    let cum = 900;
+    let cum = 500;
     dmFeed.forEach((dm, i) => {
-      // Appear
       timers.current.push(setTimeout(() => {
         setItems(prev => [...prev, { ...dm, sorted: false }]);
-        if (feedRef.current) setTimeout(() => { feedRef.current.scrollTop = feedRef.current.scrollHeight; }, 30);
+        if (feedRef.current) setTimeout(() => { feedRef.current.scrollTop = feedRef.current.scrollHeight; }, 20);
       }, cum));
-      // Sort (slide) after a beat
-      const sortDelay = dm.speed === 'slow' ? 700 : dm.speed === 'medium' ? 350 : 35;
+      const sortDelay = dm.speed === 'slow' ? 350 : dm.speed === 'medium' ? 150 : 15;
       timers.current.push(setTimeout(() => {
         setItems(prev => prev.map((it, idx) => idx === i ? { ...it, sorted: true } : it));
       }, cum + sortDelay));
       cum += speedMap[dm.speed];
     });
 
-    timers.current.push(setTimeout(() => setPhase('summary'), cum + 500));
-    timers.current.push(setTimeout(onNext, cum + 2600));
+    timers.current.push(setTimeout(() => setPhase('summary'), cum + 300));
+    timers.current.push(setTimeout(onNext, cum + 1200));
     return () => timers.current.forEach(t => clearTimeout(t));
   }, []);
 
@@ -679,11 +677,23 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
   const [toastMsg, setToastMsg] = useState('');
   const [sentMsg, setSentMsg] = useState('');
   const [activeTone, setActiveTone] = useState(null);
+  const [editFeedback, setEditFeedback] = useState(null); // null | 'asking' | 'done'
+  const [customFeedback, setCustomFeedback] = useState(null); // null | 'asking' | 'done'
   const [showSendCelebration, setShowSendCelebration] = useState(false);
   const [undoCount, setUndoCount] = useState(0);
   const undoTimerRef = useRef(null);
   const originalDraft = item.draft || '';
   const chatBodyRef = useRef(null);
+
+  // Simple diff: percentage of words changed
+  const calcEditDistance = (a, b) => {
+    if (!a || !b) return 1;
+    const words1 = a.toLowerCase().split(/\s+/);
+    const words2 = b.toLowerCase().split(/\s+/);
+    let matches = 0;
+    words2.forEach(w => { if (words1.includes(w)) matches++; });
+    return 1 - (matches / Math.max(words1.length, 1));
+  };
 
   // Intent label + context menu
   const [intentLabel, setIntentLabel] = useState(item.intent || null);
@@ -702,13 +712,20 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
   };
 
   const handleSend = () => {
-    const msg = (mode === 'editing') ? editVal : item.draft;
+    const wasEditing = (mode === 'editing');
+    const msg = wasEditing ? editVal : item.draft;
     setSentMsg(msg);
     setMode('sent');
-    if (mode === 'editing') {
-      triggerToast(activeTone
-        ? 'Got it — ' + activeTone.toLowerCase() + ' tone for similar messages.'
-        : 'Noted — I\'ll adjust my style based on your edit.');
+    if (wasEditing) {
+      const distance = calcEditDistance(originalDraft, editVal);
+      if (distance > 0.5 && !activeTone) {
+        // Major rewrite — ask what was off after a brief pause
+        setTimeout(() => setEditFeedback('asking'), 1200);
+      } else {
+        triggerToast(activeTone
+          ? 'Got it — ' + activeTone.toLowerCase() + ' tone for similar messages.'
+          : 'Noted — I\'ll adjust my style based on your edit.');
+      }
     }
     if (onSent) onSent(item.user);
     if (isFirstSend && onFirstSend) {
@@ -737,6 +754,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
     }
     setMode('custom');
     setCustomVal('');
+    if (item.draft) setCustomFeedback('asking');
   };
 
   const handleFeedbackChoice = (reason) => {
@@ -894,6 +912,34 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
             </div>
           </div>
         )}
+
+        {/* Gap 2: Edit feedback — appears after sent when draft was heavily rewritten */}
+        {editFeedback === 'asking' && mode === 'sent' && (
+          <div className="fade-up" style={{ marginBottom:12 }}>
+            <div style={{ background:T.warmGray, borderRadius:14, padding:'14px 16px', maxWidth:'90%' }}>
+              <div style={{ fontSize:13, color:T.ink, lineHeight:1.5, marginBottom:12 }}>
+                I noticed you changed a lot. Was the draft off?
+              </div>
+              <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
+                {[
+                  'Not my tone',
+                  'Wrong info',
+                  'I just wanted to personalize',
+                ].map(reason => (
+                  <div key={reason} onClick={() => {
+                    setEditFeedback('done');
+                    triggerToast(reason === 'I just wanted to personalize'
+                      ? 'Got it — draft was fine, you wanted your touch.'
+                      : 'Got it — ' + reason.toLowerCase() + '. I\'ll adjust.');
+                  }}
+                    style={{ padding:'8px 14px', background:'#fff', borderRadius:20, cursor:'pointer', fontSize:12, color:T.ink, border:`1px solid ${T.lightGray}`, fontWeight:500, transition:'all .15s ease' }}>
+                    {reason}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ═══ Inbox Agent bottom sheet — conversational, streaming ═══ */}
@@ -1027,6 +1073,26 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
       {/* ═══ Bottom: Free text input (custom / sent) ═══ */}
       {(mode === 'custom' || mode === 'sent') && (
         <div style={{ flexShrink:0, borderTop:`1px solid ${T.lightGray}`, background:T.paper, padding:'12px 20px 40px' }}>
+          {/* Gap 3: "I'll write" feedback — inline, dismissible */}
+          {mode === 'custom' && customFeedback === 'asking' && (
+            <div className="fade-up" style={{ marginBottom:10 }}>
+              <div style={{ fontSize:12, color:T.gray, marginBottom:8 }}>Was the draft helpful as a starting point?</div>
+              <div style={{ display:'flex', gap:6 }}>
+                <div onClick={() => {
+                  setCustomFeedback('done');
+                  triggerToast('Got it — you wanted your voice here.');
+                }} style={{ padding:'8px 14px', background:T.warmGray, borderRadius:20, cursor:'pointer', fontSize:12, color:T.ink, fontWeight:500, transition:'all .15s ease' }}>
+                  Yes, but my voice
+                </div>
+                <div onClick={() => {
+                  setCustomFeedback('done');
+                  triggerToast('Got it — I\'ll improve my drafts.');
+                }} style={{ padding:'8px 14px', background:T.warmGray, borderRadius:20, cursor:'pointer', fontSize:12, color:T.ink, fontWeight:500, transition:'all .15s ease' }}>
+                  No, missed the mark
+                </div>
+              </div>
+            </div>
+          )}
           <div style={{ display:'flex', gap:8, alignItems:'center' }}>
             <div style={{ flex:1, padding:'11px 16px', background:'#fff', border:`1px solid ${T.lightGray}`, borderRadius:24 }}>
               <input value={customVal} onChange={e => setCustomVal(e.target.value)}
