@@ -21,8 +21,27 @@
   @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.3; } }
   @keyframes typing { 0% { content:''; } 33% { content:'.'; } 66% { content:'..'; } 100% { content:'...'; }  }
   @keyframes ringProgress { from { stroke-dashoffset: 283; } }
+  @keyframes sheetUp { from { opacity:0; transform:translateY(100%); } to { opacity:1; transform:translateY(0); } }
+  @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0; } }
   .fade-up { animation: fadeUp .4s cubic-bezier(.25,.46,.45,.94) both; }
   .fade-in { animation: fadeIn .3s ease both; }
+  .sheet-up { animation: sheetUp .45s cubic-bezier(.32,.72,.35,1.01) both; }
+  @keyframes pillExpandIn {
+    0%   { opacity:0; transform:translateY(40px) scale(0.92); }
+    100% { opacity:1; transform:translateY(0) scale(1); }
+  }
+  .pill-expand { animation: pillExpandIn .4s cubic-bezier(.16,1,.3,1) both; }
+  .cursor-blink { display:inline-block; width:2px; height:14px; background:rgba(255,255,255,0.6); margin-left:2px; vertical-align:text-bottom; animation: blink .8s step-end infinite; }
+  @keyframes shimmer {
+    0%   { background-position: -200px 0; }
+    100% { background-position: 200px 0; }
+  }
+  .skeleton-line {
+    height:12px; border-radius:6px; margin-bottom:8px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+    background-size: 400px 100%;
+    animation: shimmer 1.4s ease infinite;
+  }
 
   /* ── Agent takeover: gradient wave erupts from button, fills screen ── */
   @keyframes agent-takeover {
@@ -105,32 +124,36 @@ const REVIEWS = [
 const IMPORTANT_GROUPS = [
   {
     intention: 'Interested in your 12-week course',
+    desc: 'Asked about pricing, signing up, or your program.',
     items: [
-      { user:'@jayrunz', name:'Jay Ruiz', avatar:'https://i.pravatar.cc/88?u=jayrunz', msg:"I've been struggling for 2 years. Is it too late to start?", source:'DM', time:'2h', unread:3, draft:"It's never too late — 2 years tells me you're serious. Want to see what week 1 looks like?", reason:"They're interested but hesitant — I went with encouragement and a clear next step" },
-      { user:'@emma.k', name:'Emma Kim', avatar:'https://i.pravatar.cc/88?u=emmak', msg:"I want to sign up but nervous about the cost", source:'DM', time:'4h', unread:2, draft:"Totally understand — I have a payment plan that breaks it into manageable chunks. Want details?", reason:"They're worried about price, so I'd mention your payment plan" },
+      { user:'@jayrunz', name:'Jay Ruiz', avatar:'https://i.pravatar.cc/88?u=jayrunz', msg:"I've been struggling for 2 years. Is it too late to start?", source:'DM', time:'2h', unread:3, draft:"It's never too late — 2 years tells me you're serious. Want to see what week 1 looks like?", reason:"They're interested but hesitant — I went with encouragement and a clear next step", agentRead:'Ready to sign up · Reply drafted' },
+      { user:'@emma.k', name:'Emma Kim', avatar:'https://i.pravatar.cc/88?u=emmak', msg:"I want to sign up but nervous about the cost", source:'DM', time:'4h', unread:2, draft:"Totally understand — I have a payment plan that breaks it into manageable chunks. Want details?", reason:"They're worried about price, so I'd mention your payment plan", agentRead:'Interested, hesitant about cost · Reply drafted' },
     ],
   },
   {
     intention: 'Want to collaborate',
+    desc: 'Brands and media reaching out.',
     items: [
-      { user:'@fitbrand.co', name:'FitBrand', avatar:'https://i.pravatar.cc/88?u=fitbrand', msg:"Would love to explore a partnership. We have 200k followers", source:'DM', time:'6h', unread:1, draft:"Thanks for reaching out! I'd love to hear more about what you have in mind. Can you send over some details?", reason:"A brand in your space wants to collaborate — could be a good fit" },
-      { user:'@wellness.mag', name:'Wellness Magazine', avatar:'https://i.pravatar.cc/88?u=wellnessmag', msg:"We'd like to feature you in our next issue", source:'DM', time:'1d', draft:"That sounds amazing! I'd be honored. What do you need from me to get started?", reason:"A magazine wants to feature you — great exposure" },
+      { user:'@fitbrand.co', name:'FitBrand', avatar:'https://i.pravatar.cc/88?u=fitbrand', msg:"Would love to explore a partnership. We have 200k followers", source:'DM', time:'6h', unread:1, draft:"Thanks for reaching out! I'd love to hear more about what you have in mind. Can you send over some details?", reason:"A brand in your space wants to collaborate — could be a good fit", agentRead:'Partnership request · Reply drafted' },
+      { user:'@wellness.mag', name:'Wellness Magazine', avatar:'https://i.pravatar.cc/88?u=wellnessmag', msg:"We'd like to feature you in our next issue", source:'DM', time:'1d', draft:"That sounds amazing! I'd be honored. What do you need from me to get started?", reason:"A magazine wants to feature you — great exposure", agentRead:'Media feature request · Reply drafted' },
     ],
   },
   {
     intention: 'Questions about your services',
+    desc: 'Pricing, shipping, and scheduling.',
     items: [
-      { user:'@mike.coach', name:'Mike Chen', avatar:'https://i.pravatar.cc/88?u=mikecoach', msg:"What's included in the premium program?", source:'DM', time:'3h', draft:"Great question! The premium includes 12 weeks of coaching, weekly check-ins, and a custom meal plan.", reason:"Direct question about your product — I pulled from what you shared with me" },
-      { user:'@carlos.m', name:'Carlos Mendez', avatar:'https://i.pravatar.cc/88?u=carlosm', msg:"Do you ship internationally?", source:'DM', time:'2h', draft:"Yes! We ship worldwide. Shipping times vary by region — usually 5-7 business days. Want me to check rates for your location?", reason:"Direct shipping question — I gave a clear answer with a next step" },
-      { user:'@alex.j', name:'Alex Jordan', avatar:'https://i.pravatar.cc/88?u=alexj', msg:"Is there a refund policy?", source:'DM', time:'5h', draft:"Yes, there's a 7-day money-back guarantee. No questions asked. Want me to send the full details?", reason:"Policy question — I gave the key info and offered more detail" },
-      { user:'@maria.v', name:'María Vargas', avatar:'https://i.pravatar.cc/88?u=mariav', msg:"Can I reschedule my session to next week?", source:'DM', time:'3h', draft:"Of course! Let me know what day works best for you next week and I'll get it moved.", reason:"Scheduling request — I kept it simple and friendly" },
+      { user:'@mike.coach', name:'Mike Chen', avatar:'https://i.pravatar.cc/88?u=mikecoach', msg:"What's included in the premium program?", source:'DM', time:'3h', draft:"Great question! The premium includes 12 weeks of coaching, weekly check-ins, and a custom meal plan.", reason:"Direct question about your product — I pulled from what you shared with me", agentRead:'Product question · Reply drafted' },
+      { user:'@carlos.m', name:'Carlos Mendez', avatar:'https://i.pravatar.cc/88?u=carlosm', msg:"Do you ship internationally?", source:'DM', time:'2h', draft:"Yes! We ship worldwide. Shipping times vary by region — usually 5-7 business days. Want me to check rates for your location?", reason:"Direct shipping question — I gave a clear answer with a next step", agentRead:'Shipping question · Reply drafted' },
+      { user:'@alex.j', name:'Alex Jordan', avatar:'https://i.pravatar.cc/88?u=alexj', msg:"Is there a refund policy?", source:'DM', time:'5h', draft:"Yes, there's a 7-day money-back guarantee. No questions asked. Want me to send the full details?", reason:"Policy question — I gave the key info and offered more detail", agentRead:'Refund policy question · Reply drafted' },
+      { user:'@maria.v', name:'María Vargas', avatar:'https://i.pravatar.cc/88?u=mariav', msg:"Can I reschedule my session to next week?", source:'DM', time:'3h', draft:"Of course! Let me know what day works best for you next week and I'll get it moved.", reason:"Scheduling request — I kept it simple and friendly", agentRead:'Scheduling request · Reply drafted' },
     ],
   },
   {
     intention: 'Shared something personal',
+    desc: 'I read these and decided not to write anything. They\'re too personal for a drafted reply — they need your voice, not mine.',
     items: [
-      { user:'@lena.fit', name:'Lena Müller', avatar:'https://i.pravatar.cc/88?u=lenafit', msg:"You seem real. I've tried everything. I'm scared to spend more money.", source:'DM', time:'1h', _sensitive:true, summary:"She's been trying different programs without success. Emotionally vulnerable — needs a personal, empathetic response. Not a sales moment." },
-      { user:'@ana.healing', name:'Ana Reyes', avatar:'https://i.pravatar.cc/88?u=anahealing', msg:"I'm going through a really hard time and need something to focus on", source:'DM', time:'5h', _sensitive:true, summary:"Going through personal difficulties and looking for structure. Handle with care — acknowledge their situation before suggesting anything." },
+      { user:'@lena.fit', name:'Lena Müller', avatar:'https://i.pravatar.cc/88?u=lenafit', msg:"You seem real. I've tried everything. I'm scared to spend more money.", source:'DM', time:'1h', _sensitive:true, summary:"She's been trying different programs without success. Emotionally vulnerable — needs a personal, empathetic response. Not a sales moment.", agentRead:'Needs your personal reply' },
+      { user:'@ana.healing', name:'Ana Reyes', avatar:'https://i.pravatar.cc/88?u=anahealing', msg:"I'm going through a really hard time and need something to focus on", source:'DM', time:'5h', _sensitive:true, summary:"Going through personal difficulties and looking for structure. Handle with care — acknowledge their situation before suggesting anything.", agentRead:'Needs your personal reply' },
     ],
   },
 ];
@@ -348,61 +371,6 @@ function SkipBtn({ onClick }) {
   );
 }
 
-/* ─── NEW Step 1: Welcome (clean centered) ─── */
-function ObWelcomeNew({ onNext, onSkip }) {
-  return (
-    <div style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 36px', marginTop: -40 }}>
-        {/* Icon */}
-        <div className="fade-up" style={{ width: 80, height: 80, borderRadius: 40, background: '#EBF4FF', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 28 }}>
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
-            <path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" stroke={T.accent} strokeWidth="2"/>
-            <path d="M2 10h20" stroke={T.accent} strokeWidth="2"/>
-            <path d="M9 14h6" stroke={T.accent} strokeWidth="2" strokeLinecap="round"/>
-          </svg>
-        </div>
-
-        {/* Headline */}
-        <h1 className="fade-up" style={{ fontSize: 30, fontWeight: 700, color: T.ink, textAlign: 'center', lineHeight: 1.15, letterSpacing: '-0.03em', marginBottom: 12, animationDelay: '0.1s' }}>
-          Your DMs, handled
-        </h1>
-
-        {/* Subtitle */}
-        <p className="fade-up" style={{ fontSize: 15, color: T.gray, textAlign: 'center', lineHeight: 1.55, maxWidth: 300, marginBottom: 40, animationDelay: '0.2s' }}>
-          Sofia, 140 DMs a week is a lot. Between real leads and quick replies, knowing where to start takes more time than it should. That's Inbox Agent's job.
-        </p>
-
-        {/* Feature pills */}
-        <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', animationDelay: '0.3s' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 20px', background: T.warmGray, borderRadius: 14 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 12, background: '#EBF4FF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <span style={{ fontSize: 18 }}>↕</span>
-            </div>
-            <div>
-              <div style={{ fontSize: 15, fontWeight: 600, color: T.ink, letterSpacing: '-0.01em' }}>What needs you first</div>
-              <div style={{ fontSize: 13, color: T.gray, marginTop: 2 }}>Inbox Agent reads everything and tells you where to start</div>
-            </div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 20px', background: T.warmGray, borderRadius: 14 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 12, background: '#EBF4FF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <span style={{ fontSize: 18 }}>✦</span>
-            </div>
-            <div>
-              <div style={{ fontSize: 15, fontWeight: 600, color: T.ink, letterSpacing: '-0.01em' }}>Replies in your voice</div>
-              <div style={{ fontSize: 13, color: T.gray, marginTop: 2 }}>Inbox Agent drafts them — you have the final word</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* CTA */}
-      <div className="fade-up" style={{ padding: '0 28px 90px', width: '100%', animationDelay: '0.4s' }}>
-        <BlueBtn label="Set up Inbox Agent" onClick={onNext} />
-
-      </div>
-    </div>
-  );
-}
 
 /* ─── Conversational single-sentence feed ─── */
 function ConversationalFeed({ sentences, onDone, isDark }) {
@@ -445,694 +413,147 @@ function ConversationalFeed({ sentences, onDone, isDark }) {
   );
 }
 
-/* ─── NEW Step 2: Sorting (loading + question + loading) ─── */
-function ObSorting({ onNext, onSkip, isDark }) {
-  const TH = isDark ? {
-    paper: '#0F0F0F', ink: '#FFFFFF', gray: 'rgba(255,255,255,0.45)',
-    lightGray: 'rgba(255,255,255,0.12)', accent: '#7C3AED',
-    cardBg: 'rgba(255,255,255,0.06)', warmGray: 'rgba(255,255,255,0.08)',
-  } : T;
-  const [phase, setPhase] = useState('loading1'); // loading1 | question | loading2
-  const [count, setCount] = useState(0);
-  const [statusIdx, setStatusIdx] = useState(0);
-  const [selected, setSelected] = useState({ leads: true, comments: false, collabs: false, scheduling: true });
-  const [customText, setCustomText] = useState('');
-  const [showCustom, setShowCustom] = useState(false);
-  const customRef = useRef(null);
-  const timers = useRef([]);
+/* ─── NEW Step 2: "Watch Me Work" — Live Processing Feed ─── */
+function ObSorting({ onNext, onSkip }) {
+  // 142 DMs — first ones slow & readable, then accelerates
+  // 8 important matches screen 3 stats
+  const dmFeed = [
+    // Slow — 5 items, readable
+    { user:'@jayrunz', snippet:'"Is it too late to start?"', important:true, speed:'slow' },
+    { user:'@mike', snippet:'"What\'s in the premium program?"', important:true, speed:'slow' },
+    { user:'@sarah_m', snippet:'"love this!"', important:false, speed:'slow' },
+    { user:'@lena.fit', snippet:'"I\'ve tried everything..."', important:true, speed:'slow' },
+    { user:'@emma_k', snippet:'"Nervous about the cost"', important:true, speed:'slow' },
+    // Medium — 7 items
+    { user:'@spam_1', snippet:'"Free followers! Click here"', important:false, speed:'medium' },
+    { user:'@brand_co', snippet:'"Partnership — 200k followers"', important:true, speed:'medium' },
+    { user:'@user_42', snippet:'"thanks!"', important:false, speed:'medium' },
+    { user:'@fit_mom', snippet:'"Can I reschedule?"', important:false, speed:'medium' },
+    { user:'@ana_r', snippet:'"Going through a hard time..."', important:true, speed:'medium' },
+    { user:'@random_1', snippet:'"hey"', important:false, speed:'medium' },
+    { user:'@carlos_m', snippet:'"Do you ship internationally?"', important:false, speed:'medium' },
+    // Fast — bulk, 130 items to reach 142 total
+    ...Array.from({ length: 130 }, (_, i) => {
+      const names = ['@user_','@fan_','@dm_','@msg_','@follower_','@insta_','@reply_','@ask_','@note_','@ping_'];
+      const snippets = ['"hey"','"thanks!"','"nice post"','"love it"','"cool"','"hi there"','"great content"','"wow"','"amazing"','"send link"','"when?"','"how much?"','"interested"','"question..."','"."','"hi!"','"sup"','"love this"','"awesome"','"more info?"'];
+      // 2 more important ones scattered in the fast phase
+      const isImportant = (i === 22 || i === 67);
+      const snip = isImportant
+        ? ['"12-week course — sign me up"','"I want to collaborate"'][i === 22 ? 0 : 1]
+        : snippets[i % snippets.length];
+      return {
+        user: names[i % names.length] + (i + 10),
+        snippet: snip,
+        important: isImportant,
+        speed: 'fast',
+      };
+    }),
+  ];
 
-  const loading1Status = [
-    'Reading your DMs...',
-    'Your 12-week course is very popular 👀',
-    'Found a few leads who are ready to talk...',
-    'A few things in here need you...',
-    'Some of it I can handle...',
-    'Got a clear picture now.',
-  ];
-  const loading2Status = [
-    'Reading how you write...',
-    'You\'re warm and direct ✨',
-    'Figuring out what needs you first...',
-    'Almost ready...',
-  ];
-  const countSteps = [0, 46, 87, 118, 142];
+  const [items, setItems] = useState([]); // { ...dm, sorted: false }
+  const [phase, setPhase] = useState('processing');
+  const feedRef = useRef(null);
+  const timers = useRef([]);
+  const speedMap = { slow: 1200, medium: 550, fast: 55 };
 
   useEffect(() => {
+    let cum = 900;
+    dmFeed.forEach((dm, i) => {
+      // Appear
+      timers.current.push(setTimeout(() => {
+        setItems(prev => [...prev, { ...dm, sorted: false }]);
+        if (feedRef.current) setTimeout(() => { feedRef.current.scrollTop = feedRef.current.scrollHeight; }, 30);
+      }, cum));
+      // Sort (slide) after a beat
+      const sortDelay = dm.speed === 'slow' ? 700 : dm.speed === 'medium' ? 350 : 35;
+      timers.current.push(setTimeout(() => {
+        setItems(prev => prev.map((it, idx) => idx === i ? { ...it, sorted: true } : it));
+      }, cum + sortDelay));
+      cum += speedMap[dm.speed];
+    });
+
+    timers.current.push(setTimeout(() => setPhase('summary'), cum + 500));
+    timers.current.push(setTimeout(onNext, cum + 2600));
     return () => timers.current.forEach(t => clearTimeout(t));
   }, []);
 
-  useEffect(() => {
-    if (phase === 'loading1') {
-      setCount(0);
-      setStatusIdx(0);
-      countSteps.forEach((val, i) => {
-        if (i === 0) return;
-        timers.current.push(setTimeout(() => setCount(val), i * 1200));
-      });
-      loading1Status.forEach((_, i) => {
-        timers.current.push(setTimeout(() => setStatusIdx(i), i * 1200));
-      });
-      timers.current.push(setTimeout(() => setPhase('loading2'), loading1Status.length * 1200 + 600));
-    }
-    if (phase === 'loading2') {
-      setStatusIdx(0);
-      loading2Status.forEach((_, i) => {
-        timers.current.push(setTimeout(() => setStatusIdx(i), i * 1000));
-      });
-      timers.current.push(setTimeout(onNext, loading2Status.length * 1000 + 800));
-    }
-  }, [phase]);
+  const importantCount = items.filter(d => d.important && d.sorted).length;
+  const otherCount = items.filter(d => !d.important && d.sorted).length;
 
-  const progress = phase === 'loading1' ? (count / 142) * 60 : phase === 'question' ? 65 : 65 + (statusIdx / (loading2Status.length - 1)) * 35;
-  const statusLines = phase === 'loading1' ? loading1Status : loading2Status;
+  return (
+    <div style={{ background:'#0F0F0F', height:'100%', display:'flex', flexDirection:'column', position:'relative' }}>
+      {/* Header */}
+      <div style={{ padding:'56px 24px 0', flexShrink:0 }}>
+        <div style={{ fontSize:10, fontWeight:700, color:'rgba(255,255,255,0.3)', letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:16 }}>
+          Processing your inbox
+        </div>
+      </div>
 
-  if (phase === 'question') {
-    return (
-      <div className="fade-up" style={{ background: TH.paper, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-        {/* Compact progress at top */}
-        <div style={{ padding: '52px 28px 0' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 28 }}>
-            <ProgressRing progress={65} size={36} stroke={3} trackColor={TH.lightGray} fillColor={TH.accent} />
-            <span style={{ fontSize: 13, color: TH.gray, fontWeight: 500 }}>142 DMs scanned</span>
-          </div>
+      {/* Live feed */}
+      <div ref={feedRef} style={{
+        flex:1, overflowY:'auto', padding:'0 24px',
+        maskImage:'linear-gradient(to bottom, transparent 0%, black 6%, black 88%, transparent 100%)',
+        WebkitMaskImage:'linear-gradient(to bottom, transparent 0%, black 6%, black 88%, transparent 100%)',
+      }}>
+        {items.map((dm, i) => {
+          const isFast = dm.speed === 'fast';
+          const slideDir = dm.sorted ? (dm.important ? 1 : -1) : 0;
+          const slideX = slideDir * (isFast ? 60 : 40);
 
-          {/* Question */}
-          <div style={{ fontSize: 11, color: TH.gray, marginBottom: 8, fontWeight: 500 }}>Inbox Agent</div>
-          <h2 style={{ fontSize: 22, fontWeight: 700, color: TH.ink, lineHeight: 1.2, letterSpacing: '-0.02em', marginBottom: 8 }}>
-            While I go through your messages, what matters most to you?
-          </h2>
-          <p style={{ fontSize: 14, color: TH.gray, lineHeight: 1.5, marginBottom: 24 }}>
-            Based on your business <span style={{ fontWeight: 600, color: TH.ink }}>Sofia Reyes Coaching</span>, I suggest:
-          </p>
-
-          {/* Options */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <SelectChip label="People interested in coaching" desc="Leads asking about your services" selected={selected.leads} onClick={() => setSelected(s => ({...s, leads: !s.leads}))} isDark={isDark} />
-            <SelectChip label="Comments on my posts" desc="Engage with your audience" selected={selected.comments} onClick={() => setSelected(s => ({...s, comments: !s.comments}))} isDark={isDark} />
-            <SelectChip label="Collaboration requests" desc="Brand deals and partnerships" selected={selected.collabs} onClick={() => setSelected(s => ({...s, collabs: !s.collabs}))} isDark={isDark} />
-            <SelectChip label="Scheduling and booking" desc="Session requests and reschedules" selected={selected.scheduling} onClick={() => setSelected(s => ({...s, scheduling: !s.scheduling}))} isDark={isDark} />
-
-            {/* Custom "Other" option */}
-            {!showCustom ? (
-              <div onClick={() => { setShowCustom(true); setTimeout(() => customRef.current?.focus(), 100); }}
-                style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', borderRadius: 14,
-                  border: `1.5px dashed ${TH.lightGray}`, background: TH.cardBg, cursor: 'pointer', transition: 'all .2s ease' }}>
-                <div style={{ width: 24, height: 24, borderRadius: 12, border: `2px solid ${TH.lightGray}`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 14, color: TH.gray, lineHeight: 1 }}>+</div>
-                <div style={{ fontSize: 15, fontWeight: 500, color: TH.gray, letterSpacing: '-0.01em' }}>Something else...</div>
+          return (
+            <div key={i} style={{
+              display:'flex', alignItems:'center', gap:10,
+              padding: isFast ? '4px 0' : '7px 0',
+              opacity: dm.sorted ? (isFast ? 0.15 : 0.35) : (isFast ? 0.5 : 0.9),
+              transform: `translateX(${slideX}px)`,
+              transition: `transform .4s cubic-bezier(.25,.46,.45,.94), opacity .4s ease`,
+              animation: !dm.sorted ? 'fadeUp .25s ease both' : 'none',
+            }}>
+              {/* Sort indicator */}
+              <div style={{
+                width:16, height:16, borderRadius:8, flexShrink:0,
+                display:'flex', alignItems:'center', justifyContent:'center',
+                opacity: dm.sorted ? 1 : 0, transition:'opacity .3s ease',
+                background: dm.important ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.06)',
+              }}>
+                {dm.sorted && (
+                  dm.important
+                    ? <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    : <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                )}
               </div>
-            ) : (
-              <div className="fade-up" style={{ padding: '14px 16px', borderRadius: 14,
-                border: `1.5px solid ${customText.trim() ? TH.accent : TH.lightGray}`,
-                background: customText.trim() ? (isDark ? 'rgba(124,58,237,0.18)' : '#EBF4FF') : TH.cardBg, transition: 'all .2s ease' }}>
-                <textarea ref={customRef} value={customText} onChange={e => setCustomText(e.target.value)}
-                  placeholder="Type what matters to you..."
-                  style={{ width: '100%', fontSize: 14, color: TH.ink, lineHeight: 1.5, padding: 0, border: 'none', resize: 'none',
-                    height: 48, fontFamily: 'Inter', background: 'transparent', outline: 'none',
-                    letterSpacing: '-0.01em' }} />
+
+              {/* Content */}
+              <div style={{
+                flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
+                fontSize: isFast ? 12 : 14, letterSpacing:'-0.01em',
+                color: dm.sorted
+                  ? (dm.important ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.25)')
+                  : 'rgba(255,255,255,0.75)',
+                transition:'color .3s ease',
+              }}>
+                <span style={{ fontWeight:600, color: dm.sorted && dm.important ? '#fff' : 'inherit' }}>{dm.user}</span>
+                <span style={{ fontWeight:400 }}> — {dm.snippet}</span>
               </div>
-            )}
-          </div>
-        </div>
-
-        <div style={{ marginTop: 'auto', padding: '16px 28px 50px' }}>
-          {isDark
-            ? <button onClick={() => setPhase('loading2')} disabled={!Object.values(selected).some(Boolean) && !customText.trim()} style={{ width:'100%', padding:'16px', background:'#fff', color:'#0F0F0F', border:'none', borderRadius:50, fontSize:16, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em', opacity: (!Object.values(selected).some(Boolean) && !customText.trim()) ? 0.4 : 1 }}>Get Inbox Agent started</button>
-            : <BlackBtn label="Get Inbox Agent started" onClick={() => setPhase('loading2')} disabled={!Object.values(selected).some(Boolean) && !customText.trim()} />
-          }
-        </div>
-      </div>
-    );
-  }
-
-  // Loading phases (1 and 2) — conversational rolling feed
-  return (
-    <div className="fade-up" style={{ background: TH.paper, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', position: 'relative' }}>
-      <ConversationalFeed
-        key={phase}
-        sentences={phase === 'loading1' ? loading1Status : loading2Status}
-        onDone={phase === 'loading1' ? () => setPhase('question') : onNext}
-        isDark={isDark}
-      />
-    </div>
-  );
-}
-
-/* ─── NEW Step 3: Results ─── */
-function ObResultsNew({ onNext }) {
-  return (
-    <div className="fade-up" style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '0 28px' }}>
-        {/* Heading */}
-        <h1 className="fade-up" style={{ fontSize: 28, fontWeight: 700, color: T.ink, letterSpacing: '-0.03em', marginBottom: 10 }}>
-          Ready to go, Sofia
-        </h1>
-        <p className="fade-up" style={{ fontSize: 17, fontWeight: 600, color: T.ink, lineHeight: 1.4, marginBottom: 6, animationDelay: '0.05s' }}>
-          No more "Am I missing something?"
-        </p>
-        <p className="fade-up" style={{ fontSize: 14, color: T.gray, lineHeight: 1.5, marginBottom: 24, animationDelay: '0.1s' }}>
-          Here's what Inbox Agent did for you
-        </p>
-
-        {/* Stats grid */}
-        <div className="fade-up" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, animationDelay: '0.2s' }}>
-          {[
-            { n: '142', label: 'DMs reviewed' },
-            { n: '8', label: 'messages that truly need you' },
-            { n: '18', label: 'people interested in your 12-week course' },
-            { n: '12', label: 'replies ready to send' },
-          ].map((s, i) => (
-            <div key={i} style={{ padding: '18px 16px', border: `1px solid ${T.lightGray}`, borderRadius: 14, background: T.cardBg }}>
-              <div style={{ fontSize: 26, fontWeight: 700, color: T.ink, letterSpacing: '-0.03em' }}>{s.n}</div>
-              <div style={{ fontSize: 12, color: T.gray, marginTop: 3 }}>{s.label}</div>
             </div>
-          ))}
-        </div>
+          );
+        })}
       </div>
 
-      {/* CTA */}
-      <div className="fade-up" style={{ padding: '0 28px 90px', animationDelay: '0.3s' }}>
-        <BlueBtn label="Let's go" onClick={onNext} />
-      </div>
-    </div>
-  );
-}
-
-/* ─── OLD Step 1: Welcome ─── */
-function ObWelcome({ onNext, onSkip }) {
-  const [showBtn, setShowBtn] = useState(false);
-
-  return (
-    <div style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-      {/* No progress bar on welcome */}
-      <div style={{ padding: '60px 28px 0' }}>
-        {/* Profile card */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 20px', background: T.warmGray, borderRadius: 16, marginBottom: 32 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div style={{ width: 44, height: 44, borderRadius: 22, background: T.ink, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 14, fontWeight: 600, letterSpacing: '-0.02em' }}>SR</div>
-            <div>
-              <div style={{ fontSize: 15, fontWeight: 600, color: T.ink, letterSpacing: '-0.01em' }}>Sofia Reyes</div>
-              <div style={{ fontSize: 12, color: T.gray }}>@sofiafit · 84k followers</div>
-            </div>
+      {/* Bottom */}
+      <div style={{ flexShrink:0, padding:'16px 24px 50px', borderTop:'1px solid rgba(255,255,255,0.06)' }}>
+        {phase === 'processing' && (
+          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+            <div style={{ width:6, height:6, borderRadius:3, background:'#0095F6', animation:'pulse 1s ease-in-out infinite' }} />
+            <span style={{ fontSize:13, color:'rgba(255,255,255,0.4)', fontWeight:500 }}>{items.length} messages processed</span>
           </div>
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: 24, fontWeight: 700, color: T.ink, letterSpacing: '-0.03em' }}>143</div>
-            <div style={{ fontSize: 10, color: T.gray, display: 'flex', alignItems: 'center', gap: 4 }}>
-              <span style={{ width: 6, height: 6, borderRadius: 3, background: T.accent, display: 'inline-block' }}></span> unread DMs
-            </div>
-          </div>
-        </div>
-
-        <InboxMessages
-          messages={[
-            "Hi Sofia. You receive around 140 messages per week. That's a lot.",
-            "Some of them are interested in your services. Others just need a quick reply.",
-            "I'll go through everything so you see the important ones first. For the rest, I'll write replies and ask before sending.",
-            "It only takes 1 minute."
-          ]}
-          onAllDone={() => setShowBtn(true)}
-        />
-      </div>
-
-      <div style={{ marginTop: 'auto', padding: '0 28px 90px', opacity: showBtn ? 1 : 0, transform: showBtn ? 'translateY(0)' : 'translateY(12px)', transition: 'all .4s ease' }}>
-        <BlackBtn label="Set up Inbox Agent" onClick={onNext} />
-
-      </div>
-    </div>
-  );
-}
-
-/* ─── Step 2: Workflow Priority ─── */
-function ObWorkflow({ onNext, onBack, saveLabel }) {
-  const [selected, setSelected] = useState(['leads', 'questions', 'comments']);
-  const priorities = [
-    { id: 'leads', label: 'Check leads', desc: 'People interested in what you offer' },
-    { id: 'partnerships', label: 'Check partnerships', desc: 'Brand deals and collaboration requests' },
-    { id: 'questions', label: 'Answer questions', desc: 'Pricing, scheduling, how things work' },
-    { id: 'comments', label: 'Answer comments from my audience', desc: 'Engage with people on your posts' },
-  ];
-
-  const toggle = (id) => {
-    setSelected(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
-  };
-
-  return (
-    <div className="fade-up" style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-      <ProgressBar step={3} total={8} label="Workflow" />
-      <ObBackBtn onClick={onBack} />
-      <div style={{ padding: '60px 28px 0', flex: 1, overflowY: 'auto' }}>
-        <div style={{ fontSize: 11, color: T.gray, marginBottom: 6, fontWeight: 500, letterSpacing: '0em' }}>Inbox Agent</div>
-        <h1 style={{ fontSize: 26, fontWeight: 700, color: T.ink, lineHeight: 1.15, marginBottom: 8, letterSpacing: '-0.02em' }}>
-          If you had 10 minutes, what would you check first?
-        </h1>
-        <p style={{ fontSize: 14, color: T.gray, marginBottom: 28, lineHeight: 1.5 }}>Tap in order of priority so I know what to surface first.</p>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {priorities.map((p) => {
-            const idx = selected.indexOf(p.id);
-            const isSelected = idx >= 0;
-            return (
-              <div key={p.id} onClick={() => toggle(p.id)}
-                style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px', borderRadius: 14, border: `1.5px solid ${isSelected ? T.ink : T.lightGray}`, background: isSelected ? T.warmGray : T.cardBg, cursor: 'pointer', transition: 'all .2s ease' }}>
-                <div style={{ width: 28, height: 28, borderRadius: 14, border: `1.5px solid ${isSelected ? T.ink : T.lightGray}`, background: isSelected ? T.ink : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 12, fontWeight: 600, flexShrink: 0, transition: 'all .2s ease' }}>
-                  {isSelected ? idx + 1 : ''}
-                </div>
-                <div>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: T.ink, letterSpacing: '-0.01em' }}>{p.label}</div>
-                  <div style={{ fontSize: 12, color: T.gray }}>{p.desc}</div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      <div style={{ padding: '16px 28px 50px' }}>
-        <BlackBtn label={saveLabel || "Review my voice"} onClick={onNext} disabled={selected.length === 0} />
-      </div>
-    </div>
-  );
-}
-
-/* ─── Step 3: Analyzing ─── */
-function ObAnalyzing({ onNext, onBack, onSkip }) {
-  const [lines, setLines] = useState([]);
-  const allLines = [
-    'Syncing your DMs...',
-    'Reading through your messages...',
-    'Identifying leads and questions...',
-    'Drafting replies...',
-    'Matching your tone and voice...',
-  ];
-
-  useEffect(() => {
-    allLines.forEach((line, i) => {
-      setTimeout(() => setLines(l => [...l, line]), 1200 * (i + 1));
-    });
-    setTimeout(onNext, 1200 * (allLines.length + 1) + 800);
-  }, []);
-
-  return (
-    <div className="fade-up" style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', position: 'relative' }}>
-      {/* No progress bar on analyzing */}
-      <ObBackBtn onClick={onBack} />
-      <div style={{ padding: '0 36px' }}>
-        <div style={{ fontSize: 11, color: T.gray, marginBottom: 12, fontWeight: 500, letterSpacing: '0em' }}>Inbox Agent</div>
-        {lines.map((line, i) => (
-          <div key={i} className="fade-up" style={{ fontSize: 15, color: i === lines.length - 1 ? T.ink : T.gray, marginBottom: 18, display: 'flex', alignItems: 'center', gap: 12, transition: 'color .3s', letterSpacing: '-0.01em' }}>
-            <span style={{ width: 18, height: 18, borderRadius: 9, border: `1.5px solid ${i < lines.length - 1 ? T.accent : T.lightGray}`, background: i < lines.length - 1 ? T.accent : 'transparent', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all .3s ease' }}>
-              {i < lines.length - 1 && <span style={{ color: '#fff', fontSize: 9 }}>&#10003;</span>}
-            </span>
-            {line}
-          </div>
-        ))}
-        {lines.length < allLines.length && (
-          <div style={{ marginLeft: 26, animation: 'pulse 1s infinite', fontSize: 14, color: T.gray }}>...</div>
         )}
-      </div>
-      <div style={{ marginTop: 'auto', padding: '0 28px 50px' }}>
-
-      </div>
-    </div>
-  );
-}
-
-/* ─── Step 4: Things I noticed ─── */
-function ObInsights({ onNext, onBack }) {
-  const [showBtn, setShowBtn] = useState(false);
-
-  return (
-    <div className="fade-up" style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-      <ProgressBar step={4} total={8} label="Your style" />
-      <ObBackBtn onClick={onBack} />
-      <div style={{ padding: '60px 28px 0', flex: 1 }}>
-        <InboxMessages
-          messages={[
-            "I looked at how you reply.",
-            "You're fast — especially with leads. And you always give people a next step.",
-            "Your replies don't sound templated. That matters.",
-            "I'll keep your tone and voice consistent across every conversation."
-          ]}
-          onAllDone={() => setShowBtn(true)}
-        />
-      </div>
-      <div style={{ padding: '0 28px 50px', opacity: showBtn ? 1 : 0, transform: showBtn ? 'translateY(0)' : 'translateY(12px)', transition: 'all .4s ease' }}>
-        <BlackBtn label="Define my leads" onClick={onNext} />
-      </div>
-    </div>
-  );
-}
-
-/* ─── Step 4b: Lead Definition ─── */
-function ObLeadDef({ onNext, onBack }) {
-  const [leadInput, setLeadInput] = useState('someone interested in my coaching program who is ready to invest in themselves');
-  const [expanded, setExpanded] = useState(false);
-  const [showBtn, setShowBtn] = useState(false);
-
-  return (
-    <div className="fade-up" style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-      <ProgressBar step={5} total={8} label="Your leads" />
-      <ObBackBtn onClick={onBack} />
-      <div style={{ padding: '60px 28px 0', flex: 1, overflowY: 'auto' }}>
-        <InboxMessages
-          messages={[
-            "I've looked at how your business works.",
-            "Let's define what a lead looks like so I know who to prioritize."
-          ]}
-          onAllDone={() => setShowBtn(true)}
-        />
-
-        {showBtn && (
-          <div className="fade-up" style={{ marginTop: 24 }}>
-            <div style={{ fontSize: 11, color: T.gray, marginBottom: 8, fontWeight: 500, letterSpacing: '0em' }}>Inbox Agent</div>
-            <div style={{ background: T.warmGray, borderRadius: 14, padding: '16px 18px' }}>
-              <div style={{ fontSize: 14, color: T.ink, lineHeight: 1.5, marginBottom: 12 }}>
-                A lead for you is...
-              </div>
-              <textarea
-                value={leadInput}
-                onChange={e => setLeadInput(e.target.value)}
-                onFocus={() => setExpanded(true)}
-                style={{ width: '100%', fontSize: 14, color: T.ink, lineHeight: 1.55, padding: '14px 16px', border: `1.5px solid ${T.lightGray}`, borderRadius: 12, resize: 'none', height: expanded ? 120 : 70, fontFamily: 'Inter', background: '#fff', outline: 'none', transition: 'height .2s ease' }}
-              />
-              <div style={{ fontSize: 12, color: T.gray, marginTop: 8, lineHeight: 1.4 }}>
-                Expand on this to help me understand your ideal customer better — age, geographic zone, interests, budget...
-              </div>
-            </div>
+        {phase === 'summary' && (
+          <div className="fade-up" style={{ fontSize:14, fontWeight:600, color:'#fff', letterSpacing:'-0.01em' }}>
+            142 reviewed · 8 need you · 12 replies drafted
           </div>
         )}
       </div>
-      <div style={{ padding: '0 28px 50px', opacity: showBtn ? 1 : 0, transform: showBtn ? 'translateY(0)' : 'translateY(12px)', transition: 'all .4s ease' }}>
-        <BlackBtn label="Save and continue" onClick={onNext} />
-      </div>
-    </div>
-  );
-}
-
-/* ─── Step 5: How do you feel about AI ─── */
-function ObTrustFeel({ onNext, setConfidence }) {
-  const [selected, setSelected] = useState(null);
-  const [showResponse, setShowResponse] = useState(false);
-  const [showBtn, setShowBtn] = useState(false);
-
-  const options = [
-    { id: 'low', icon: '?!', label: 'I barely trust autocorrect', desc: 'No judgment — we\'ll go slow' },
-    { id: 'mid', icon: '~', label: 'I\'ve tried AI. Cautiously optimistic', desc: 'You get it, just need to see it work' },
-    { id: 'high', icon: '>>', label: 'I\'m comfortable with AI', desc: 'You\'re ready to let it handle things' },
-  ];
-
-  const responses = {
-    low: "Totally fair.\n\nI'll go through your messages and draft replies, but nothing gets sent without you. You review everything.",
-    mid: "Great.\n\nI'll handle common questions and surface your leads automatically. For the rest, I'll draft and you review.",
-    high: "Let's go.\n\nI'll reply to comments, surface your leads, and after a few reviews, start replying on your behalf."
-  };
-
-  const pick = (id) => {
-    setSelected(id);
-    setConfidence(id);
-    setShowResponse(true);
-    setShowBtn(true);
-  };
-
-  return (
-    <div className="fade-up" style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-      <ProgressBar step={5} total={8} />
-      <div style={{ padding: '60px 28px 0', flex: 1, overflowY: 'auto' }}>
-        <div style={{ fontSize: 11, color: T.gray, marginBottom: 6, fontWeight: 500, letterSpacing: '0em' }}>Inbox Agent</div>
-        <h1 style={{ fontSize: 26, fontWeight: 700, color: T.ink, lineHeight: 1.15, marginBottom: 6, letterSpacing: '-0.02em' }}>
-          Real talk — how do you feel about AI?
-        </h1>
-        <p style={{ fontSize: 14, color: T.gray, marginBottom: 24, lineHeight: 1.5 }}>This helps me know where to start.</p>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {options.map(o => (
-            <div key={o.id} onClick={() => pick(o.id)}
-              style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px', borderRadius: 14, border: `1.5px solid ${selected === o.id ? T.ink : T.lightGray}`, background: selected === o.id ? T.warmGray : T.cardBg, cursor: 'pointer', opacity: selected && selected !== o.id ? 0.4 : 1, transition: 'all .25s ease' }}>
-              <div style={{ width: 36, height: 36, borderRadius: 10, background: selected === o.id ? T.ink : T.warmGray, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, color: selected === o.id ? '#fff' : T.ink, flexShrink: 0, transition: 'all .2s ease' }}>{o.icon}</div>
-              <div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: T.ink, letterSpacing: '-0.01em' }}>{o.label}</div>
-                <div style={{ fontSize: 12, color: T.gray }}>{o.desc}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {showResponse && (
-          <div className="fade-up" style={{ marginTop: 24 }}>
-            <div style={{ fontSize: 11, color: T.gray, marginBottom: 5, fontWeight: 500, letterSpacing: '0em' }}>Inbox Agent</div>
-            <div style={{ background: T.warmGray, borderRadius: 14, padding: '14px 18px' }}>
-              <div style={{ fontSize: 14, color: T.ink, lineHeight: 1.6, whiteSpace: 'pre-line' }}>{responses[selected]}</div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div style={{ padding: '16px 28px 50px', opacity: showBtn ? 1 : 0, transform: showBtn ? 'translateY(0)' : 'translateY(12px)', transition: 'all .4s ease' }}>
-        <BlackBtn label="Set it up" onClick={onNext} />
-        <div style={{ textAlign: 'center', marginTop: 10, fontSize: 12, color: '#bbb' }}>You can always change this later</div>
-      </div>
-    </div>
-  );
-}
-
-/* ─── Step 5.5: Setting up loading ─── */
-function ObSettingUp({ onNext }) {
-  useEffect(() => {
-    setTimeout(onNext, 2200);
-  }, []);
-
-  return (
-    <div style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
-      <ProgressBar step={6} total={8} label="Setting up" />
-      <div style={{ textAlign: 'center' }}>
-        <div style={{ animation: 'pulse 1.2s infinite', fontSize: 15, color: T.gray, marginBottom: 8 }}>Inbox Agent is getting ready...</div>
-      </div>
-    </div>
-  );
-}
-
-/* ─── Step 6: Show examples ─── */
-function ObExamples({ onNext, onBack }) {
-  const [idx, setIdx] = useState(0);
-  const [showAlt, setShowAlt] = useState(false);
-  const [draftFading, setDraftFading] = useState(false);
-  const examples = [
-    { from: '@user5', msg: 'Do you offer refunds?', draft: 'Yes, 7-day no-questions refund policy. No questions asked.', tag: 'Common question', altDraft: "We do offer a 7-day money-back guarantee. If it's not for you, no hard feelings. Want me to send the details?" },
-    { from: '@user16', msg: "I'm interested but nervous. Is this really for someone like me?", draft: "Especially for someone like you. Let's chat.", tag: 'Interested lead', altDraft: "I hear you — spending money on yourself is a big step. What if I showed you exactly what week 1 looks like, no commitment?" },
-    { from: '@user18', msg: 'Just finished week 4, feeling amazing!', draft: 'YES! Week 4 is a turning point. So proud of you!', tag: 'Positive', altDraft: "That's amazing progress! Week 4 is where it really clicks. Keep pushing — you're doing incredible." },
-  ];
-
-  const handleDifferent = () => {
-    setDraftFading(true);
-    setTimeout(() => {
-      setShowAlt(true);
-      setDraftFading(false);
-    }, 200);
-  };
-
-  const handleLike = () => {
-    setShowAlt(false);
-    if (idx < examples.length - 1) setIdx(i => i + 1);
-    else onNext();
-  };
-
-  // Reset showAlt when idx changes
-  useEffect(() => { setShowAlt(false); }, [idx]);
-
-  const ex = examples[idx];
-  const displayedDraft = showAlt ? ex.altDraft : ex.draft;
-
-  return (
-    <div className="fade-up" style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-      <ProgressBar step={7} total={8} label="Examples" />
-      <ObBackBtn onClick={onBack} />
-      <div style={{ padding: '60px 28px 0', flex: 1 }}>
-        <div style={{ fontSize: 12, color: T.gray, marginBottom: 6, fontWeight: 500 }}>Inbox Agent</div>
-        <div style={{ background: T.warmGray, borderRadius: 18, borderTopLeftRadius: 18, padding: '13px 18px', marginBottom: 20, display: 'inline-block' }}>
-          <div style={{ fontSize: 15, color: T.ink, letterSpacing: '-0.01em' }}>Here's a draft I'd write for this one.</div>
-        </div>
-
-        <div key={idx} className="fade-up">
-          <div style={{ fontSize: 11, color: T.gray, marginBottom: 6, letterSpacing: '0.01em' }}>From {ex.from}</div>
-          <div style={{ background: T.warmGray, borderRadius: 16, padding: '14px 18px', marginBottom: 16 }}>
-            <div style={{ fontSize: 15, color: T.ink, lineHeight: 1.5, letterSpacing: '-0.01em' }}>{ex.msg}</div>
-          </div>
-
-          <div style={{ fontSize: 11, color: T.gray, marginBottom: 6 }}>Inbox Agent's draft</div>
-          <div style={{ background: T.cardBg, border: `1.5px solid ${T.ink}`, borderRadius: 16, padding: '14px 18px', marginBottom: 12, transition: 'opacity 0.2s ease', opacity: draftFading ? 0 : 1 }}>
-            <div style={{ fontSize: 15, color: T.ink, lineHeight: 1.5, letterSpacing: '-0.01em' }}>{displayedDraft}</div>
-          </div>
-
-          <div style={{ display: 'inline-block', padding: '5px 14px', border: `1px solid ${T.lightGray}`, borderRadius: 8, fontSize: 12, fontWeight: 500, color: T.gray }}>{ex.tag}</div>
-        </div>
-
-        <div style={{ textAlign: 'center', marginTop: 8, fontSize: 12, color: '#bbb' }}>{idx + 1} of {examples.length}</div>
-      </div>
-
-      <div style={{ padding: '16px 28px 50px', display: 'flex', gap: 10 }}>
-        <button onClick={handleDifferent} style={{ flex: 1, padding: '15px 0', borderRadius: 12, border: `1.5px solid ${T.lightGray}`, background: 'transparent', fontSize: 14, fontWeight: 500, cursor: 'pointer', color: T.ink }}>
-          &#10007; Different
-        </button>
-        <button onClick={handleLike} style={{ flex: 1, padding: '15px 0', borderRadius: 12, border: 'none', background: T.ink, color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
-          &#10003; Like it
-        </button>
-      </div>
-    </div>
-  );
-}
-
-/* ─── Step 8: Inbox preview (sorted) ─── */
-function ObInboxPreview({ onNext }) {
-  const [showBtn, setShowBtn] = useState(false);
-
-  return (
-    <div className="fade-up" style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-      <ProgressBar step={8} total={8} />
-      <div style={{ padding: '60px 28px 0', flex: 1 }}>
-        <InboxMessages
-          messages={[
-            "This is what your inbox looks like.",
-            "I went through everything and broke it down into four sections so you can work through it fast."
-          ]}
-          onAllDone={() => setShowBtn(true)}
-        />
-
-        <div className="fade-up" style={{ marginTop: 24, border: `1px solid ${T.lightGray}`, borderRadius: 16, overflow: 'hidden', background: T.cardBg }}>
-          {/* Important */}
-          <div style={{ padding: '16px 20px', borderBottom: `1px solid ${T.lightGray}` }}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: T.ink, marginBottom: 3, letterSpacing: '-0.01em' }}>Important</div>
-            <div style={{ fontSize: 12, color: T.gray, lineHeight: 1.4 }}>I paused — these need your voice</div>
-          </div>
-          {/* Engagement */}
-          <div style={{ padding: '16px 20px', borderBottom: `1px solid ${T.lightGray}` }}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: T.ink, marginBottom: 3, letterSpacing: '-0.01em' }}>Engagement</div>
-            <div style={{ fontSize: 12, color: T.gray, lineHeight: 1.4 }}>Draft replies ready — approve or edit</div>
-          </div>
-          {/* Questions */}
-          <div style={{ padding: '16px 20px', borderBottom: `1px solid ${T.lightGray}` }}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: T.ink, marginBottom: 3, letterSpacing: '-0.01em' }}>Questions</div>
-            <div style={{ fontSize: 12, color: T.gray, lineHeight: 1.4 }}>Common questions — I'll get better at these over time</div>
-          </div>
-          {/* Handled */}
-          <div style={{ padding: '16px 20px' }}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: T.ink, marginBottom: 3, letterSpacing: '-0.01em' }}>Handled</div>
-            <div style={{ fontSize: 12, color: T.gray, lineHeight: 1.4 }}>I took care of these — nothing to do</div>
-          </div>
-        </div>
-      </div>
-
-      <div style={{ padding: '16px 28px 50px', opacity: showBtn ? 1 : 0, transform: showBtn ? 'translateY(0)' : 'translateY(12px)', transition: 'all .4s ease' }}>
-        <BlackBtn label="Open Inbox" onClick={onNext} />
-      </div>
-    </div>
-  );
-}
-
-/* ─── Step 9: You're set — Stats ─── */
-function ObStats({ onNext, onBack, onSkip }) {
-  const [showBtn, setShowBtn] = useState(false);
-
-  return (
-    <div className="fade-up" style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-      <ProgressBar step={1} total={2} label="Summary" />
-      <div style={{ padding: '60px 28px 0', flex: 1, overflowY: 'auto' }}>
-        <InboxMessages
-          messages={[
-            "You're set, Sofia.",
-            "I went through 142 messages."
-          ]}
-          onAllDone={() => setShowBtn(true)}
-        />
-
-        {/* Stats card */}
-        {showBtn && (
-          <div className="fade-up" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 20 }}>
-            {[
-              { n: '142', label: 'DMs reviewed' },
-              { n: '12', label: 'replies written' },
-              { n: '8', label: 'need your review' },
-              { n: '34', label: 'leads found' },
-            ].map((s, i) => (
-              <div key={i} style={{ padding: '18px 16px', border: `1px solid ${T.lightGray}`, borderRadius: 14, background: T.cardBg }}>
-                <div style={{ fontSize: 26, fontWeight: 700, color: T.ink, letterSpacing: '-0.03em' }}>{s.n}</div>
-                <div style={{ fontSize: 12, color: T.gray, marginTop: 3 }}>{s.label}</div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Lead teaser */}
-        {showBtn && (
-          <div className="fade-up" style={{ marginTop: 24, animationDelay: '0.4s' }}>
-            <div style={{ fontSize: 11, color: T.gray, marginBottom: 5, fontWeight: 500, letterSpacing: '0.04em', textTransform: 'uppercase' }}>· Inbox Agent</div>
-            <div style={{ background: T.warmGray, borderRadius: 14, padding: '12px 16px', maxWidth: '88%' }}>
-              <div style={{ fontSize: 14, color: T.ink, lineHeight: 1.5 }}>There's somebody already interested in your mid-level course.</div>
-            </div>
-          </div>
-        )}
-
-        {/* Chat frame preview */}
-        {showBtn && (
-          <div className="fade-up" style={{ marginTop: 12, marginLeft: 12, padding: '14px 16px', border: `1px solid ${T.lightGray}`, borderRadius: 12, background: T.cardBg, maxWidth: '88%', animationDelay: '0.6s' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-              <div style={{ width: 32, height: 32, borderRadius: 16, background: T.lightGray, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600, color: T.ink }}>JR</div>
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: T.ink }}>@jayrunz</div>
-                <div style={{ fontSize: 10, color: T.gray }}>Comment on "My 12-week results"</div>
-              </div>
-              <span style={{ marginLeft: 'auto', fontSize: 9, fontWeight: 600, color: '#E85D04', background: '#FFF3E8', padding: '2px 8px', borderRadius: 10 }}>LEAD</span>
-            </div>
-            <div style={{ fontSize: 13, color: T.ink, lineHeight: 1.5, fontStyle: 'italic' }}>"I've been struggling for 2 years. Is it too late to start?"</div>
-          </div>
-        )}
-      </div>
-
-      <div style={{ padding: '16px 28px 50px', opacity: showBtn ? 1 : 0, transform: showBtn ? 'translateY(0)' : 'translateY(12px)', transition: 'all .4s ease' }}>
-        <BlackBtn label="See my inbox" onClick={onNext} />
-
-      </div>
-    </div>
-  );
-}
-
-/* ─── Step 4: Voice & Control ─── */
-function ObVoice({ onNext, onBack, onSkip }) {
-  const [showBtn, setShowBtn] = useState(false);
-
-  return (
-    <div className="fade-up" style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-      <ProgressBar step={2} total={2} label="Your voice" />
-      <ObBackBtn onClick={onBack} />
-      <div style={{ padding: '60px 28px 0', flex: 1 }}>
-        <InboxMessages
-          messages={[
-            "One more thing. How you express yourself to your audience is key.",
-            "So I checked your replies.",
-            "You're always direct, encouraging, and give people a clear next step.",
-            "When someone messages you, I'll write a reply and ask before I send it.",
-            "I'll always ask first. Nothing goes out without your say."
-          ]}
-          onAllDone={() => setShowBtn(true)}
-        />
-      </div>
-      <div style={{ padding: '16px 28px 50px', opacity: showBtn ? 1 : 0, transform: showBtn ? 'translateY(0)' : 'translateY(12px)', transition: 'all .4s ease' }}>
-        <BlackBtn label="Open Inbox" onClick={onNext} />
-
-      </div>
-    </div>
-  );
-}
-
-/* ─── Step 10: Loading transition ─── */
-function ObLoading({ onNext }) {
-  useEffect(() => {
-    setTimeout(onNext, 2000);
-  }, []);
-
-  return (
-    <div style={{ background: T.paper, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
-      {/* No progress bar on loading */}
-      <div style={{ animation: 'pulse 1.2s infinite', fontSize: 15, color: T.gray }}>Inbox Agent is getting ready...</div>
     </div>
   );
 }
@@ -1209,13 +630,132 @@ const NARRATIONS = {
    ═══════════════════════════════════════════ */
 
 /* ─── Collapsible AI Value Summary (top of inbox) ─── */
+/* ─── Floating pill text — cycles through status messages ─── */
+function AgentPillText() {
+  const [idx, setIdx] = useState(0);
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setVisible(false);
+      setTimeout(() => {
+        setIdx(i => (i + 1) % AGENT_STATUS.length);
+        setTimeout(() => setVisible(true), 60);
+      }, 400);
+    }, 3500);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <span style={{
+      fontSize:12, fontWeight:400, color:'rgba(255,255,255,0.85)', letterSpacing:'-0.01em',
+      opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(-2px)',
+      transition:'opacity .35s ease, transform .35s ease',
+      whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', display:'block', flex:1, minWidth:0,
+    }}>
+      {AGENT_STATUS[idx]}
+    </span>
+  );
+}
+
 const AGENT_STATUS = [
-  'Analyzing your DMs',
   'Watching for new messages',
-  'Keeping an eye on your leads',
-  'Ready when something needs you',
-  'Monitoring your conversations',
+  'Reading new DMs as they come in',
+  'Checking if any leads have gone quiet',
+  'Keeping your reply drafts up to date',
+  'Looking for new buying signals',
+  'Making sure nothing slips through',
+  'Noting how your audience writes',
+  'Keeping your voice consistent across replies',
 ];
+
+const AGENT_INSIGHTS = [
+  "Your audience is really responding to you. @jayrunz said \"You're the only creator who actually replies\" — that kind of trust is rare.",
+  "People keep coming back to your 12-week course page. 3 repeat visitors this week asked follow-up questions — they're close to signing up.",
+  "Your response time is faster than 90% of creators your size. That's a huge trust signal — people notice when you show up quickly.",
+  "@emma.k told a friend about your coaching. Word of mouth is working — you might see more referrals this week.",
+  "The way you handle pricing questions is really effective. Most creators dodge it, but you lean in — and it's converting.",
+  "6 people saved your last post. When they come to DMs, they already trust you. That makes my job easier.",
+  "Your audience asks thoughtful questions — that means they're engaged, not just browsing. This is a quality community.",
+  "@lena.fit came back after 3 weeks. She's been reading your stories. Sometimes people just need time — and you gave her that space.",
+];
+
+/* ─── Expanded agent screen (fullscreen black overlay) ─── */
+function AgentExpandedScreen({ onDismiss }) {
+  const [showInsight, setShowInsight] = useState(false);
+  const [insight] = useState(() => AGENT_INSIGHTS[Math.floor(Math.random() * AGENT_INSIGHTS.length)]);
+
+  useEffect(() => {
+    const t = setTimeout(() => setShowInsight(true), 600);
+    return () => clearTimeout(t);
+  }, []);
+
+  return (
+    <div className="pill-expand" style={{
+      position:'absolute', inset:0, zIndex:90,
+      background:'#0F0F0F',
+      display:'flex', flexDirection:'column',
+      padding:'60px 22px 40px',
+      overflow:'hidden',
+    }}>
+      {/* Close */}
+      <div style={{ flexShrink:0, display:'flex', justifyContent:'flex-end', marginBottom:20 }}>
+        <div onClick={onDismiss} style={{ cursor:'pointer', fontSize:16, color:'rgba(255,255,255,0.5)', padding:'8px 12px', margin:'-8px -12px' }}>✕</div>
+      </div>
+
+      {/* TOP: Status + Stats */}
+      <div style={{ display:'flex', alignItems:'center', gap:7, marginBottom:24 }}>
+        <div style={{ width:7, height:7, borderRadius:4, background:'#0095F6', flexShrink:0, animation:'pulse 1.4s ease-in-out infinite' }} />
+        <div style={{ fontSize:15, fontWeight:600, color:'#fff', letterSpacing:'-0.02em' }}>Analyzing your DMs</div>
+      </div>
+
+      <div style={{ display:'flex', gap:0, marginBottom:28 }}>
+        {[
+          { n:'18', label:'interested' },
+          { n:'12', label:'replies ready' },
+          { n:'4m', label:'saved per reply' },
+        ].map((s, i) => (
+          <div key={i} style={{ flex:1 }}>
+            <div style={{ fontSize:22, fontWeight:700, color:'#fff', letterSpacing:'-0.03em', lineHeight:1.1 }}>{s.n}</div>
+            <div style={{ fontSize:11, color:'rgba(255,255,255,0.38)', marginTop:4 }}>{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* MIDDLE: Recent activity */}
+      <div style={{ fontSize:10, fontWeight:700, color:'rgba(255,255,255,0.3)', letterSpacing:'0.07em', textTransform:'uppercase', marginBottom:10 }}>
+        Recent activity
+      </div>
+      <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:28 }}>
+        {[
+          'Sorted 142 DMs by priority',
+          'Drafted 12 replies matching your tone',
+          'Found 18 people interested in your course',
+          'Filtered out 96 spam and noise',
+        ].map((line, i) => (
+          <div key={i} className="fade-up" style={{ display:'flex', alignItems:'center', gap:10, animationDelay:`${i * 0.06}s` }}>
+            <div style={{ width:4, height:4, borderRadius:2, background:'rgba(255,255,255,0.2)', flexShrink:0 }} />
+            <div style={{ fontSize:13, color:'rgba(255,255,255,0.55)', letterSpacing:'-0.01em' }}>{line}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* BOTTOM: Conversational insight — streaming */}
+      <div style={{ marginTop:'auto', borderTop:'1px solid rgba(255,255,255,0.06)', paddingTop:20 }}>
+        {showInsight && (
+          <div style={{ fontSize:15, fontWeight:400, color:'#ffffff', lineHeight:1.55, letterSpacing:'-0.01em', marginBottom:20 }}>
+            <StreamText text={insight} speed={18} delay={200} style={{}} />
+          </div>
+        )}
+
+        <button onClick={onDismiss}
+          style={{ width:'100%', padding:'14px 0', background:'#fff', color:'#0F0F0F', border:'none', borderRadius:12, fontSize:14, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em' }}>
+          Got it
+        </button>
+      </div>
+    </div>
+  );
+}
 
 function DailyReport({ collapsed, onToggle }) {
   const [statusIdx, setStatusIdx] = useState(0);
@@ -1355,10 +895,6 @@ function TabBar({ active, setActive, counts }) {
             fontSize:13, fontWeight: active === tab.id ? 600 : 400, letterSpacing:'-0.01em',
             color: active === tab.id ? T.ink : T.gray, transition:'all .2s' }}>
           {tab.label}
-          {tab.count !== null && tab.count > 0 && (
-            <span style={{ fontSize:9, fontWeight:600, background: active === tab.id ? T.ink : T.lightGray, color: active === tab.id ? '#fff' : T.gray,
-              padding:'2px 7px', borderRadius:10, marginLeft:5, verticalAlign:'top' }}>{tab.count}</span>
-          )}
           {active === tab.id && <div style={{ position:'absolute', bottom:-1, left:'20%', right:'20%', height:2, background:T.accent, borderRadius:1 }} />}
         </div>
       ))}
@@ -1377,30 +913,198 @@ function SectionLabel({ label, count }) {
 }
 
 /* ─── Message row (IG DM style) ─── */
-function MsgRow({ user, name, avatar, msg, time, badge, badgeColor, onClick, hasDraft, unread }) {
+function MsgRow({ user, name, avatar, msg, time, badge, badgeColor, onClick, hasDraft, unread, isLast, agentRead }) {
   const isUnread = unread && unread > 0;
   return (
-    <div onClick={onClick} style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 4px', cursor:'pointer', transition:'all .15s ease' }}>
-      <img src={avatar} alt="" style={{ width:40, height:40, borderRadius:20, objectFit:'cover', flexShrink:0, background:T.lightGray }} />
+    <div onClick={onClick} style={{ display:'flex', alignItems:'flex-start', gap:12, padding:'14px 0', cursor:'pointer', borderBottom: isLast ? 'none' : `1px solid ${T.lightGray}` }}>
+      <img src={avatar} alt="" style={{ width:44, height:44, borderRadius:22, objectFit:'cover', flexShrink:0, background:T.lightGray, marginTop:1 }} />
       <div style={{ flex:1, minWidth:0 }}>
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:2 }}>
-          <span style={{ fontSize:14, fontWeight: isUnread ? 700 : 500, color:T.ink, letterSpacing:'-0.01em' }}>{name || user}</span>
-          <span style={{ fontSize:12, color: isUnread ? T.ink : T.gray, fontWeight: isUnread ? 600 : 400, flexShrink:0 }}>{time}</span>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:3 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+            <span style={{ fontSize:15, fontWeight: isUnread ? 600 : 400, color:T.ink, letterSpacing:'-0.01em' }}>{name || user}</span>
+          </div>
+          <span style={{ fontSize:12, color:T.gray, fontWeight:400, flexShrink:0 }}>{time}</span>
         </div>
-        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-          <div style={{ flex:1, minWidth:0, fontSize:13, color: isUnread ? T.ink : T.gray, fontWeight: isUnread ? 500 : 400, lineHeight:1.4, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{msg}</div>
-          {isUnread && (
-            <span style={{ minWidth:16, height:16, borderRadius:8, background:'#0095F6', color:'#fff', fontSize:9, fontWeight:600, display:'flex', alignItems:'center', justifyContent:'center', padding:'0 4px', flexShrink:0, letterSpacing:'0.01em' }}>{unread}</span>
-          )}
-        </div>
-        {hasDraft && <div style={{ fontSize:11, color:T.gray, marginTop:2, fontWeight:400 }}>Reply ready</div>}
+        <div style={{ fontSize:14, color:'#6B6B6B', fontWeight:400, lineHeight:1.45, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{msg}</div>
+        {agentRead && <div style={{ fontSize:12, color:'#aaa', fontWeight:400, marginTop:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>→ {agentRead}</div>}
       </div>
     </div>
   );
 }
 
+/* ─── Agent Sheet — conversational bottom panel with streaming text ─── */
+function AgentSheet({ item, onSend, onEdit, onSkip }) {
+  // Phase: skeleton → reason → draft → question → buttons
+  const [phase, setPhase] = useState('skeleton');
+
+  const questions = [
+    'Want me to send this?',
+    'Ready to send?',
+    'Should I go ahead with this?',
+    'Does this work for you?',
+    'Good to send?',
+    'Send this one?',
+    'How does this look?',
+    'Want me to fire this off?',
+  ];
+  const [question] = useState(() => questions[Math.floor(Math.random() * questions.length)]);
+
+  const textStyle = { fontSize:15, fontWeight:400, color:'#ffffff', lineHeight:1.55, letterSpacing:'-0.01em' };
+
+  // Skeleton → draft after brief pause
+  useEffect(() => {
+    const t = setTimeout(() => setPhase('draft'), 400);
+    return () => clearTimeout(t);
+  }, []);
+
+  // Split reason into sentences for Claude-like streaming
+  const reasonSentences = (item.reason || '').match(/[^.!?]+[.!?]?\s*/g) || [item.reason];
+  const [visibleSentences, setVisibleSentences] = useState(0);
+
+  useEffect(() => {
+    if (phase !== 'reason') return;
+    const timers = [];
+    reasonSentences.forEach((_, i) => {
+      timers.push(setTimeout(() => {
+        setVisibleSentences(i + 1);
+        if (i === reasonSentences.length - 1) {
+          // Reason done → question
+          setTimeout(() => setPhase('question'), 400);
+        }
+      }, i * 500 + 100));
+    });
+    return () => timers.forEach(t => clearTimeout(t));
+  }, [phase]);
+
+  // Draft → reason
+  useEffect(() => {
+    if (phase !== 'draft') return;
+    const t = setTimeout(() => setPhase('reason'), 300);
+    return () => clearTimeout(t);
+  }, [phase]);
+
+  // Question sentences
+  const [visibleQ, setVisibleQ] = useState(0);
+  useEffect(() => {
+    if (phase !== 'question') return;
+    const t = setTimeout(() => {
+      setVisibleQ(1);
+      setTimeout(() => setPhase('buttons'), 400);
+    }, 200);
+    return () => clearTimeout(t);
+  }, [phase]);
+
+  const phaseOrder = ['skeleton','draft','reason','question','buttons'];
+  const phaseIdx = phaseOrder.indexOf(phase);
+
+  return (
+    <div className="sheet-up" style={{
+      position:'absolute', bottom:0, left:0, right:0, zIndex:10,
+      background:'#0F0F0F',
+      borderRadius:'22px 22px 0 0',
+      padding:'10px 22px 48px',
+      boxShadow:'0 -8px 30px rgba(0,0,0,0.2)',
+      minHeight:260,
+    }}>
+      {/* Sheet handle */}
+      <div style={{ width:36, height:4, background:'rgba(255,255,255,0.14)', borderRadius:2, margin:'0 auto 20px' }} />
+
+      {/* Skeleton — shows immediately, sets spatial expectation */}
+      {phase === 'skeleton' && (
+        <div style={{ padding:'4px 0' }}>
+          <div className="skeleton-line" style={{ width:'85%' }} />
+          <div className="skeleton-line" style={{ width:'60%' }} />
+          <div className="skeleton-line" style={{ width:'70%', marginBottom:16 }} />
+          <div className="skeleton-line" style={{ width:'100%', height:56, borderRadius:10, marginBottom:12 }} />
+          <div className="skeleton-line" style={{ width:'45%' }} />
+        </div>
+      )}
+
+      {/* Draft — fades in first */}
+      {phaseIdx >= 1 && (
+        <div className="fade-in" style={{ fontSize:14, color:'rgba(255,255,255,0.55)', lineHeight:1.55, letterSpacing:'-0.01em', marginBottom:16, padding:'12px 14px', background:'rgba(255,255,255,0.05)', borderRadius:12, border:'1px solid rgba(255,255,255,0.07)' }}>
+          {item.draft}
+        </div>
+      )}
+
+      {/* Reason — sentence by sentence with soft fade */}
+      {phaseIdx >= 2 && (
+        <div style={{ ...textStyle, marginBottom:14, minHeight:24 }}>
+          {reasonSentences.map((s, i) => (
+            <span key={i} style={{
+              opacity: i < visibleSentences ? 1 : 0,
+              transform: i < visibleSentences ? 'translateY(0)' : 'translateY(4px)',
+              transition:'opacity .35s ease, transform .35s ease',
+              display:'inline',
+            }}>{i < visibleSentences ? s : ''}</span>
+          ))}
+        </div>
+      )}
+
+      {/* Question — sentence fade */}
+      {phaseIdx >= 3 && (
+        <div style={{ ...textStyle, marginBottom: phaseIdx >= 4 ? 18 : 8, minHeight:24 }}>
+          <span style={{
+            opacity: visibleQ > 0 ? 1 : 0,
+            transform: visibleQ > 0 ? 'translateY(0)' : 'translateY(4px)',
+            transition:'opacity .35s ease, transform .35s ease',
+          }}>{visibleQ > 0 ? question : ''}</span>
+        </div>
+      )}
+
+      {/* Buttons — fade in */}
+      {phaseIdx >= 4 && (
+        <div className="fade-in" style={{ display:'flex', gap:8, alignItems:'center' }}>
+          <button onClick={onSend}
+            style={{ flex:1, padding:'13px 0', background:'#fff', color:'#0F0F0F', border:'none', borderRadius:50, fontSize:14, fontWeight:700, cursor:'pointer', letterSpacing:'-0.01em' }}>
+            Yes, send
+          </button>
+          <button onClick={onEdit}
+            style={{ flex:1, padding:'13px 0', background:'transparent', border:'1.5px solid rgba(255,255,255,0.18)', borderRadius:50, fontSize:14, fontWeight:500, cursor:'pointer', color:'rgba(255,255,255,0.8)', letterSpacing:'-0.01em' }}>
+            Let me edit
+          </button>
+          <button onClick={onSkip}
+            style={{ padding:'13px 10px', background:'transparent', border:'none', fontSize:13, fontWeight:500, cursor:'pointer', color:'rgba(255,255,255,0.35)', flexShrink:0, whiteSpace:'nowrap' }}>
+            I'll write
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Streaming text — character-by-character like ChatGPT/Claude ─── */
+function StreamText({ text, speed = 22, delay = 0, onDone, style }) {
+  const [displayed, setDisplayed] = useState('');
+  const [done, setDone] = useState(false);
+  const idx = useRef(0);
+
+  useEffect(() => {
+    const start = setTimeout(() => {
+      const interval = setInterval(() => {
+        idx.current++;
+        setDisplayed(text.slice(0, idx.current));
+        if (idx.current >= text.length) {
+          clearInterval(interval);
+          setDone(true);
+          if (onDone) onDone();
+        }
+      }, speed);
+      return () => clearInterval(interval);
+    }, delay);
+    return () => clearTimeout(start);
+  }, [text]);
+
+  return (
+    <span style={style}>
+      {displayed}
+      {!done && <span className="cursor-blink" />}
+    </span>
+  );
+}
+
 /* ─── Chat Detail (full-screen overlay) ─── */
-function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, draftMode, onSkipDraft, onDraftFeedback }) {
+function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, draftMode, onSkipDraft, onDraftFeedback, isFirstSend, onFirstSend }) {
   const useSuggestMode = draftMode === 'suggest' && item.draft && !isSensitive;
 
   // Modes:
@@ -1424,6 +1128,9 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
   const [toastMsg, setToastMsg] = useState('');
   const [sentMsg, setSentMsg] = useState('');
   const [activeTone, setActiveTone] = useState(null);
+  const [showSendCelebration, setShowSendCelebration] = useState(false);
+  const [undoCount, setUndoCount] = useState(0);
+  const undoTimerRef = useRef(null);
   const originalDraft = item.draft || '';
   const chatBodyRef = useRef(null);
 
@@ -1443,6 +1150,11 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
         : 'Noted — I\'ll adjust my style based on your edit.');
     }
     if (onSent) onSent(item.user);
+    if (isFirstSend && onFirstSend) {
+      onFirstSend();
+      setShowSendCelebration(true);
+      setTimeout(() => setShowSendCelebration(false), 1500);
+    }
   };
 
   const handleSendCustom = () => {
@@ -1473,11 +1185,31 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
     setCustomVal('');
   };
 
+  const handleUndo = () => {
+    clearInterval(undoTimerRef.current);
+    setMode(draftMode === 'suggest' ? 'suggest' : 'inline');
+    setSentMsg('');
+    setUndoCount(0);
+  };
+
   // Scroll chat to bottom on mode change
   useEffect(() => {
     if (chatBodyRef.current) {
       setTimeout(() => { chatBodyRef.current.scrollTop = chatBodyRef.current.scrollHeight; }, 50);
     }
+  }, [mode]);
+
+  // Undo countdown when mode becomes 'sent'
+  useEffect(() => {
+    if (mode !== 'sent') return;
+    setUndoCount(5);
+    let count = 5;
+    undoTimerRef.current = setInterval(() => {
+      count -= 1;
+      setUndoCount(count);
+      if (count <= 0) clearInterval(undoTimerRef.current);
+    }, 1000);
+    return () => clearInterval(undoTimerRef.current);
   }, [mode]);
 
   // Conversation history
@@ -1490,6 +1222,13 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
 
   return (
     <div className="fade-up" onClick={(e) => e.stopPropagation()} style={{ position:'absolute', inset:0, zIndex:100, background:T.paper, display:'flex', flexDirection:'column' }}>
+      {showSendCelebration && (
+        <div style={{
+          position:'absolute', inset:0, zIndex:50, pointerEvents:'none',
+          background:'linear-gradient(165deg, #006BE2 0%, #5B21B6 40%, #3B1280 100%)',
+          animation:'agent-takeover 0.82s cubic-bezier(.4,0,.2,1) forwards',
+        }} />
+      )}
       {/* Header */}
       <div style={{ padding:'52px 20px 14px', display:'flex', alignItems:'center', borderBottom:`1px solid ${T.lightGray}`, flexShrink:0 }}>
         <div style={{ display:'flex', alignItems:'center', gap:12 }}>
@@ -1513,7 +1252,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
           </div>
         ))}
 
-        {/* Summary for sensitive */}
+        {/* Summary — sensitive message, no draft */}
         {mode === 'summary' && item.summary && (
           <div className="fade-up" style={{ marginBottom:12 }}>
             <div style={{ background:T.warmGray, borderRadius:14, padding:'14px 16px', maxWidth:'85%' }}>
@@ -1552,50 +1291,8 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
         )}
       </div>
 
-      {/* ═══ Inbox Agent bottom sheet — floats over conversation, no dim ═══ */}
-      {mode === 'suggest' && item.draft && (
-        <div className="fade-up" style={{
-          position:'absolute', bottom:0, left:0, right:0, zIndex:10,
-          background:'#0F0F0F',
-          borderRadius:'22px 22px 0 0',
-          padding:'10px 22px 48px',
-          boxShadow:'0 -1px 0 rgba(255,255,255,0.06)',
-        }}>
-          {/* Sheet handle */}
-          <div style={{ width:36, height:4, background:'rgba(255,255,255,0.14)', borderRadius:2, margin:'0 auto 20px' }} />
-
-          {/* Reason — white, light weight */}
-          <div style={{ fontSize:15, fontWeight:400, color:'#ffffff', lineHeight:1.5, letterSpacing:'-0.01em', marginBottom:14 }}>
-            {item.reason}
-          </div>
-
-          {/* Draft */}
-          <div style={{ fontSize:14, color:'rgba(255,255,255,0.55)', lineHeight:1.55, letterSpacing:'-0.01em', marginBottom:16, padding:'12px 14px', background:'rgba(255,255,255,0.05)', borderRadius:12, border:'1px solid rgba(255,255,255,0.07)' }}>
-            {item.draft}
-          </div>
-
-          {/* Question — bold Pillowtalk */}
-          <div style={{ fontSize:20, fontWeight:800, color:'#fff', letterSpacing:'-0.03em', marginBottom:18, lineHeight:1.2 }}>
-            Should I send this?
-          </div>
-
-          {/* Actions */}
-          <div style={{ display:'flex', gap:8, alignItems:'center' }}>
-            <button onClick={handleSend}
-              style={{ flex:1, padding:'13px 0', background:'#fff', color:'#0F0F0F', border:'none', borderRadius:50, fontSize:14, fontWeight:700, cursor:'pointer', letterSpacing:'-0.01em' }}>
-              Yes, send
-            </button>
-            <button onClick={() => { setMode('editing'); setEditVal(item.draft); }}
-              style={{ flex:1, padding:'13px 0', background:'transparent', border:'1.5px solid rgba(255,255,255,0.18)', borderRadius:50, fontSize:14, fontWeight:500, cursor:'pointer', color:'rgba(255,255,255,0.8)', letterSpacing:'-0.01em' }}>
-              Let me edit
-            </button>
-            <button onClick={handleIllReply}
-              style={{ padding:'13px 10px', background:'transparent', border:'none', fontSize:13, fontWeight:500, cursor:'pointer', color:'rgba(255,255,255,0.35)', flexShrink:0, whiteSpace:'nowrap' }}>
-              I'll write
-            </button>
-          </div>
-        </div>
-      )}
+      {/* ═══ Inbox Agent bottom sheet — conversational, streaming ═══ */}
+      {mode === 'suggest' && item.draft && <AgentSheet item={item} onSend={handleSend} onEdit={() => { setMode('editing'); setEditVal(item.draft); }} onSkip={handleIllReply} />}
 
       {/* ═══ Bottom: Edit mode ═══ */}
       {mode === 'editing' && (
@@ -1686,8 +1383,28 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
         </div>
       )}
 
-      {/* ═══ Bottom: Free text input (custom / sent / summary) ═══ */}
-      {(mode === 'custom' || mode === 'sent' || mode === 'summary') && (
+      {/* ═══ Bottom: Sensitive message — agent reasoning + Reply personally CTA ═══ */}
+      {mode === 'summary' && (
+        <div className="fade-up" style={{ padding:'0 20px 40px', flexShrink:0 }}>
+          <div style={{ height:1, background:T.lightGray, marginBottom:16 }} />
+          <div style={{ marginBottom:16 }}>
+            <div style={{ fontSize:11, color:T.gray, marginBottom:6, fontWeight:500 }}>Inbox Agent</div>
+            <div style={{ fontSize:14, color:T.ink, lineHeight:1.55, letterSpacing:'-0.01em', marginBottom:12 }}>
+              I read this and decided not to write anything. {item.summary}
+            </div>
+            <div style={{ fontSize:14, lineHeight:1.55, letterSpacing:'-0.01em', fontStyle:'italic', color:T.gray }}>
+              Write something short and human — don't sell.
+            </div>
+          </div>
+          <button onClick={() => { setMode('custom'); setCustomVal(''); }}
+            style={{ width:'100%', padding:'14px', background:T.ink, color:'#fff', border:'none', borderRadius:50, fontSize:14, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em' }}>
+            Reply personally
+          </button>
+        </div>
+      )}
+
+      {/* ═══ Bottom: Free text input (custom / sent) ═══ */}
+      {(mode === 'custom' || mode === 'sent') && (
         <div style={{ flexShrink:0, borderTop:`1px solid ${T.lightGray}`, background:T.paper, padding:'12px 20px 40px' }}>
           <div style={{ display:'flex', gap:8, alignItems:'center' }}>
             <div style={{ flex:1, padding:'11px 16px', background:'#fff', border:`1px solid ${T.lightGray}`, borderRadius:24 }}>
@@ -1715,59 +1432,146 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
 }
 
 /* ─── Intention group header ─── */
-function IntentionHeader({ label, count }) {
+function IntentionHeader({ label, count, desc }) {
   return (
-    <div style={{ padding:'18px 0 8px', display:'flex', alignItems:'center', gap:6 }}>
-      <span style={{ fontSize:13, fontWeight:600, color:T.ink, letterSpacing:'-0.01em' }}>{label}</span>
-      <span style={{ fontSize:12, color:T.gray }}>· {count}</span>
+    <div style={{ padding:'24px 0 4px' }}>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+        <span style={{ fontSize:16, fontWeight:600, color:T.ink, letterSpacing:'-0.02em' }}>{label}</span>
+        <span style={{ fontSize:12, fontWeight:500, color:'#999', background:'#F2F2F2', padding:'3px 10px', borderRadius:12, letterSpacing:'-0.01em' }}>{count}</span>
+      </div>
+      {desc && <div style={{ fontSize:12, color:'#999', lineHeight:1.4, marginTop:4, letterSpacing:'-0.01em' }}>{desc}</div>}
     </div>
   );
 }
 
 /* ─── Important Tab ─── */
-function ImportantTab({ onOpenChat, answeredChats }) {
-  // Sort groups: groups with pending items first, fully answered groups at the bottom
-  const sortedGroups = [...IMPORTANT_GROUPS].sort((a, b) => {
-    const aPending = a.items.some(item => !answeredChats.has(item.user));
-    const bPending = b.items.some(item => !answeredChats.has(item.user));
-    if (aPending && !bPending) return -1;
-    if (!aPending && bPending) return 1;
-    return 0;
-  });
+function ImportantTab({ onOpenChat, answeredChats, priorityFeedbackDone, onFeedbackGood, onFeedbackBad }) {
+  const [feedbackMode, setFeedbackMode] = useState('thumbs'); // thumbs | reasons | done
+  const [customText, setCustomText] = useState('');
 
-  const renderAnsweredRow = (item) => (
-    <div key={`a${item.user}`} onClick={() => onOpenChat(item, '', T.gray, !!item._sensitive)}
-      style={{ display:'flex', alignItems:'center', gap:10, padding:'7px 4px', cursor:'pointer' }}>
-      <div style={{ position:'relative', flexShrink:0 }}>
-        <img src={item.avatar} alt="" style={{ width:28, height:28, borderRadius:14, objectFit:'cover', background:T.lightGray, display:'block' }} />
-        <div style={{ position:'absolute', bottom:-2, right:-2, width:12, height:12, borderRadius:6, background:'#3D7A3D', display:'flex', alignItems:'center', justifyContent:'center' }}>
-          <span style={{ fontSize:7, color:'#fff', lineHeight:1 }}>✓</span>
-        </div>
-      </div>
-      <span style={{ fontSize:13, fontWeight:500, color:T.ink, letterSpacing:'-0.01em', flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.name || item.user}</span>
-    </div>
+  // Collect all answered items across all groups into one flat list
+  const allAnswered = IMPORTANT_GROUPS.flatMap(g =>
+    g.items.filter(item => answeredChats.has(item.user)).map(item => ({ ...item, _sensitive: !!item._sensitive }))
   );
+
+  const handleReasonPick = (reason) => {
+    setFeedbackMode('done');
+    onFeedbackGood();
+  };
+
+  const handleCustomSubmit = () => {
+    if (!customText.trim()) return;
+    setFeedbackMode('done');
+    onFeedbackGood();
+  };
 
   return (
     <div>
-      {sortedGroups.map((group, gi) => {
+      {/* Active groups — only pending items */}
+      {IMPORTANT_GROUPS.map((group, gi) => {
         const pending = group.items.filter(item => !answeredChats.has(item.user));
-        const answered = group.items.filter(item => answeredChats.has(item.user));
-        if (pending.length === 0 && answered.length === 0) return null;
-        const allDone = pending.length === 0;
+        if (pending.length === 0) return null;
 
         return (
           <div key={gi}>
-            <IntentionHeader label={group.intention} count={allDone ? `${answered.length} answered` : group.items.length} />
-            {pending.map((item) => (
+            <IntentionHeader label={group.intention} count={pending.length} desc={group.desc} />
+            <div style={{ height:1, background:T.lightGray }} />
+            {pending.map((item, i) => (
               <MsgRow key={item.user} user={item.user} name={item.name} avatar={item.avatar} msg={item.msg} time={item.time}
                 unread={item.unread} hasDraft={!item._sensitive && !!item.draft}
+                isLast={i === pending.length - 1}
+                agentRead={item.agentRead}
                 onClick={() => onOpenChat(item, '', T.gray, !!item._sensitive)} />
             ))}
-            {answered.map(renderAnsweredRow)}
           </div>
         );
       })}
+
+      {/* Prioritization feedback — thumbs */}
+      {!priorityFeedbackDone && feedbackMode === 'thumbs' && (
+        <div style={{ padding:'20px 0 16px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+          <span style={{ fontSize:13, color:T.gray, letterSpacing:'-0.01em' }}>I focused on your leads and course questions. Sound right?</span>
+          <div style={{ display:'flex', gap:4 }}>
+            <div onClick={() => { setFeedbackMode('done'); onFeedbackGood(); }}
+              style={{ width:32, height:32, borderRadius:16, border:`1px solid ${T.lightGray}`, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'all .15s ease' }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#F0F5EC'; e.currentTarget.style.borderColor = '#3D7A3D'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = T.lightGray; }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+            </div>
+            <div onClick={() => setFeedbackMode('reasons')}
+              style={{ width:32, height:32, borderRadius:16, border:`1px solid ${T.lightGray}`, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'all .15s ease' }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#FFF0F0'; e.currentTarget.style.borderColor = '#E53935'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = T.lightGray; }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/><path d="M17 2h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"/></svg>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Feedback reasons — inline expansion */}
+      {!priorityFeedbackDone && feedbackMode === 'reasons' && (
+        <div className="fade-up" style={{ padding:'16px 0 16px' }}>
+          <div style={{ fontSize:13, color:T.ink, fontWeight:500, marginBottom:10, letterSpacing:'-0.01em' }}>What feels off?</div>
+          <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+            {[
+              'Some of these aren\'t important to me',
+              'Missing messages I care about',
+              'Groups don\'t match how I think',
+              'Too many categories',
+              'The order feels wrong',
+            ].map(reason => (
+              <div key={reason} onClick={() => handleReasonPick(reason)}
+                style={{ padding:'11px 14px', background:T.warmGray, borderRadius:10, cursor:'pointer', fontSize:13, color:T.ink, letterSpacing:'-0.01em', transition:'background .15s ease' }}
+                onMouseEnter={e => e.currentTarget.style.background = T.lightGray}
+                onMouseLeave={e => e.currentTarget.style.background = T.warmGray}>
+                {reason}
+              </div>
+            ))}
+          </div>
+          <div style={{ display:'flex', gap:8, marginTop:10, alignItems:'center' }}>
+            <input value={customText} onChange={e => setCustomText(e.target.value)}
+              placeholder="Something else..."
+              onKeyDown={e => { if (e.key === 'Enter') handleCustomSubmit(); }}
+              style={{ flex:1, padding:'11px 14px', background:T.warmGray, borderRadius:10, border:'none', outline:'none', fontSize:13, color:T.ink, fontFamily:'Inter, system-ui, sans-serif', letterSpacing:'-0.01em' }} />
+            {customText.trim() && (
+              <div onClick={handleCustomSubmit}
+                style={{ width:32, height:32, borderRadius:16, background:T.ink, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0 }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {(priorityFeedbackDone || feedbackMode === 'done') && (
+        <div className="fade-in" style={{ padding:'20px 0 16px', textAlign:'center' }}>
+          <span style={{ fontSize:12, color:T.gray }}>Thanks — I'll keep learning from how you use your inbox.</span>
+        </div>
+      )}
+
+      {/* Recently answered — soft grey background section */}
+      {allAnswered.length > 0 && (
+        <div style={{ margin:'4px -20px 0', padding:'0 20px 20px', background:'#F7F7F7', borderRadius:'16px 16px 0 0' }}>
+          <div style={{ padding:'20px 0 4px' }}>
+            <span style={{ fontSize:16, fontWeight:600, color:T.ink, letterSpacing:'-0.02em' }}>Recently answered</span>
+          </div>
+          <div style={{ height:1, background:'#E8E8E8' }} />
+          {allAnswered.map((item, i) => (
+            <div key={`a${item.user}`} onClick={() => onOpenChat(item, '', T.gray, item._sensitive)}
+              style={{ display:'flex', alignItems:'flex-start', gap:12, padding:'14px 0', cursor:'pointer', borderBottom: i === allAnswered.length - 1 ? 'none' : '1px solid #E8E8E8' }}>
+              <img src={item.avatar} alt="" style={{ width:44, height:44, borderRadius:22, objectFit:'cover', flexShrink:0, background:'#E8E8E8', marginTop:1 }} />
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:3 }}>
+                  <span style={{ fontSize:15, fontWeight:400, color:T.ink, letterSpacing:'-0.01em' }}>{item.name || item.user}</span>
+                  <span style={{ fontSize:12, color:T.gray, fontWeight:400, flexShrink:0 }}>{item.time}</span>
+                </div>
+                <div style={{ fontSize:14, color:'#999', fontWeight:400, lineHeight:1.45, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', marginBottom:4 }}>{item.msg}</div>
+                <span style={{ fontSize:12, color:'#3D7A3D', fontWeight:500 }}>Answered</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -2130,6 +1934,7 @@ function InboxV2({ onOverlayChange }) {
   const [priorityFeedbackDone, setPriorityFeedbackDone] = useState(false);
   const [skipDraftCount, setSkipDraftCount] = useState(0);
   const [draftMode, setDraftMode] = useState('suggest'); // 'suggest' | 'inline'
+  const [firstSendDone, setFirstSendDone] = useState(false);
   const scrollRef = useRef(null);
   const lastScrollTop = useRef(0);
 
@@ -2181,9 +1986,7 @@ function InboxV2({ onOverlayChange }) {
         <MorningBrief onDismiss={() => setMorningDismissed(true)} />
       )}
 
-      {summaryOpen && (
-        <SummaryOverlay onDismiss={() => setSummaryOpen(false)} />
-      )}
+      {/* (SummaryOverlay replaced by pill expand) */}
 
       {showLeadWalkthrough && !showLeadDef && (
         <LeadWalkthrough
@@ -2223,42 +2026,37 @@ function InboxV2({ onOverlayChange }) {
         </div>
       )}
 
-      {/* Fixed header area — hides on scroll down, shows on scroll up */}
-      <div style={{ padding:'52px 20px 0', flexShrink:0, background:'#0F0F0F', transform: headerHidden ? 'translateY(-100%)' : 'translateY(0)', maxHeight: headerHidden ? 0 : 500, opacity: headerHidden ? 0 : 1, overflow:'hidden', transition:'all .3s ease' }}>
-        <DailyReport collapsed={true} onToggle={() => setSummaryOpen(true)} />
-      </div>
+      {/* Top spacing */}
+      <div style={{ paddingTop:52, flexShrink:0 }} />
 
       {/* Scrollable content */}
       <div ref={scrollRef} onScroll={handleScroll}
         style={{ flex:1, overflowY:'auto', overflowX:'hidden', padding:'0 20px 100px 20px' }}>
-        <ImportantTab onOpenChat={handleOpenChat} answeredChats={answeredChats} />
-
-        {/* Feedback bar at bottom */}
-        {!priorityFeedbackDone && (
-          <div style={{ padding:'24px 0 16px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-            <span style={{ fontSize:13, color:T.gray, letterSpacing:'-0.01em' }}>What do you think of this prioritization?</span>
-            <div style={{ display:'flex', gap:4 }}>
-              <div onClick={() => { setPriorityFeedbackDone(true); }}
-                style={{ width:32, height:32, borderRadius:16, border:`1px solid ${T.lightGray}`, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'all .15s ease' }}
-                onMouseEnter={e => { e.currentTarget.style.background = '#F0F5EC'; e.currentTarget.style.borderColor = '#3D7A3D'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = T.lightGray; }}>
-                <span style={{ fontSize:14 }}>👍</span>
-              </div>
-              <div onClick={() => setShowPriorities(true)}
-                style={{ width:32, height:32, borderRadius:16, border:`1px solid ${T.lightGray}`, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'all .15s ease' }}
-                onMouseEnter={e => { e.currentTarget.style.background = '#FFF0F0'; e.currentTarget.style.borderColor = '#E53935'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = T.lightGray; }}>
-                <span style={{ fontSize:14 }}>👎</span>
-              </div>
-            </div>
-          </div>
-        )}
-        {priorityFeedbackDone && (
-          <div className="fade-in" style={{ padding:'24px 0 16px', textAlign:'center' }}>
-            <span style={{ fontSize:12, color:T.gray }}>Thanks — I'll keep learning from how you use your inbox.</span>
-          </div>
-        )}
+        <ImportantTab onOpenChat={handleOpenChat} answeredChats={answeredChats}
+          priorityFeedbackDone={priorityFeedbackDone}
+          onFeedbackGood={() => setPriorityFeedbackDone(true)}
+          onFeedbackBad={() => setShowPriorities(true)} />
       </div>
+
+      {/* ═══ Floating agent pill — fixed width, ellipsis ═══ */}
+      {!summaryOpen && !openChat && (
+        <div onClick={() => setSummaryOpen(true)}
+          style={{
+            position:'absolute', bottom:90, right:20, zIndex:20,
+            background:'#0F0F0F', borderRadius:50,
+            padding:'9px 16px', width:190,
+            display:'flex', alignItems:'center', gap:7,
+            cursor:'pointer',
+            boxShadow:'0 4px 20px rgba(0,0,0,0.18)',
+            animation:'fadeUp .4s ease both',
+          }}>
+          <div style={{ width:6, height:6, borderRadius:3, background:'#0095F6', flexShrink:0, animation:'pulse 1.4s ease-in-out infinite' }} />
+          <AgentPillText />
+        </div>
+      )}
+
+      {/* ═══ Expanded agent screen ═══ */}
+      {summaryOpen && <AgentExpandedScreen onDismiss={() => setSummaryOpen(false)} />}
 
       {/* Chat Detail Overlay */}
       {openChat && (
@@ -2283,6 +2081,8 @@ function InboxV2({ onOverlayChange }) {
             return newCount;
           }}
           onDraftFeedback={() => setDraftMode('inline')}
+          isFirstSend={!firstSendDone}
+          onFirstSend={() => setFirstSendDone(true)}
         />
       )}
     </div>
@@ -2765,9 +2565,9 @@ function BottomNav() {
 /* ─── Shared stats data ─── */
 const OB_STATS = [
   { n:'142', label:'DMs reviewed' },
-  { n:'54',  label:'messages that truly need you' },
+  { n:'8',   label:'messages that truly need you' },
   { n:'18',  label:'people interested in your 12-week course' },
-  { n:'32',  label:'replies ready to send' },
+  { n:'12',  label:'replies ready to send' },
 ];
 
 /* ══════════ ONBOARDING — DARK / WAVE ══════════ */
@@ -2879,7 +2679,20 @@ function ObResultsV2b({ onNext }) {
       </div>
 
       <div style={{ padding:'0 28px 90px', position:'relative', zIndex:1 }}>
-        <button onClick={handleCTA} style={{ width:'100%', padding:'16px', background:'transparent', color:'rgba(255,255,255,0.8)', border:'1.5px solid rgba(255,255,255,0.18)', borderRadius:50, fontSize:16, fontWeight:500, cursor:'pointer', letterSpacing:'-0.01em' }}>
+        {/* Chat extract teaser */}
+        <div className="fade-up" style={{ marginTop:28, padding:'14px 16px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:16, ...wave(0.18) }}>
+          <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
+            <img src="https://i.pravatar.cc/88?u=jayrunz" alt="" style={{ width:24, height:24, borderRadius:12, objectFit:'cover' }} />
+            <span style={{ fontSize:12, color:'rgba(255,255,255,0.4)', fontWeight:500 }}>@jayrunz</span>
+          </div>
+          <div style={{ fontSize:13, color:'rgba(255,255,255,0.55)', lineHeight:1.5, marginBottom:10, fontStyle:'italic' }}>
+            "I've been struggling for 2 years. Is it too late to start?"
+          </div>
+          <div style={{ fontSize:13, color:'rgba(255,255,255,0.8)', fontWeight:500 }}>
+            I already have a reply for that →
+          </div>
+        </div>
+        <button onClick={handleCTA} style={{ width:'100%', marginTop:16, padding:'16px', background:'transparent', color:'rgba(255,255,255,0.8)', border:'1.5px solid rgba(255,255,255,0.18)', borderRadius:50, fontSize:16, fontWeight:500, cursor:'pointer', letterSpacing:'-0.01em' }}>
           Let's go
         </button>
       </div>
@@ -2899,7 +2712,7 @@ function App() {
 
       {/* ─── Onboarding (3-screen flow: welcome → loading → results) ─── */}
       {screen === 'ob-welcome' && <ObWelcomeV2b onNext={() => setScreen('ob-loading')} />}
-      {screen === 'ob-loading' && <ObSorting onNext={() => setScreen('ob-results')} isDark={true} />}
+      {screen === 'ob-loading' && <ObSorting onNext={() => setScreen('ob-results')} />}
       {screen === 'ob-results' && <ObResultsV2b onNext={() => setScreen('main')} />}
 
       {/* ─── Inbox ─── */}
@@ -2913,5 +2726,11 @@ function App() {
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 </script>
+
+<!-- Version toggle -->
+<div style="position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;background:#fff;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,0.12);overflow:hidden;font-family:Inter,sans-serif;font-size:12px;">
+  <a href="index-v1.html" style="padding:8px 16px;text-decoration:none;color:#888;font-weight:500;">V1</a>
+  <a href="index-v2.html" style="padding:8px 16px;text-decoration:none;color:#fff;background:#1C1A16;font-weight:600;">V2</a>
+</div>
 </body>
 </html>
