@@ -1222,13 +1222,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
 
   return (
     <div className="fade-up" onClick={(e) => e.stopPropagation()} style={{ position:'absolute', inset:0, zIndex:100, background:T.paper, display:'flex', flexDirection:'column' }}>
-      {showSendCelebration && (
-        <div style={{
-          position:'absolute', inset:0, zIndex:50, pointerEvents:'none',
-          background:'linear-gradient(165deg, #006BE2 0%, #5B21B6 40%, #3B1280 100%)',
-          animation:'agent-takeover 0.82s cubic-bezier(.4,0,.2,1) forwards',
-        }} />
-      )}
+      {/* gradient celebration removed */}
       {/* Header */}
       <div style={{ padding:'52px 20px 14px', display:'flex', alignItems:'center', borderBottom:`1px solid ${T.lightGray}`, flexShrink:0 }}>
         <div style={{ display:'flex', alignItems:'center', gap:12 }}>
@@ -1344,7 +1338,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
           <div style={{ marginBottom:14 }}>
             <div style={{ fontSize:11, color:T.gray, marginBottom:6, fontWeight:500 }}>Inbox Agent</div>
             <div style={{ fontSize:14, color:T.ink, lineHeight:1.55, letterSpacing:'-0.01em' }}>
-              I noticed you prefer writing your own replies. That's totally fine — but it'd help me improve. What's off about my drafts?
+              I noticed you've been writing your own replies lately. Anything I should do differently?
             </div>
           </div>
 
@@ -1400,6 +1394,17 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
             style={{ width:'100%', padding:'14px', background:T.ink, color:'#fff', border:'none', borderRadius:50, fontSize:14, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em' }}>
             Reply personally
           </button>
+        </div>
+      )}
+
+      {/* ═══ Bottom: Undo bar after sending ═══ */}
+      {mode === 'sent' && undoCount > 0 && (
+        <div style={{ flexShrink:0, padding:'10px 20px 32px', display:'flex', alignItems:'center', justifyContent:'space-between', borderTop:`1px solid ${T.lightGray}`, background:T.paper }}>
+          <span style={{ fontSize:13, color:T.gray }}>✓ Sent to {item.user}</span>
+          <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+            <button onClick={handleUndo} style={{ fontSize:13, color:T.ink, background:'none', border:'none', cursor:'pointer', fontWeight:600, padding:'4px 8px' }}>Undo</button>
+            <span style={{ fontSize:12, color:T.lightGray }}>({undoCount})</span>
+          </div>
         </div>
       )}
 
@@ -1935,6 +1940,7 @@ function InboxV2({ onOverlayChange }) {
   const [skipDraftCount, setSkipDraftCount] = useState(0);
   const [draftMode, setDraftMode] = useState('suggest'); // 'suggest' | 'inline'
   const [firstSendDone, setFirstSendDone] = useState(false);
+  const [showModeChangeNotif, setShowModeChangeNotif] = useState(false);
   const scrollRef = useRef(null);
   const lastScrollTop = useRef(0);
 
@@ -2032,6 +2038,15 @@ function InboxV2({ onOverlayChange }) {
       {/* Scrollable content */}
       <div ref={scrollRef} onScroll={handleScroll}
         style={{ flex:1, overflowY:'auto', overflowX:'hidden', padding:'0 20px 100px 20px' }}>
+        {showModeChangeNotif && (
+          <div className="fade-up" style={{ marginBottom:16, padding:'14px 16px', background:'#F5F5F5', borderRadius:14, display:'flex', gap:12, alignItems:'flex-start' }}>
+            <div style={{ flex:1 }}>
+              <div style={{ fontSize:11, color:T.gray, marginBottom:4, fontWeight:500 }}>Inbox Agent</div>
+              <div style={{ fontSize:13, color:T.ink, lineHeight:1.5, letterSpacing:'-0.01em' }}>I noticed you've been writing your own replies. I'll put my drafts in the conversation from now on — easier to compare.</div>
+            </div>
+            <div onClick={() => setShowModeChangeNotif(false)} style={{ cursor:'pointer', color:T.gray, fontSize:18, lineHeight:1, paddingTop:1 }}>×</div>
+          </div>
+        )}
         <ImportantTab onOpenChat={handleOpenChat} answeredChats={answeredChats}
           priorityFeedbackDone={priorityFeedbackDone}
           onFeedbackGood={() => setPriorityFeedbackDone(true)}
@@ -2080,7 +2095,7 @@ function InboxV2({ onOverlayChange }) {
             setSkipDraftCount(newCount);
             return newCount;
           }}
-          onDraftFeedback={() => setDraftMode('inline')}
+          onDraftFeedback={() => { setDraftMode('inline'); setShowModeChangeNotif(true); }}
           isFirstSend={!firstSendDone}
           onFirstSend={() => setFirstSendDone(true)}
         />
