@@ -1202,7 +1202,7 @@ function PrioritiesOverlay({ onDismiss }) {
 
 /* ═══ INBOX MAIN ═══ */
 
-function InboxV2({ onOverlayChange }) {
+function InboxV2({ onOverlayChange, openChatOnLoad }) {
   const [reportCollapsed, setReportCollapsed] = useState(true);
   const [summaryOpen, setSummaryOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('important');
@@ -1217,6 +1217,15 @@ function InboxV2({ onOverlayChange }) {
   const [showModeChangeNotif, setShowModeChangeNotif] = useState(false);
   const scrollRef = useRef(null);
   const lastScrollTop = useRef(0);
+
+  // Auto-open a chat if passed from onboarding "Reply now"
+  useEffect(() => {
+    if (openChatOnLoad) {
+      setTimeout(() => {
+        setOpenChat({ item: openChatOnLoad, label:'', labelColor:T.gray, isSensitive:false });
+      }, 300);
+    }
+  }, []);
 
   // Report overlay state AND scroll-hide to parent for nav visibility
   useEffect(() => {
@@ -1413,13 +1422,19 @@ function ObWelcomeV2b({ onNext }) {
   );
 }
 
-function ObResultsV2b({ onNext }) {
-  const [fired, setFired] = useState(false);
+function ObResultsV2b({ onReplyNow, onOpenInbox }) {
+  const [fired, setFired] = useState(null); // null | 'reply' | 'inbox'
 
-  const handleCTA = () => {
+  const handleReply = () => {
     if (fired) return;
-    setFired(true);
-    setTimeout(onNext, 820);
+    setFired('reply');
+    setTimeout(onReplyNow, 820);
+  };
+
+  const handleInbox = () => {
+    if (fired) return;
+    setFired('inbox');
+    setTimeout(onOpenInbox, 820);
   };
 
   const wave = (delay) => fired ? {
@@ -1429,7 +1444,6 @@ function ObResultsV2b({ onNext }) {
   return (
     <div className="fade-up" style={{ background:'#0F0F0F', height:'100%', display:'flex', flexDirection:'column', position:'relative', overflow:'hidden' }}>
 
-      {/* ── Gradient wave — erupts from button, fills screen ── */}
       {fired && (
         <div style={{
           position:'absolute', inset:0, zIndex:10, pointerEvents:'none',
@@ -1439,15 +1453,10 @@ function ObResultsV2b({ onNext }) {
       )}
 
       <div style={{ flex:1, display:'flex', flexDirection:'column', justifyContent:'center', padding:'0 32px', position:'relative', zIndex:1 }}>
-        <div style={{ marginBottom:6, ...wave(0) }}>
+        <div style={{ marginBottom:32, ...wave(0) }}>
           <div style={{ fontSize:34, fontWeight:800, color:'#fff', letterSpacing:'-0.04em', lineHeight:1.1 }}>Ready to go, Sofia.</div>
         </div>
-        <div style={{ ...wave(0.06) }}>
-          <p style={{ fontSize:16, color:'rgba(255,255,255,0.4)', marginBottom:44 }}>
-            No more "Am I missing something?"
-          </p>
-        </div>
-        <div style={{ ...wave(0.12) }}>
+        <div style={{ ...wave(0.08) }}>
           {OB_STATS.map((s, i) => (
             <div key={i} style={{ display:'flex', alignItems:'baseline', gap:18, padding:'14px 0', borderBottom: i < OB_STATS.length - 1 ? '1px solid rgba(255,255,255,0.07)' : 'none' }}>
               <div style={{ fontSize:30, fontWeight:700, color:'#fff', letterSpacing:'-0.04em', minWidth:48 }}>{s.n}</div>
@@ -1459,20 +1468,24 @@ function ObResultsV2b({ onNext }) {
 
       <div style={{ padding:'0 28px 90px', position:'relative', zIndex:1 }}>
         {/* Chat extract teaser */}
-        <div className="fade-up" style={{ marginTop:28, padding:'14px 16px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:16, ...wave(0.18) }}>
+        <div style={{ fontSize:13, color:'rgba(255,255,255,0.35)', marginBottom:10, letterSpacing:'-0.01em', ...wave(0.14) }}>
+          Someone's already interested in your coaching:
+        </div>
+        <div className="fade-up" style={{ padding:'14px 16px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:16, marginBottom:16, ...wave(0.18) }}>
           <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
             <img src="https://i.pravatar.cc/88?u=jayrunz" alt="" style={{ width:24, height:24, borderRadius:12, objectFit:'cover' }} />
             <span style={{ fontSize:12, color:'rgba(255,255,255,0.4)', fontWeight:500 }}>@jayrunz</span>
           </div>
-          <div style={{ fontSize:13, color:'rgba(255,255,255,0.55)', lineHeight:1.5, marginBottom:10, fontStyle:'italic' }}>
+          <div style={{ fontSize:13, color:'rgba(255,255,255,0.55)', lineHeight:1.5, fontStyle:'italic' }}>
             "I've been struggling for 2 years. Is it too late to start?"
           </div>
-          <div style={{ fontSize:13, color:'rgba(255,255,255,0.8)', fontWeight:500 }}>
-            I already have a reply for that →
-          </div>
         </div>
-        <button onClick={handleCTA} style={{ width:'100%', marginTop:16, padding:'16px', background:'transparent', color:'rgba(255,255,255,0.8)', border:'1.5px solid rgba(255,255,255,0.18)', borderRadius:50, fontSize:16, fontWeight:500, cursor:'pointer', letterSpacing:'-0.01em' }}>
-          Let's go
+
+        <button onClick={handleReply} style={{ width:'100%', padding:'16px', background:'#fff', color:'#0F0F0F', border:'none', borderRadius:50, fontSize:16, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em', marginBottom:10 }}>
+          Reply now
+        </button>
+        <button onClick={handleInbox} style={{ width:'100%', padding:'16px', background:'transparent', color:'rgba(255,255,255,0.5)', border:'1.5px solid rgba(255,255,255,0.12)', borderRadius:50, fontSize:15, fontWeight:500, cursor:'pointer', letterSpacing:'-0.01em' }}>
+          Open inbox
         </button>
       </div>
     </div>
@@ -1484,6 +1497,10 @@ function ObResultsV2b({ onNext }) {
 function App() {
   const [screen, setScreen] = useState(window.location.hash === '#inbox' ? 'main' : 'ob-welcome');
   const [hideNav, setHideNav] = useState(false);
+  const [openChatOnLoad, setOpenChatOnLoad] = useState(null); // item to auto-open after onboarding
+
+  // Find jayrunz item for "Reply now"
+  const jayrunzItem = IMPORTANT_GROUPS[0].items[0];
 
   return (
     <div style={{ width:'100%', height:'100%', position:'relative', overflow:'hidden' }}>
@@ -1491,10 +1508,13 @@ function App() {
       {/* ─── Onboarding (3-screen flow: welcome → loading → results) ─── */}
       {screen === 'ob-welcome' && <ObWelcomeV2b onNext={() => setScreen('ob-loading')} />}
       {screen === 'ob-loading' && <ObSorting onNext={() => setScreen('ob-results')} />}
-      {screen === 'ob-results' && <ObResultsV2b onNext={() => setScreen('main')} />}
+      {screen === 'ob-results' && <ObResultsV2b
+        onReplyNow={() => { setOpenChatOnLoad(jayrunzItem); setScreen('main'); }}
+        onOpenInbox={() => setScreen('main')}
+      />}
 
       {/* ─── Inbox ─── */}
-      {screen === 'main' && <InboxV2 onOverlayChange={(open) => setHideNav(open)} />}
+      {screen === 'main' && <InboxV2 onOverlayChange={(open) => setHideNav(open)} openChatOnLoad={openChatOnLoad} />}
 
       {/* Bottom Nav — visible on welcome + main inbox, hidden on loading/results/overlays */}
       {(screen === 'ob-welcome' || (screen === 'main' && !hideNav)) && <BottomNav />}
