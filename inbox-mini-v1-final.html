@@ -91,34 +91,34 @@ const IMPORTANT_GROUPS = [
     intention: 'Interested in your 12-week course',
     desc: 'Asked about pricing, signing up, or your program.',
     items: [
-      { user:'@jayrunz', name:'Jay Ruiz', avatar:'https://i.pravatar.cc/88?u=jayrunz', msg:"I've been struggling for 2 years. Is it too late to start?", source:'DM', time:'2h', unread:3, draft:"It's never too late — 2 years tells me you're serious. Want to see what week 1 looks like?", reason:"They're interested but hesitant — I went with encouragement and a clear next step", agentRead:'Ready to sign up · Reply drafted' },
-      { user:'@emma.k', name:'Emma Kim', avatar:'https://i.pravatar.cc/88?u=emmak', msg:"I want to sign up but nervous about the cost", source:'DM', time:'4h', unread:2, draft:"Totally understand — I have a payment plan that breaks it into manageable chunks. Want details?", reason:"They're worried about price, so I'd mention your payment plan", agentRead:'Interested, hesitant about cost · Reply drafted' },
+      { user:'@jayrunz', name:'Jay Ruiz', avatar:'https://i.pravatar.cc/88?u=jayrunz', msg:"I've been struggling for 2 years. Is it too late to start?", source:'DM', time:'2h', unread:3, intent:'Interested', draft:"It's never too late — 2 years tells me you're serious. Want to see what week 1 looks like?", reason:"They're interested but hesitant — I went with encouragement and a clear next step", agentRead:'Ready to sign up · Reply drafted' },
+      { user:'@emma.k', name:'Emma Kim', avatar:'https://i.pravatar.cc/88?u=emmak', msg:"I want to sign up but nervous about the cost", source:'DM', time:'4h', unread:2, intent:'Interested', draft:"Totally understand — I have a payment plan that breaks it into manageable chunks. Want details?", reason:"They're worried about price, so I'd mention your payment plan", agentRead:'Interested, hesitant about cost · Reply drafted' },
     ],
   },
   {
     intention: 'Want to collaborate',
     desc: 'Brands and media reaching out.',
     items: [
-      { user:'@fitbrand.co', name:'FitBrand', avatar:'https://i.pravatar.cc/88?u=fitbrand', msg:"Would love to explore a partnership. We have 200k followers", source:'DM', time:'6h', unread:1, draft:"Thanks for reaching out! I'd love to hear more about what you have in mind. Can you send over some details?", reason:"A brand in your space wants to collaborate — could be a good fit", agentRead:'Partnership request · Reply drafted' },
-      { user:'@wellness.mag', name:'Wellness Magazine', avatar:'https://i.pravatar.cc/88?u=wellnessmag', msg:"We'd like to feature you in our next issue", source:'DM', time:'1d', draft:"That sounds amazing! I'd be honored. What do you need from me to get started?", reason:"A magazine wants to feature you — great exposure", agentRead:'Media feature request · Reply drafted' },
+      { user:'@fitbrand.co', name:'FitBrand', avatar:'https://i.pravatar.cc/88?u=fitbrand', msg:"Would love to explore a partnership. We have 200k followers", source:'DM', time:'6h', unread:1, intent:'Collab', draft:"Thanks for reaching out! I'd love to hear more about what you have in mind. Can you send over some details?", reason:"A brand in your space wants to collaborate — could be a good fit", agentRead:'Partnership request · Reply drafted' },
+      { user:'@wellness.mag', name:'Wellness Magazine', avatar:'https://i.pravatar.cc/88?u=wellnessmag', msg:"We'd like to feature you in our next issue", source:'DM', time:'1d', intent:'Collab', draft:"That sounds amazing! I'd be honored. What do you need from me to get started?", reason:"A magazine wants to feature you — great exposure", agentRead:'Media feature request · Reply drafted' },
     ],
   },
   {
     intention: 'Questions about your services',
     desc: 'Pricing, shipping, and scheduling.',
     items: [
-      { user:'@mike.coach', name:'Mike Chen', avatar:'https://i.pravatar.cc/88?u=mikecoach', msg:"What's included in the premium program?", source:'DM', time:'3h', draft:"Great question! The premium includes 12 weeks of coaching, weekly check-ins, and a custom meal plan.", reason:"Direct question about your product — I pulled from what you shared with me", agentRead:'Product question · Reply drafted' },
-      { user:'@carlos.m', name:'Carlos Mendez', avatar:'https://i.pravatar.cc/88?u=carlosm', msg:"Do you ship internationally?", source:'DM', time:'2h', draft:"Yes! We ship worldwide. Shipping times vary by region — usually 5-7 business days. Want me to check rates for your location?", reason:"Direct shipping question — I gave a clear answer with a next step", agentRead:'Shipping question · Reply drafted' },
-      { user:'@alex.j', name:'Alex Jordan', avatar:'https://i.pravatar.cc/88?u=alexj', msg:"Is there a refund policy?", source:'DM', time:'5h', draft:"Yes, there's a 7-day money-back guarantee. No questions asked. Want me to send the full details?", reason:"Policy question — I gave the key info and offered more detail", agentRead:'Refund policy question · Reply drafted' },
-      { user:'@maria.v', name:'María Vargas', avatar:'https://i.pravatar.cc/88?u=mariav', msg:"Can I reschedule my session to next week?", source:'DM', time:'3h', draft:"Of course! Let me know what day works best for you next week and I'll get it moved.", reason:"Scheduling request — I kept it simple and friendly", agentRead:'Scheduling request · Reply drafted' },
+      { user:'@mike.coach', name:'Mike Chen', avatar:'https://i.pravatar.cc/88?u=mikecoach', msg:"What's included in the premium program?", source:'DM', time:'3h', intent:'FAQ', draft:"Great question! The premium includes 12 weeks of coaching, weekly check-ins, and a custom meal plan.", reason:"Direct question about your product — I pulled from what you shared with me", agentRead:'Product question · Reply drafted' },
+      { user:'@carlos.m', name:'Carlos Mendez', avatar:'https://i.pravatar.cc/88?u=carlosm', msg:"Do you ship internationally?", source:'DM', time:'2h', intent:'FAQ', draft:"Yes! We ship worldwide. Shipping times vary by region — usually 5-7 business days. Want me to check rates for your location?", reason:"Direct shipping question — I gave a clear answer with a next step", agentRead:'Shipping question · Reply drafted' },
+      { user:'@alex.j', name:'Alex Jordan', avatar:'https://i.pravatar.cc/88?u=alexj', msg:"Is there a refund policy?", source:'DM', time:'5h', intent:'FAQ', draft:"Yes, there's a 7-day money-back guarantee. No questions asked. Want me to send the full details?", reason:"Policy question — I gave the key info and offered more detail", agentRead:'Refund policy question · Reply drafted' },
+      { user:'@maria.v', name:'María Vargas', avatar:'https://i.pravatar.cc/88?u=mariav', msg:"Can I reschedule my session to next week?", source:'DM', time:'3h', intent:'FAQ', draft:"Of course! Let me know what day works best for you next week and I'll get it moved.", reason:"Scheduling request — I kept it simple and friendly", agentRead:'Scheduling request · Reply drafted' },
     ],
   },
   {
     intention: 'Shared something personal',
     desc: 'I read these and decided not to write anything. They\'re too personal for a drafted reply — they need your voice, not mine.',
     items: [
-      { user:'@lena.fit', name:'Lena Müller', avatar:'https://i.pravatar.cc/88?u=lenafit', msg:"You seem real. I've tried everything. I'm scared to spend more money.", source:'DM', time:'1h', _sensitive:true, summary:"She's been trying different programs without success. Emotionally vulnerable — needs a personal, empathetic response. Not a sales moment.", agentRead:'Needs your personal reply' },
-      { user:'@ana.healing', name:'Ana Reyes', avatar:'https://i.pravatar.cc/88?u=anahealing', msg:"I'm going through a really hard time and need something to focus on", source:'DM', time:'5h', _sensitive:true, summary:"Going through personal difficulties and looking for structure. Handle with care — acknowledge their situation before suggesting anything.", agentRead:'Needs your personal reply' },
+      { user:'@lena.fit', name:'Lena Müller', avatar:'https://i.pravatar.cc/88?u=lenafit', msg:"You seem real. I've tried everything. I'm scared to spend more money.", source:'DM', time:'1h', intent:'Emotional', _sensitive:true, summary:"She's been trying different programs without success. Emotionally vulnerable — needs a personal, empathetic response. Not a sales moment.", agentRead:'Needs your personal reply' },
+      { user:'@ana.healing', name:'Ana Reyes', avatar:'https://i.pravatar.cc/88?u=anahealing', msg:"I'm going through a really hard time and need something to focus on", source:'DM', time:'5h', intent:'Emotional', _sensitive:true, summary:"Going through personal difficulties and looking for structure. Handle with care — acknowledge their situation before suggesting anything.", agentRead:'Needs your personal reply' },
     ],
   },
 ];
@@ -676,6 +676,16 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
   const originalDraft = item.draft || '';
   const chatBodyRef = useRef(null);
 
+  // Intent label + context menu
+  const [intentLabel, setIntentLabel] = useState(item.intent || null);
+  const [intentMenu, setIntentMenu] = useState(false); // false | 'main' | 'change' | 'why'
+  const allIntents = ['Interested', 'FAQ', 'Collab', 'Emotional', 'Spam', 'Other'];
+
+  const intentColors = {
+    'Interested':'#E85D04', 'FAQ':'#0369A1', 'Collab':'#7C3AED',
+    'Emotional':'#DC2626', 'Spam':'#999', 'Other':'#666',
+  };
+
   const triggerToast = (msg) => {
     setToastMsg(msg);
     setShowToast(true);
@@ -764,9 +774,8 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
 
   return (
     <div className="fade-up" onClick={(e) => e.stopPropagation()} style={{ position:'absolute', inset:0, zIndex:100, background:T.paper, display:'flex', flexDirection:'column' }}>
-      {/* gradient celebration removed */}
       {/* Header */}
-      <div style={{ padding:'52px 20px 14px', display:'flex', alignItems:'center', borderBottom:`1px solid ${T.lightGray}`, flexShrink:0 }}>
+      <div style={{ padding:'52px 20px 14px', display:'flex', alignItems:'center', justifyContent:'space-between', borderBottom:`1px solid ${T.lightGray}`, flexShrink:0 }}>
         <div style={{ display:'flex', alignItems:'center', gap:12 }}>
           <div onClick={(e) => { e.stopPropagation(); onClose(); }} style={{ cursor:'pointer', fontSize:20, color:T.ink, fontWeight:300, padding:'8px 12px', margin:'-8px -12px' }}>←</div>
           {item.avatar && <img src={item.avatar} alt="" style={{ width:36, height:36, borderRadius:18, objectFit:'cover', background:T.lightGray }} />}
@@ -775,6 +784,65 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
             <div style={{ fontSize:11, color:T.gray }}>{item.user}</div>
           </div>
         </div>
+
+        {/* Intent label */}
+        {intentLabel && (
+          <div style={{ position:'relative' }}>
+            <div onClick={(e) => { e.stopPropagation(); setIntentMenu(intentMenu ? false : 'main'); }}
+              style={{ fontSize:11, fontWeight:500, color: intentColors[intentLabel] || '#666', background:(intentColors[intentLabel] || '#666') + '14', padding:'5px 12px', borderRadius:8, cursor:'pointer', userSelect:'none', letterSpacing:'-0.01em' }}>
+              {intentLabel}
+            </div>
+
+            {/* Context menu */}
+            {intentMenu === 'main' && (
+              <div className="fade-in" onClick={e => e.stopPropagation()} style={{ position:'absolute', right:0, top:'100%', marginTop:6, background:'#0F0F0F', borderRadius:14, boxShadow:'0 8px 32px rgba(0,0,0,0.25)', zIndex:20, minWidth:200, overflow:'hidden' }}>
+                <div onClick={() => setIntentMenu('why')}
+                  style={{ padding:'13px 16px', fontSize:13, color:'#ff6b6b', cursor:'pointer', borderBottom:'1px solid rgba(255,255,255,0.06)', fontWeight:500 }}>
+                  It's not {intentLabel.toLowerCase()}
+                </div>
+                <div onClick={() => setIntentMenu('change')}
+                  style={{ padding:'13px 16px', fontSize:13, color:'rgba(255,255,255,0.7)', cursor:'pointer', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
+                  Change intent
+                </div>
+                <div onClick={() => setIntentMenu(false)}
+                  style={{ padding:'13px 16px', fontSize:13, color:'rgba(255,255,255,0.35)', cursor:'pointer' }}>
+                  Cancel
+                </div>
+              </div>
+            )}
+
+            {/* Why it's wrong */}
+            {intentMenu === 'why' && (
+              <div className="fade-in" onClick={e => e.stopPropagation()} style={{ position:'absolute', right:0, top:'100%', marginTop:6, background:'#0F0F0F', borderRadius:14, boxShadow:'0 8px 32px rgba(0,0,0,0.25)', zIndex:20, minWidth:210, overflow:'hidden' }}>
+                <div style={{ padding:'12px 16px', fontSize:11, color:'rgba(255,255,255,0.35)', fontWeight:500, borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
+                  Why isn't this {intentLabel.toLowerCase()}?
+                </div>
+                {['Just browsing', 'Wrong topic', 'Spam or bot', 'It\'s something else'].map(reason => (
+                  <div key={reason} onClick={() => { triggerToast('Got it — I\'ll learn from this.'); setIntentLabel(null); setIntentMenu(false); }}
+                    style={{ padding:'13px 16px', fontSize:13, color:'rgba(255,255,255,0.7)', cursor:'pointer', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
+                    {reason}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Change intent */}
+            {intentMenu === 'change' && (
+              <div className="fade-in" onClick={e => e.stopPropagation()} style={{ position:'absolute', right:0, top:'100%', marginTop:6, background:'#0F0F0F', borderRadius:14, boxShadow:'0 8px 32px rgba(0,0,0,0.25)', zIndex:20, minWidth:180, overflow:'hidden' }}>
+                <div style={{ padding:'12px 16px', fontSize:11, color:'rgba(255,255,255,0.35)', fontWeight:500, borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
+                  Change to:
+                </div>
+                {allIntents.filter(i => i !== intentLabel).map(intent => (
+                  <div key={intent} onClick={() => { setIntentLabel(intent); setIntentMenu(false); triggerToast('Updated to ' + intent); }}
+                    style={{ padding:'13px 16px', fontSize:13, color:'rgba(255,255,255,0.7)', cursor:'pointer', borderBottom:'1px solid rgba(255,255,255,0.06)', display:'flex', alignItems:'center', gap:8 }}>
+                    <span style={{ width:8, height:8, borderRadius:4, background: intentColors[intent] || '#666', flexShrink:0 }} />
+                    {intent}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Chat body — always scrollable, never covered */}
