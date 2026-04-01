@@ -993,24 +993,10 @@ function IntentionHeader({ label, count, desc }) {
 
 /* ─── Important Tab ─── */
 function ImportantTab({ onOpenChat, answeredChats, priorityFeedbackDone, onFeedbackGood, onFeedbackBad }) {
-  const [feedbackMode, setFeedbackMode] = useState('thumbs'); // thumbs | reasons | done
-  const [customText, setCustomText] = useState('');
-
   // Collect all answered items across all groups into one flat list
   const allAnswered = IMPORTANT_GROUPS.flatMap(g =>
     g.items.filter(item => answeredChats.has(item.user)).map(item => ({ ...item, _sensitive: !!item._sensitive }))
   );
-
-  const handleReasonPick = (reason) => {
-    setFeedbackMode('done');
-    onFeedbackGood();
-  };
-
-  const handleCustomSubmit = () => {
-    if (!customText.trim()) return;
-    setFeedbackMode('done');
-    onFeedbackGood();
-  };
 
   return (
     <div>
@@ -1035,17 +1021,17 @@ function ImportantTab({ onOpenChat, answeredChats, priorityFeedbackDone, onFeedb
       })}
 
       {/* Prioritization feedback — thumbs */}
-      {!priorityFeedbackDone && feedbackMode === 'thumbs' && (
+      {!priorityFeedbackDone && (
         <div style={{ padding:'20px 0 16px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
           <span style={{ fontSize:13, color:T.gray, letterSpacing:'-0.01em' }}>I focused on your leads and course questions. Sound right?</span>
           <div style={{ display:'flex', gap:4 }}>
-            <div onClick={() => { setFeedbackMode('done'); onFeedbackGood(); }}
+            <div onClick={onFeedbackGood}
               style={{ width:32, height:32, borderRadius:16, border:`1px solid ${T.lightGray}`, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'all .15s ease' }}
               onMouseEnter={e => { e.currentTarget.style.background = '#F0F5EC'; e.currentTarget.style.borderColor = '#3D7A3D'; }}
               onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = T.lightGray; }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
             </div>
-            <div onClick={() => setFeedbackMode('reasons')}
+            <div onClick={onFeedbackBad}
               style={{ width:32, height:32, borderRadius:16, border:`1px solid ${T.lightGray}`, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'all .15s ease' }}
               onMouseEnter={e => { e.currentTarget.style.background = '#FFF0F0'; e.currentTarget.style.borderColor = '#E53935'; }}
               onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = T.lightGray; }}>
@@ -1055,42 +1041,8 @@ function ImportantTab({ onOpenChat, answeredChats, priorityFeedbackDone, onFeedb
         </div>
       )}
 
-      {/* Feedback reasons — inline expansion */}
-      {!priorityFeedbackDone && feedbackMode === 'reasons' && (
-        <div className="fade-up" style={{ padding:'16px 0 16px' }}>
-          <div style={{ fontSize:13, color:T.ink, fontWeight:500, marginBottom:10, letterSpacing:'-0.01em' }}>What feels off?</div>
-          <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-            {[
-              'Some of these aren\'t important to me',
-              'Missing messages I care about',
-              'Groups don\'t match how I think',
-              'Too many categories',
-              'The order feels wrong',
-            ].map(reason => (
-              <div key={reason} onClick={() => handleReasonPick(reason)}
-                style={{ padding:'11px 14px', background:T.warmGray, borderRadius:10, cursor:'pointer', fontSize:13, color:T.ink, letterSpacing:'-0.01em', transition:'background .15s ease' }}
-                onMouseEnter={e => e.currentTarget.style.background = T.lightGray}
-                onMouseLeave={e => e.currentTarget.style.background = T.warmGray}>
-                {reason}
-              </div>
-            ))}
-          </div>
-          <div style={{ display:'flex', gap:8, marginTop:10, alignItems:'center' }}>
-            <input value={customText} onChange={e => setCustomText(e.target.value)}
-              placeholder="Something else..."
-              onKeyDown={e => { if (e.key === 'Enter') handleCustomSubmit(); }}
-              style={{ flex:1, padding:'11px 14px', background:T.warmGray, borderRadius:10, border:'none', outline:'none', fontSize:13, color:T.ink, fontFamily:'Inter, system-ui, sans-serif', letterSpacing:'-0.01em' }} />
-            {customText.trim() && (
-              <div onClick={handleCustomSubmit}
-                style={{ width:32, height:32, borderRadius:16, background:T.ink, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0 }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
 
-      {(priorityFeedbackDone || feedbackMode === 'done') && (
+      {priorityFeedbackDone && (
         <div className="fade-in" style={{ padding:'20px 0 16px', textAlign:'center' }}>
           <span style={{ fontSize:12, color:T.gray }}>Thanks — I'll keep learning from how you use your inbox.</span>
         </div>
@@ -1248,8 +1200,22 @@ function InboxV2({ onOverlayChange, openChatOnLoad }) {
     lastScrollTop.current = st;
   };
 
+  const [showFeedbackSheet, setShowFeedbackSheet] = useState(false);
+  const [feedbackCustomText, setFeedbackCustomText] = useState('');
+
   const handleOpenChat = (item, label, labelColor, isSensitive) => {
     setOpenChat({ item, label, labelColor, isSensitive });
+  };
+
+  const handleFeedbackReason = (reason) => {
+    setShowFeedbackSheet(false);
+    setPriorityFeedbackDone(true);
+  };
+
+  const handleFeedbackCustom = () => {
+    if (!feedbackCustomText.trim()) return;
+    setShowFeedbackSheet(false);
+    setPriorityFeedbackDone(true);
   };
 
   const counts = {
@@ -1281,7 +1247,7 @@ function InboxV2({ onOverlayChange, openChatOnLoad }) {
         <ImportantTab onOpenChat={handleOpenChat} answeredChats={answeredChats}
           priorityFeedbackDone={priorityFeedbackDone}
           onFeedbackGood={() => setPriorityFeedbackDone(true)}
-          onFeedbackBad={() => setShowPriorities(true)} />
+          onFeedbackBad={() => setShowFeedbackSheet(true)} />
       </div>
 
       {/* ═══ Floating agent pill — fixed width, ellipsis ═══ */}
@@ -1303,6 +1269,51 @@ function InboxV2({ onOverlayChange, openChatOnLoad }) {
 
       {/* ═══ Expanded agent screen ═══ */}
       {summaryOpen && <AgentExpandedScreen onDismiss={() => setSummaryOpen(false)} />}
+
+      {/* ═══ Feedback bottom sheet ═══ */}
+      {showFeedbackSheet && (
+        <div style={{ position:'absolute', inset:0, zIndex:80 }}>
+          {/* Dim backdrop */}
+          <div onClick={() => setShowFeedbackSheet(false)} style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.25)' }} />
+          {/* Sheet */}
+          <div className="sheet-up" style={{
+            position:'absolute', bottom:0, left:0, right:0,
+            background:'#0F0F0F', borderRadius:'22px 22px 0 0',
+            padding:'10px 22px 48px',
+          }}>
+            <div style={{ width:36, height:4, background:'rgba(255,255,255,0.14)', borderRadius:2, margin:'0 auto 20px' }} />
+            <div style={{ fontSize:15, fontWeight:500, color:'#fff', marginBottom:14, letterSpacing:'-0.01em' }}>What feels off?</div>
+            <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+              {[
+                'Some of these aren\'t important to me',
+                'Missing messages I care about',
+                'Groups don\'t match how I think',
+                'Too many categories',
+                'The order feels wrong',
+              ].map(reason => (
+                <div key={reason} onClick={() => handleFeedbackReason(reason)}
+                  style={{ padding:'13px 16px', background:'rgba(255,255,255,0.06)', borderRadius:12, cursor:'pointer', fontSize:14, color:'rgba(255,255,255,0.8)', letterSpacing:'-0.01em', transition:'background .15s ease', border:'1px solid rgba(255,255,255,0.06)' }}>
+                  {reason}
+                </div>
+              ))}
+            </div>
+            <div style={{ display:'flex', gap:8, marginTop:12, alignItems:'center' }}>
+              <div style={{ flex:1, padding:'13px 16px', background:'rgba(255,255,255,0.06)', borderRadius:12, border:'1px solid rgba(255,255,255,0.06)' }}>
+                <input value={feedbackCustomText} onChange={e => setFeedbackCustomText(e.target.value)}
+                  placeholder="Something else..."
+                  onKeyDown={e => { if (e.key === 'Enter') handleFeedbackCustom(); }}
+                  style={{ border:'none', outline:'none', fontSize:14, color:'#fff', width:'100%', background:'transparent', fontFamily:'Inter, system-ui, sans-serif', letterSpacing:'-0.01em' }} />
+              </div>
+              {feedbackCustomText.trim() && (
+                <div onClick={handleFeedbackCustom}
+                  style={{ width:36, height:36, borderRadius:18, background:'#fff', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0F0F0F" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Chat Detail Overlay */}
       {openChat && (
