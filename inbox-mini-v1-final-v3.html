@@ -16,6 +16,8 @@
 
   /* Animations */
   @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes slideFromLeft { from { opacity:0; transform:translateX(-16px); } to { opacity:1; transform:translateX(0); } }
+  @keyframes slideFromRight { from { opacity:0; transform:translateX(16px); } to { opacity:1; transform:translateX(0); } }
   @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
   @keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
   @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.3; } }
@@ -1353,7 +1355,12 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
           const isOutgoing = m.from === 'you' || m.from === 'automation';
           const isAutomation = m.from === 'automation';
           return (
-            <div key={i} style={{ marginBottom:16, display:'flex', flexDirection:'column', alignItems: isOutgoing ? 'flex-end' : 'flex-start' }}>
+            <div key={i} style={{
+              marginBottom:16, display:'flex', flexDirection:'column',
+              alignItems: isOutgoing ? 'flex-end' : 'flex-start',
+              opacity:0,
+              animation: `${isOutgoing ? 'slideFromRight' : 'slideFromLeft'} .4s cubic-bezier(.25,.46,.45,.94) ${i * 0.12}s forwards`,
+            }}>
               {m.from === 'them' && (
                 <div style={{ maxWidth:'75%', padding:'8px 12px', borderRadius:12, background:'#F5F5F5' }}>
                   <div style={{ fontSize:16, lineHeight:1.5, color:'#292929' }}>{m.text}</div>
