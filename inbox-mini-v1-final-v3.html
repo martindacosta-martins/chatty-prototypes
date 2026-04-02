@@ -18,6 +18,9 @@
   @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
   @keyframes slideFromLeft { from { opacity:0; transform:translateX(-16px); } to { opacity:1; transform:translateX(0); } }
   @keyframes slideFromRight { from { opacity:0; transform:translateX(16px); } to { opacity:1; transform:translateX(0); } }
+  @keyframes screenSlideIn { from { transform:translateX(100%); } to { transform:translateX(0); } }
+  @keyframes screenSlideOut { from { transform:translateX(0); } to { transform:translateX(100%); } }
+  .screen-slide-in { animation: screenSlideIn .35s cubic-bezier(.32,.72,.35,1) both; }
   @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
   @keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
   @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.3; } }
@@ -1036,9 +1039,14 @@ function AgentWhyReply({ reason }) {
   );
 }
 
-/* ─── Agent Sheet — conversational bottom panel with streaming text ─── */
+/* ─── Agent Sheet — bottom sheet matching Figma design ─── */
 function AgentSheet({ item, onSend, onEdit, onSkip }) {
   const [phase, setPhase] = useState('thinking');
+  const [showStyleReason, setShowStyleReason] = useState(false);
+  const [dragY, setDragY] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
+  const dragStartY = useRef(0);
 
   const questions = ['Should I send it?','Want me to send this?','Ready to send?','Should I go ahead?','Does this work?','Good to send?'];
   const [question] = useState(() => questions[Math.floor(Math.random() * questions.length)]);
@@ -1048,26 +1056,128 @@ function AgentSheet({ item, onSend, onEdit, onSkip }) {
     return () => clearTimeout(timer);
   }, []);
 
-  return (
-    <AgentSheetShell onDismiss={onSkip}>
-      {phase === 'thinking' && <AgentThinking />}
+  const handleTouchStart = (e) => {
+    dragStartY.current = e.touches[0].clientY;
+    setDragging(true);
+  };
+  const handleMouseDown = (e) => {
+    dragStartY.current = e.clientY;
+    setDragging(true);
+  };
+  const handleMove = (clientY) => {
+    if (!dragging) return;
+    const delta = clientY - dragStartY.current;
+    if (delta > 0) setDragY(delta);
+  };
+  const handleEnd = () => {
+    setDragging(false);
+    if (dragY > 120) {
+      setDismissed(true);
+      setTimeout(onSkip, 300);
+    } else {
+      setDragY(0);
+    }
+  };
 
+  useEffect(() => {
+    if (!dragging) return;
+    const onTouchMove = (e) => handleMove(e.touches[0].clientY);
+    const onMouseMove = (e) => handleMove(e.clientY);
+    const onEnd = () => handleEnd();
+    window.addEventListener('touchmove', onTouchMove, { passive:true });
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('touchend', onEnd);
+    window.addEventListener('mouseup', onEnd);
+    return () => {
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('touchend', onEnd);
+      window.removeEventListener('mouseup', onEnd);
+    };
+  }, [dragging, dragY]);
+
+  return (
+    <div className="sheet-up"
+      onTouchStart={handleTouchStart} onMouseDown={handleMouseDown}
+      style={{
+      position:'absolute', bottom:0, left:0, right:0, zIndex:10,
+      background:'#000', borderRadius:24,
+      transform: `translateY(${dismissed ? '100%' : dragY + 'px'})`,
+      transition: dragging ? 'none' : 'transform .3s cubic-bezier(.32,.72,.35,1)',
+      opacity: dismissed ? 0 : 1,
+      padding:'16px 24px 54px',
+      boxShadow:'0 0 20px rgba(0,0,0,0.25)',
+      cursor: dragging ? 'grabbing' : 'grab',
+      maxHeight:'80%', display:'flex', flexDirection:'column', gap:16, transition:'height .3s ease',
+    }}>
+
+      {/* Thinking state */}
+      {phase === 'thinking' && (
+        <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <div style={{ animation:'pulse 1.2s ease infinite', fontSize:16, color:'rgba(255,255,255,0.45)' }}>Thinking...</div>
+        </div>
+      )}
+
+      {/* Ready */}
       {phase === 'ready' && (
         <>
           <div className="fade-in" style={{ display:'flex', flexDirection:'column', gap:16 }}>
+            {/* Reason — white, 16px */}
             <div style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.5 }}>
               {item.context || ''}
             </div>
-            <AgentDraftCard text={item.draft} />
-            <AgentWhyReply reason={item.styleReason} />
+
+            {/* Draft — dark card with border */}
+            <div style={{
+              padding:16, borderRadius:12,
+              background:'#151515', border:'1px solid #292929',
+            }}>
+              <div style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.5 }}>
+                {item.draft}
+              </div>
+            </div>
+
+            {/* Why this reply */}
+            {item.styleReason && (
+              <div>
+                {!showStyleReason && (
+                  <div onClick={() => setShowStyleReason(true)}
+                    style={{ fontSize:12, color:'#707070', cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
+                    Why this reply <span style={{ fontSize:10 }}>&#8964;</span>
+                  </div>
+                )}
+                {showStyleReason && (
+                  <div className="fade-in" style={{ fontSize:14, color:'#707070', lineHeight:1.5 }}>
+                    {item.styleReason}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Question */}
             <div style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.5 }}>
               {question}
             </div>
           </div>
-          <AgentButtons onSend={onSend} onEdit={onEdit} onSkip={onSkip} />
+
+          {/* Buttons */}
+          <div style={{ display:'flex', gap:8, alignItems:'center', flexShrink:0 }}>
+            <button onClick={onSend}
+              style={{ flex:1, padding:'13px 0', background:'#fff', color:'#0F0F0F', border:'none', borderRadius:50, fontSize:14, fontWeight:700, cursor:'pointer', letterSpacing:'-0.01em' }}>
+              Yes, send
+            </button>
+            <button onClick={onEdit}
+              style={{ flex:1, padding:'13px 0', background:'transparent', border:'1.5px solid rgba(255,255,255,0.18)', borderRadius:50, fontSize:14, fontWeight:500, cursor:'pointer', color:'rgba(255,255,255,0.8)', letterSpacing:'-0.01em' }}>
+              Let me edit
+            </button>
+            <button onClick={onSkip}
+              style={{ padding:'13px 10px', background:'transparent', border:'none', fontSize:13, fontWeight:500, cursor:'pointer', color:'rgba(255,255,255,0.35)', flexShrink:0, whiteSpace:'nowrap' }}>
+              I'll write
+            </button>
+          </div>
         </>
       )}
-    </AgentSheetShell>
+    </div>
   );
 }
 
@@ -1272,7 +1382,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
   ];
 
   return (
-    <div className="fade-up" onClick={(e) => e.stopPropagation()} style={{ position:'absolute', inset:0, zIndex:100, background:T.paper, display:'flex', flexDirection:'column' }}>
+    <div className="screen-slide-in" onClick={(e) => e.stopPropagation()} style={{ position:'absolute', inset:0, zIndex:100, background:T.paper, display:'flex', flexDirection:'column' }}>
       {/* Header */}
       <div style={{ padding:'52px 20px 14px', display:'flex', alignItems:'center', justifyContent:'space-between', borderBottom:`1px solid ${T.lightGray}`, flexShrink:0 }}>
         <div style={{ display:'flex', alignItems:'center', gap:12 }}>

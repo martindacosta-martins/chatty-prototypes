@@ -18,6 +18,9 @@
   @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
   @keyframes slideFromLeft { from { opacity:0; transform:translateX(-16px); } to { opacity:1; transform:translateX(0); } }
   @keyframes slideFromRight { from { opacity:0; transform:translateX(16px); } to { opacity:1; transform:translateX(0); } }
+  @keyframes screenSlideIn { from { transform:translateX(100%); } to { transform:translateX(0); } }
+  @keyframes screenSlideOut { from { transform:translateX(0); } to { transform:translateX(100%); } }
+  .screen-slide-in { animation: screenSlideIn .35s cubic-bezier(.32,.72,.35,1) both; }
   @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
   @keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
   @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.3; } }
@@ -520,10 +523,14 @@ function MsgRow({ user, name, avatar, msg, time, badge, badgeColor, onClick, has
   );
 }
 
-/* ─── Agent Sheet — conversational bottom panel with streaming text ─── */
+/* ─── Agent Sheet — bottom sheet matching Figma design ─── */
 function AgentSheet({ item, onSend, onEdit, onSkip }) {
   const [phase, setPhase] = useState('thinking');
   const [showStyleReason, setShowStyleReason] = useState(false);
+  const [dragY, setDragY] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
+  const dragStartY = useRef(0);
 
   const questions = ['Should I send it?','Want me to send this?','Ready to send?','Should I go ahead?','Does this work?','Good to send?'];
   const [question] = useState(() => questions[Math.floor(Math.random() * questions.length)]);
@@ -533,12 +540,58 @@ function AgentSheet({ item, onSend, onEdit, onSkip }) {
     return () => clearTimeout(timer);
   }, []);
 
+  const handleTouchStart = (e) => {
+    dragStartY.current = e.touches[0].clientY;
+    setDragging(true);
+  };
+  const handleMouseDown = (e) => {
+    dragStartY.current = e.clientY;
+    setDragging(true);
+  };
+  const handleMove = (clientY) => {
+    if (!dragging) return;
+    const delta = clientY - dragStartY.current;
+    if (delta > 0) setDragY(delta);
+  };
+  const handleEnd = () => {
+    setDragging(false);
+    if (dragY > 120) {
+      setDismissed(true);
+      setTimeout(onSkip, 300);
+    } else {
+      setDragY(0);
+    }
+  };
+
+  useEffect(() => {
+    if (!dragging) return;
+    const onTouchMove = (e) => handleMove(e.touches[0].clientY);
+    const onMouseMove = (e) => handleMove(e.clientY);
+    const onEnd = () => handleEnd();
+    window.addEventListener('touchmove', onTouchMove, { passive:true });
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('touchend', onEnd);
+    window.addEventListener('mouseup', onEnd);
+    return () => {
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('touchend', onEnd);
+      window.removeEventListener('mouseup', onEnd);
+    };
+  }, [dragging, dragY]);
+
   return (
-    <div className="sheet-up" style={{
+    <div className="sheet-up"
+      onTouchStart={handleTouchStart} onMouseDown={handleMouseDown}
+      style={{
       position:'absolute', bottom:0, left:0, right:0, zIndex:10,
       background:'#000', borderRadius:24,
+      transform: `translateY(${dismissed ? '100%' : dragY + 'px'})`,
+      transition: dragging ? 'none' : 'transform .3s cubic-bezier(.32,.72,.35,1)',
+      opacity: dismissed ? 0 : 1,
       padding:'16px 24px 54px',
       boxShadow:'0 0 20px rgba(0,0,0,0.25)',
+      cursor: dragging ? 'grabbing' : 'grab',
       maxHeight:'80%', display:'flex', flexDirection:'column', gap:16, transition:'height .3s ease',
     }}>
 
@@ -816,7 +869,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
   }
 
   return (
-    <div className="fade-up" onClick={(e) => e.stopPropagation()} style={{ position:'absolute', inset:0, zIndex:100, background:T.paper, display:'flex', flexDirection:'column' }}>
+    <div className="screen-slide-in" onClick={(e) => e.stopPropagation()} style={{ position:'absolute', inset:0, zIndex:100, background:T.paper, display:'flex', flexDirection:'column' }}>
       {/* Header */}
       <div style={{ padding:'52px 20px 14px', display:'flex', alignItems:'center', justifyContent:'space-between', borderBottom:`1px solid ${T.lightGray}`, flexShrink:0 }}>
         <div style={{ display:'flex', alignItems:'center', gap:12 }}>
