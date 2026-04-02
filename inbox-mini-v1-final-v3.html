@@ -257,7 +257,7 @@ function ObSorting({ onNext }) {
 
 /* ─── Business question — voice/type → recording → processing → confirmation ─── */
 function ObQuestion({ onNext }) {
-  // Phases: ask | recording | processing | confirm
+  // Phases: ask | recording | processing | confirm | fantastic
   const [phase, setPhase] = useState('ask');
   const [inputMode, setInputMode] = useState('voice'); // voice | typing
   const [inputVal, setInputVal] = useState('');
@@ -287,6 +287,13 @@ function ObQuestion({ onNext }) {
   useEffect(() => {
     if (phase !== 'processing') return;
     const t = setTimeout(() => setPhase('confirm'), 2000);
+    return () => clearTimeout(t);
+  }, [phase]);
+
+  // Fantastic → onNext
+  useEffect(() => {
+    if (phase !== 'fantastic') return;
+    const t = setTimeout(onNext, 1800);
     return () => clearTimeout(t);
   }, [phase]);
 
@@ -407,7 +414,7 @@ function ObQuestion({ onNext }) {
   );
 
   /* ── CONFIRM phase ── */
-  return (
+  if (phase === 'confirm') return (
     <div style={{ background:'#0F0F0F', height:'100%', display:'flex', flexDirection:'column' }}>
       <div style={{ flex:1, display:'flex', flexDirection:'column', padding:'100px 28px 0' }}>
         <div style={{ marginBottom:12, ...cShow(1) }}>
@@ -428,16 +435,7 @@ function ObQuestion({ onNext }) {
       </div>
 
       <div style={{ padding:'0 28px 40px', ...cShow(4) }}>
-        {/* Voice edit option */}
-        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', marginBottom:24 }}>
-          <div onMouseDown={() => setPhase('recording')} onTouchStart={() => setPhase('recording')}
-            style={{ width:56, height:56, borderRadius:28, background:'#fff', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', marginBottom:8 }}>
-            <MicIcon size={20} />
-          </div>
-          <span style={{ fontSize:13, color:'rgba(255,255,255,0.4)' }}>Talk to make changes</span>
-        </div>
-
-        <button onClick={onNext}
+        <button onClick={() => setPhase('fantastic')}
           style={{ width:'100%', padding:'16px', background:'#fff', color:'#0F0F0F', border:'none', borderRadius:50, fontSize:16, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em', marginBottom:10 }}>
           It's good
         </button>
@@ -445,10 +443,20 @@ function ObQuestion({ onNext }) {
           style={{ width:'100%', padding:'16px', background:'transparent', color:'rgba(255,255,255,0.5)', border:'1.5px solid rgba(255,255,255,0.12)', borderRadius:50, fontSize:15, fontWeight:500, cursor:'pointer', letterSpacing:'-0.01em' }}>
           Edit
         </button>
+      </div>
+    </div>
+  );
 
-        <div style={{ textAlign:'center', marginTop:16 }}>
-          <span onClick={handleEdit} style={{ fontSize:14, color:'rgba(255,255,255,0.3)', cursor:'pointer' }}>Or tap to type</span>
-        </div>
+  /* ── FANTASTIC phase ── */
+  return (
+    <div style={{ background:'#0F0F0F', height:'100%', display:'flex', flexDirection:'column', justifyContent:'center', padding:'0 28px' }}>
+      <div className="fade-up">
+        <h1 style={{ fontSize:34, fontWeight:900, color:'#fff', letterSpacing:'-0.04em', lineHeight:1.12, WebkitTextStroke:'0.5px #fff', marginBottom:16 }}>
+          Fantastic.
+        </h1>
+        <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6 }}>
+          Let me continue analyzing your messages with this in mind.
+        </p>
       </div>
     </div>
   );
