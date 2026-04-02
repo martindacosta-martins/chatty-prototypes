@@ -385,7 +385,7 @@ function ObQuestion({ onNext }) {
       {inputMode === 'typing' && (
         <div style={{ padding:'0 28px 40px', ...show(3) }}>
           <textarea value={inputVal} onChange={e => setInputVal(e.target.value)} autoFocus
-            placeholder="Tell me about your business..."
+            placeholder="Describe your business or share your website..."
             style={{ width:'100%', fontSize:16, color:'#fff', lineHeight:1.5, padding:'14px 16px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:16, resize:'none', height:100, fontFamily:'Inter, system-ui, sans-serif', outline:'none', letterSpacing:'-0.01em' }} />
           <div style={{ display:'flex', gap:10, marginTop:12 }}>
             <button onClick={handleTypeSend}
@@ -2013,8 +2013,7 @@ function App() {
       {screen === 'ob-welcome' && <ObWelcomeV2b onNext={() => setScreen('ob-loading')} />}
       {screen === 'ob-loading' && <ObSorting onNext={() => setScreen('ob-question')} />}
       {screen === 'ob-question' && <ObQuestion onNext={() => setScreen('ob-loading2')} />}
-      {screen === 'ob-loading2' && <ObLoading2 onNext={() => setScreen('ob-categories')} />}
-      {screen === 'ob-categories' && <ObCategories onNext={() => setScreen('ob-results')} />}
+      {screen === 'ob-loading2' && <ObLoading2 onNext={() => setScreen('ob-results')} />}
       {screen === 'ob-results' && <ObResultsV2b
         onReplyNow={() => { setOpenChatOnLoad(jayrunzItem); setScreen('main'); }}
         onOpenInbox={() => setScreen('main')}
