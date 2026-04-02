@@ -520,120 +520,91 @@ function MsgRow({ user, name, avatar, msg, time, badge, badgeColor, onClick, has
 
 /* ─── Agent Sheet — conversational bottom panel with streaming text ─── */
 function AgentSheet({ item, onSend, onEdit, onSkip }) {
-  const [phase, setPhase] = useState('skeleton');
+  const [phase, setPhase] = useState('thinking');
   const [showStyleReason, setShowStyleReason] = useState(false);
 
-  const questions = ['Want me to send this?','Ready to send?','Should I go ahead?','Does this work?','Good to send?','Send this one?'];
+  const questions = ['Should I send it?','Want me to send this?','Ready to send?','Should I go ahead?','Does this work?','Good to send?'];
   const [question] = useState(() => questions[Math.floor(Math.random() * questions.length)]);
 
-  const t = { fontSize:15, fontWeight:400, color:'#fff', lineHeight:1.55, letterSpacing:'-0.01em' };
-
-  // Phase: skeleton → context → draft → styleReason → ask → buttons
   useEffect(() => {
-    const t1 = setTimeout(() => setPhase('context'), 500);
-    return () => clearTimeout(t1);
+    const timer = setTimeout(() => setPhase('ready'), 800);
+    return () => clearTimeout(timer);
   }, []);
-  useEffect(() => {
-    if (phase !== 'context') return;
-    const t1 = setTimeout(() => setPhase('draft'), 500);
-    return () => clearTimeout(t1);
-  }, [phase]);
-  useEffect(() => {
-    if (phase !== 'draft') return;
-    const t1 = setTimeout(() => setPhase('ask'), 500);
-    return () => clearTimeout(t1);
-  }, [phase]);
-  useEffect(() => {
-    if (phase !== 'ask') return;
-    const t1 = setTimeout(() => setPhase('buttons'), 350);
-    return () => clearTimeout(t1);
-  }, [phase]);
-
-  const phaseOrder = ['skeleton','context','draft','ask','buttons'];
-  const p = phaseOrder.indexOf(phase);
 
   return (
     <div className="sheet-up" style={{
       position:'absolute', bottom:0, left:0, right:0, zIndex:10,
-      background:'#0F0F0F', borderRadius:'22px 22px 0 0',
-      padding:'10px 22px 40px', boxShadow:'0 -8px 30px rgba(0,0,0,0.2)',
-      height:'55%', display:'flex', flexDirection:'column',
+      background:'#000', borderRadius:24,
+      padding:'16px 24px 54px',
+      boxShadow:'0 0 20px rgba(0,0,0,0.25)',
+      height:'55%', display:'flex', flexDirection:'column', gap:16,
     }}>
-      <div style={{ width:36, height:4, background:'rgba(255,255,255,0.14)', borderRadius:2, margin:'0 auto 16px', flexShrink:0 }} />
 
-      <div style={{ flex:1, overflowY:'auto' }}>
-        {/* Skeleton */}
-        {phase === 'skeleton' && (
-          <div>
-            <div className="skeleton-line" style={{ width:'80%', marginBottom:10 }} />
-            <div className="skeleton-line" style={{ width:'50%', marginBottom:16 }} />
-            <div className="skeleton-line" style={{ width:'100%', height:56, borderRadius:12, marginBottom:14 }} />
-            <div className="skeleton-line" style={{ width:'40%' }} />
-          </div>
-        )}
+      {/* Thinking state */}
+      {phase === 'thinking' && (
+        <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <div style={{ animation:'pulse 1.2s ease infinite', fontSize:16, color:'rgba(255,255,255,0.45)' }}>Thinking...</div>
+        </div>
+      )}
 
-        {/* Context — about the contact/situation, always visible */}
-        {p >= 1 && (
-          <div className="fade-in" style={{ marginBottom:14 }}>
-            <div style={{ ...t, color:'rgba(255,255,255,0.6)' }}>
+      {/* Ready */}
+      {phase === 'ready' && (
+        <>
+          <div className="fade-in" style={{ flex:1, overflowY:'auto', display:'flex', flexDirection:'column', gap:16 }}>
+            {/* Reason — white, 16px */}
+            <div style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.5 }}>
               {item.context || ''}
             </div>
-          </div>
-        )}
 
-        {/* Draft — prominent white card */}
-        {p >= 2 && (
-          <div className="fade-in" style={{
-            marginBottom:12, padding:'14px 16px',
-            background:'rgba(255,255,255,0.95)', borderRadius:14,
-          }}>
-            <div style={{ fontSize:15, fontWeight:400, color:'#0F0F0F', lineHeight:1.55, letterSpacing:'-0.01em' }}>
-              {item.draft}
+            {/* Draft — dark card with border */}
+            <div style={{
+              padding:16, borderRadius:12,
+              background:'#151515', border:'1px solid #292929',
+            }}>
+              <div style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.5 }}>
+                {item.draft}
+              </div>
+            </div>
+
+            {/* Why this reply */}
+            {item.styleReason && (
+              <div>
+                {!showStyleReason && (
+                  <div onClick={() => setShowStyleReason(true)}
+                    style={{ fontSize:12, color:'#707070', cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
+                    Why this reply <span style={{ fontSize:10 }}>&#8964;</span>
+                  </div>
+                )}
+                {showStyleReason && (
+                  <div className="fade-in" style={{ fontSize:14, color:'#707070', lineHeight:1.5 }}>
+                    {item.styleReason}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Question */}
+            <div style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.5 }}>
+              {question}
             </div>
           </div>
-        )}
 
-        {/* Style reason — why this tone/approach, expandable */}
-        {p >= 2 && item.styleReason && (
-          <div style={{ marginBottom:14 }}>
-            {!showStyleReason && (
-              <div onClick={() => setShowStyleReason(true)}
-                style={{ fontSize:12, color:'rgba(255,255,255,0.25)', cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
-                Why this reply <span style={{ fontSize:10 }}>↓</span>
-              </div>
-            )}
-            {showStyleReason && (
-              <div className="fade-in" style={{ ...t, color:'rgba(255,255,255,0.4)', fontSize:13 }}>
-                {item.styleReason}
-              </div>
-            )}
+          {/* Buttons — all equal, rounded 12px */}
+          <div style={{ display:'flex', gap:16, alignItems:'center', flexShrink:0 }}>
+            <button onClick={onSend}
+              style={{ flex:1, padding:'8px 16px', background:'#fff', color:'#292929', border:'none', borderRadius:12, fontSize:15, fontWeight:500, cursor:'pointer', lineHeight:'22px', letterSpacing:'-0.2px' }}>
+              Yes, send
+            </button>
+            <button onClick={onEdit}
+              style={{ flex:1, padding:'8px 16px', background:'transparent', border:'1px solid #292929', borderRadius:12, fontSize:15, fontWeight:500, cursor:'pointer', color:'#fff', lineHeight:'22px', letterSpacing:'-0.2px' }}>
+              Let me edit
+            </button>
+            <button onClick={onSkip}
+              style={{ flex:1, padding:'8px 16px', background:'transparent', border:'1px solid #292929', borderRadius:12, fontSize:15, fontWeight:500, cursor:'pointer', color:'#fff', lineHeight:'22px', letterSpacing:'-0.2px' }}>
+              I'll write
+            </button>
           </div>
-        )}
-
-        {/* Question */}
-        {p >= 3 && (
-          <div className="fade-in" style={{ ...t, marginBottom:4 }}>
-            {question}
-          </div>
-        )}
-      </div>
-
-      {/* Buttons — always at bottom */}
-      {p >= 4 && (
-        <div className="fade-in" style={{ display:'flex', gap:8, alignItems:'center', flexShrink:0, paddingTop:12 }}>
-          <button onClick={onSend}
-            style={{ flex:1, padding:'13px 0', background:'#fff', color:'#0F0F0F', border:'none', borderRadius:50, fontSize:14, fontWeight:700, cursor:'pointer', letterSpacing:'-0.01em' }}>
-            Yes, send
-          </button>
-          <button onClick={onEdit}
-            style={{ flex:1, padding:'13px 0', background:'transparent', border:'1.5px solid rgba(255,255,255,0.18)', borderRadius:50, fontSize:14, fontWeight:500, cursor:'pointer', color:'rgba(255,255,255,0.8)', letterSpacing:'-0.01em' }}>
-            Let me edit
-          </button>
-          <button onClick={onSkip}
-            style={{ padding:'13px 10px', background:'transparent', border:'none', fontSize:13, fontWeight:500, cursor:'pointer', color:'rgba(255,255,255,0.35)', flexShrink:0, whiteSpace:'nowrap' }}>
-            I'll write
-          </button>
-        </div>
+        </>
       )}
     </div>
   );
