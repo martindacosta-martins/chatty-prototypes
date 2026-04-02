@@ -909,28 +909,41 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
         )}
       </div>
 
-      {/* Chat body — always scrollable, never covered */}
-      <div ref={chatBodyRef} style={{ flex:1, overflowY:'auto', padding:'20px 20px 12px', paddingBottom: mode === 'suggest' ? '300px' : '12px' }}>
+      {/* Chat body */}
+      <div ref={chatBodyRef} style={{ flex:1, overflowY:'auto', padding:'20px 16px 12px', paddingBottom: mode === 'suggest' ? '300px' : '12px' }}>
+        {/* Timestamp marker */}
+        <div style={{ textAlign:'center', marginBottom:16 }}>
+          <span style={{ fontSize:12, color:'#707070' }}>Today {item.time || '8:10 AM'}</span>
+        </div>
+
         {chatHistory.map((m, i) => {
           const isOutgoing = m.from === 'you' || m.from === 'automation';
           const isAutomation = m.from === 'automation';
-          const bubbleBg = isAutomation ? T.warmGray : (m.from === 'you' ? T.accent : T.cardBg);
-          const bubbleColor = isAutomation ? T.ink : (m.from === 'you' ? '#fff' : T.ink);
-          const timeColor = m.from === 'you' ? 'rgba(255,255,255,0.45)' : T.gray;
           return (
-            <div key={i} style={{ marginBottom:12, display:'flex', justifyContent: isOutgoing ? 'flex-end' : 'flex-start' }}>
-              <div style={{ maxWidth:'80%' }}>
-                <div style={{ padding:'12px 16px', borderRadius:18, background:bubbleBg, color:bubbleColor, border: m.from === 'them' ? `1px solid ${T.lightGray}` : 'none', borderTopLeftRadius: m.from === 'them' ? 6 : 18, borderTopRightRadius: isOutgoing ? 6 : 18 }}>
-                  <div style={{ fontSize:14, lineHeight:1.5, letterSpacing:'-0.01em' }}>{m.text}</div>
-                  <div style={{ fontSize:10, color:timeColor, marginTop:4, textAlign:'right' }}>{m.time}</div>
+            <div key={i} style={{ marginBottom:16, paddingRight: !isOutgoing ? 80 : 0, paddingLeft: isOutgoing ? 40 : 0 }}>
+              {/* Contact bubble — #F5F5F5, no border */}
+              {m.from === 'them' && (
+                <div style={{ padding:'8px 8px 8px 12px', borderRadius:12, background:'#F5F5F5' }}>
+                  <div style={{ fontSize:16, lineHeight:1.5, color:'#292929' }}>{m.text}</div>
                 </div>
-                {isAutomation && (
-                  <div style={{ display:'flex', alignItems:'center', justifyContent:'flex-end', gap:4, marginTop:4 }}>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={T.gray} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-                    <span style={{ fontSize:10, color:T.gray }}>Automation</span>
+              )}
+              {/* Automation bubble — #D6D6D6 */}
+              {isAutomation && (
+                <div>
+                  <div style={{ padding:'8px 8px 8px 12px', borderRadius:12, background:'#D6D6D6' }}>
+                    <div style={{ fontSize:16, lineHeight:1.5, color:'#292929' }}>{m.text}</div>
                   </div>
-                )}
-              </div>
+                  <div style={{ textAlign:'right', marginTop:4 }}>
+                    <span style={{ fontSize:12, color:'#707070' }}>Automation</span>
+                  </div>
+                </div>
+              )}
+              {/* User bubble — blue #006BE2 */}
+              {m.from === 'you' && (
+                <div style={{ padding:'8px 8px 8px 12px', borderRadius:12, background:'#006BE2' }}>
+                  <div style={{ fontSize:16, lineHeight:1.5, color:'#fff' }}>{m.text}</div>
+                </div>
+              )}
             </div>
           );
         })}

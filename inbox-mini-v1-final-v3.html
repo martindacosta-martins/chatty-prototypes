@@ -285,7 +285,7 @@ function ObSorting({ onNext }) {
   }, []);
 
   return (
-    <div style={{ background:'#0F0F0F', height:'100%', display:'flex', flexDirection:'column', justifyContent:'center', padding:'0 28px' }}>
+    <div style={{ background:'#151515', height:'100%', display:'flex', flexDirection:'column', justifyContent:'center', padding:'0 28px' }}>
       {lines.map((line, i) => (
         <div key={i} style={{
           fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:12,
@@ -391,7 +391,7 @@ function ObQuestion({ onNext }) {
     setConfirmBottom('voice');
   };
 
-  const MicIcon = ({ size=24, color='#0F0F0F' }) => (
+  const MicIcon = ({ size=24, color='#151515' }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
       <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
@@ -402,7 +402,7 @@ function ObQuestion({ onNext }) {
 
   /* ── ASK phase ── */
   if (phase === 'ask') return (
-    <div style={{ background:'#0F0F0F', height:'100%', display:'flex', flexDirection:'column' }}>
+    <div style={{ background:'#151515', height:'100%', display:'flex', flexDirection:'column' }}>
       <div style={{ flex:1, display:'flex', flexDirection:'column', padding:'100px 28px 0' }}>
         <div style={{ marginBottom:16, ...show(1) }}>
           <h1 style={{ fontSize:34, fontWeight:900, color:'#fff', letterSpacing:'-0.04em', lineHeight:1.12, WebkitTextStroke:'0.5px #fff' }}>
@@ -434,7 +434,7 @@ function ObQuestion({ onNext }) {
             style={{ width:'100%', fontSize:16, color:'#fff', lineHeight:1.5, padding:'14px 16px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:16, resize:'none', height:100, fontFamily:'Inter, system-ui, sans-serif', outline:'none', letterSpacing:'-0.01em' }} />
           <div style={{ display:'flex', gap:10, marginTop:12 }}>
             <button onClick={handleTypeSend}
-              style={{ flex:1, padding:'14px', background:'#fff', color:'#0F0F0F', border:'none', borderRadius:50, fontSize:15, fontWeight:600, cursor:'pointer' }}>
+              style={{ flex:1, padding:'14px', background:'#fff', color:'#151515', border:'none', borderRadius:50, fontSize:15, fontWeight:600, cursor:'pointer' }}>
               Continue
             </button>
             <button onClick={() => setInputMode('voice')}
@@ -449,7 +449,7 @@ function ObQuestion({ onNext }) {
 
   /* ── RECORDING phase ── */
   if (phase === 'recording') return (
-    <div style={{ background:'#0F0F0F', height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}
+    <div style={{ background:'#151515', height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}
       onMouseUp={handleRelease} onTouchEnd={handleRelease}>
       {/* Pulsing rings */}
       <div style={{ position:'relative', width:100, height:100, display:'flex', alignItems:'center', justifyContent:'center' }}>
@@ -470,7 +470,7 @@ function ObQuestion({ onNext }) {
 
   /* ── PROCESSING phase ── */
   if (phase === 'processing') return (
-    <div style={{ background:'#0F0F0F', height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
+    <div style={{ background:'#151515', height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
       <div style={{ display:'flex', gap:8, marginBottom:16 }}>
         {[0,1,2].map(i => (
           <div key={i} style={{ width:8, height:8, borderRadius:4, background:'#fff', animation:`thinkDots 1.2s ease infinite ${i * 0.2}s` }} />
@@ -482,7 +482,7 @@ function ObQuestion({ onNext }) {
 
   /* ── CONFIRM phase ── */
   if (phase === 'confirm') return (
-    <div style={{ background:'#0F0F0F', height:'100%', display:'flex', flexDirection:'column' }}>
+    <div style={{ background:'#151515', height:'100%', display:'flex', flexDirection:'column' }}>
       <div style={{ flex:1, display:'flex', flexDirection:'column', padding:'100px 28px 0' }}>
         <div style={{ marginBottom:12, ...cShow(1) }}>
           <h1 style={{ fontSize:34, fontWeight:900, color:'#fff', letterSpacing:'-0.04em', lineHeight:1.12, WebkitTextStroke:'0.5px #fff' }}>
@@ -506,7 +506,7 @@ function ObQuestion({ onNext }) {
         {confirmBottom === 'buttons' && (
           <div className="fade-in">
             <button onClick={() => setPhase('fantastic')}
-              style={{ width:'100%', padding:'16px', background:'#fff', color:'#0F0F0F', border:'none', borderRadius:50, fontSize:16, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em', marginBottom:10 }}>
+              style={{ width:'100%', padding:'16px', background:'#fff', color:'#151515', border:'none', borderRadius:50, fontSize:16, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em', marginBottom:10 }}>
               It's good
             </button>
             <button onClick={handleEdit}
@@ -536,7 +536,7 @@ function ObQuestion({ onNext }) {
               style={{ width:'100%', fontSize:16, color:'#fff', lineHeight:1.5, padding:'14px 16px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:16, resize:'none', height:80, fontFamily:'Inter, system-ui, sans-serif', outline:'none', letterSpacing:'-0.01em' }} />
             <div style={{ display:'flex', gap:10, marginTop:12 }}>
               <button onClick={() => { setRevision(r => r + 1); setPhase('processing'); setConfirmBottom('buttons'); }}
-                style={{ flex:1, padding:'14px', background:'#fff', color:'#0F0F0F', border:'none', borderRadius:50, fontSize:15, fontWeight:600, cursor:'pointer' }}>
+                style={{ flex:1, padding:'14px', background:'#fff', color:'#151515', border:'none', borderRadius:50, fontSize:15, fontWeight:600, cursor:'pointer' }}>
                 Update
               </button>
               <button onClick={() => setConfirmBottom('voice')}
@@ -552,7 +552,7 @@ function ObQuestion({ onNext }) {
 
   /* ── FANTASTIC phase ── */
   return (
-    <div style={{ background:'#0F0F0F', height:'100%', display:'flex', flexDirection:'column', justifyContent:'center', padding:'0 28px' }}>
+    <div style={{ background:'#151515', height:'100%', display:'flex', flexDirection:'column', justifyContent:'center', padding:'0 28px' }}>
       <div className="fade-up">
         <h1 style={{ fontSize:34, fontWeight:900, color:'#fff', letterSpacing:'-0.04em', lineHeight:1.12, WebkitTextStroke:'0.5px #fff', marginBottom:16 }}>
           Fantastic.
@@ -584,7 +584,7 @@ function ObLoading2({ onNext }) {
   }, []);
 
   return (
-    <div style={{ background:'#0F0F0F', height:'100%', display:'flex', flexDirection:'column', justifyContent:'center', padding:'0 28px' }}>
+    <div style={{ background:'#151515', height:'100%', display:'flex', flexDirection:'column', justifyContent:'center', padding:'0 28px' }}>
       {lines.map((line, i) => (
         <div key={i} style={{
           fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:12,
@@ -661,7 +661,7 @@ function ObCategories({ onNext }) {
       transition:'opacity .45s ease, transform .45s ease',
     });
     return (
-      <div style={{ background:'#0F0F0F', height:'100%', display:'flex', flexDirection:'column', justifyContent:'center', padding:'0 28px' }}>
+      <div style={{ background:'#151515', height:'100%', display:'flex', flexDirection:'column', justifyContent:'center', padding:'0 28px' }}>
         <div style={{ ...aShow(1) }}>
           <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:12 }}>
             Analyzing "{analyzeLabel}"...
@@ -683,7 +683,7 @@ function ObCategories({ onNext }) {
 
   // List screen
   return (
-    <div style={{ background:'#0F0F0F', height:'100%', display:'flex', flexDirection:'column' }}>
+    <div style={{ background:'#151515', height:'100%', display:'flex', flexDirection:'column' }}>
       <div style={{ flex:1, overflowY:'auto', padding:'100px 28px 0' }}>
         <div style={{ marginBottom:12, ...show(1) }}>
           <h1 style={{ fontSize:34, fontWeight:900, color:'#fff', letterSpacing:'-0.04em', lineHeight:1.12, WebkitTextStroke:'0.5px #fff' }}>
@@ -717,7 +717,7 @@ function ObCategories({ onNext }) {
               }}>
                 <div style={{
                   width:20, height:20, borderRadius:10,
-                  background: cat.on ? '#0F0F0F' : 'rgba(255,255,255,0.3)',
+                  background: cat.on ? '#151515' : 'rgba(255,255,255,0.3)',
                   transform: cat.on ? 'translateX(16px)' : 'translateX(0)',
                   transition:'all .2s ease',
                 }} />
@@ -741,7 +741,7 @@ function ObCategories({ onNext }) {
               {customVal.trim() && (
                 <div onClick={addCustom}
                   style={{ width:40, height:40, borderRadius:20, background:'#fff', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0 }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0F0F0F" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#151515" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                 </div>
               )}
             </div>
@@ -751,7 +751,7 @@ function ObCategories({ onNext }) {
 
       <div style={{ padding:'0 28px 40px', ...show(4) }}>
         <button onClick={onNext}
-          style={{ width:'100%', padding:'16px', background:'#fff', color:'#0F0F0F', border:'none', borderRadius:50, fontSize:16, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em' }}>
+          style={{ width:'100%', padding:'16px', background:'#fff', color:'#151515', border:'none', borderRadius:50, fontSize:16, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em' }}>
           Looks good
         </button>
       </div>
@@ -822,7 +822,7 @@ function AgentExpandedScreen({ onDismiss }) {
   return (
     <div className="pill-expand" style={{
       position:'absolute', inset:0, zIndex:90,
-      background:'#0F0F0F',
+      background:'#151515',
       display:'flex', flexDirection:'column',
       padding:'60px 22px 40px',
       overflow:'hidden',
@@ -878,7 +878,7 @@ function AgentExpandedScreen({ onDismiss }) {
         )}
 
         <button onClick={onDismiss}
-          style={{ width:'100%', padding:'14px 0', background:'#fff', color:'#0F0F0F', border:'none', borderRadius:12, fontSize:14, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em' }}>
+          style={{ width:'100%', padding:'14px 0', background:'#fff', color:'#151515', border:'none', borderRadius:12, fontSize:14, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em' }}>
           Got it
         </button>
       </div>
@@ -914,10 +914,129 @@ function MsgRow({ user, name, avatar, time, onClick, isLast, isAsk, summary, sta
   );
 }
 
+/* ═══ AGENT DARK MODE TOKENS (from Figma) ═══ */
+const A = {
+  bg: '#151515',        // color.neutral.900 — sheet background
+  surface: '#292929',   // color.neutral.800 — draft card bg
+  border: '#878787',    // color.border.hovered — draft card border
+  text: '#ffffff',      // color.text.inverse — primary text
+  subtle: '#707070',    // color.text.subtle — secondary text
+  btnText: '#292929',   // color.text.default — button text on white
+  btnBorder: '#292929', // border for secondary/tertiary buttons
+};
+
+/* ─── Agent Sheet Shell — single source of truth for agent bottom sheet ─── */
+function AgentSheetShell({ children, onDismiss }) {
+  const [dragY, setDragY] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const startY = useRef(0);
+
+  const handleTouchStart = (e) => { startY.current = e.touches[0].clientY; setDragging(true); };
+  const handleMouseDown = (e) => { startY.current = e.clientY; setDragging(true); };
+
+  const handleMove = (clientY) => {
+    if (!dragging) return;
+    const delta = clientY - startY.current;
+    setDragY(Math.max(0, delta));
+  };
+
+  const handleEnd = () => {
+    setDragging(false);
+    if (dragY > 100 && onDismiss) { onDismiss(); }
+    else { setDragY(0); }
+  };
+
+  return (
+    <div className="sheet-up" style={{
+      position:'absolute', bottom:0, left:0, right:0, zIndex:10,
+      background:A.bg, borderRadius:24,
+      padding:'16px 24px 54px',
+      boxShadow:'0 0 20px rgba(0,0,0,0.25)',
+      maxHeight:'80%', display:'flex', flexDirection:'column', gap:16,
+      transform:`translateY(${dragY}px)`,
+      transition: dragging ? 'none' : 'transform .3s ease',
+      opacity: dragging ? Math.max(0.5, 1 - dragY / 300) : 1,
+    }}
+      onTouchMove={e => handleMove(e.touches[0].clientY)}
+      onMouseMove={e => { if (dragging) handleMove(e.clientY); }}
+      onTouchEnd={handleEnd}
+      onMouseUp={handleEnd}
+      onMouseLeave={() => { if (dragging) handleEnd(); }}
+    >
+      {/* Grab handle — drag zone */}
+      <div
+        onTouchStart={handleTouchStart}
+        onMouseDown={handleMouseDown}
+        style={{ padding:'4px 0 8px', cursor:'grab', flexShrink:0 }}>
+        <div style={{ width:36, height:4, background:'rgba(255,255,255,0.14)', borderRadius:2, margin:'0 auto' }} />
+      </div>
+      {children}
+    </div>
+  );
+}
+
+/* ─── Shared: Agent thinking indicator ─── */
+function AgentThinking() {
+  return (
+    <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center' }}>
+      <div style={{ animation:'pulse 1.2s ease infinite', fontSize:16, color:'rgba(255,255,255,0.45)' }}>Thinking...</div>
+    </div>
+  );
+}
+
+/* ─── Shared: Agent action buttons (Yes send / Edit / I'll write) ─── */
+function AgentButtons({ onSend, onEdit, onSkip }) {
+  return (
+    <div style={{ display:'flex', gap:16, alignItems:'center', flexShrink:0 }}>
+      <button onClick={onSend}
+        style={{ flex:1, padding:'8px 16px', background:A.text, color:A.btnText, border:'none', borderRadius:12, fontSize:15, fontWeight:500, cursor:'pointer', lineHeight:'22px', letterSpacing:'-0.195px' }}>
+        Yes, send
+      </button>
+      <button onClick={onEdit}
+        style={{ flex:1, padding:'8px 16px', background:'transparent', border:`1px solid ${A.btnBorder}`, borderRadius:12, fontSize:15, fontWeight:500, cursor:'pointer', color:A.text, lineHeight:'22px', letterSpacing:'-0.195px' }}>
+        Edit
+      </button>
+      <button onClick={onSkip}
+        style={{ flex:1, padding:'8px 16px', background:'transparent', border:`1px solid ${A.btnBorder}`, borderRadius:12, fontSize:15, fontWeight:500, cursor:'pointer', color:A.text, lineHeight:'22px', letterSpacing:'-0.195px' }}>
+        I'll write
+      </button>
+    </div>
+  );
+}
+
+/* ─── Shared: Draft card (dark card with border) ─── */
+function AgentDraftCard({ text }) {
+  return (
+    <div style={{ padding:16, borderRadius:12, background:A.surface, border:`1px solid ${A.border}` }}>
+      <div style={{ fontSize:16, fontWeight:400, color:A.text, lineHeight:'24px' }}>{text}</div>
+    </div>
+  );
+}
+
+/* ─── Shared: "Why this reply" toggle ─── */
+function AgentWhyReply({ reason }) {
+  const [show, setShow] = useState(false);
+  if (!reason) return null;
+  return (
+    <div>
+      {!show && (
+        <div onClick={() => setShow(true)}
+          style={{ fontSize:12, color:A.subtle, cursor:'pointer', display:'flex', alignItems:'center', gap:4, lineHeight:'16px' }}>
+          Why this reply <span style={{ fontSize:10 }}>&#8964;</span>
+        </div>
+      )}
+      {show && (
+        <div className="fade-in" style={{ fontSize:12, color:A.subtle, lineHeight:'16px' }}>
+          {reason}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ─── Agent Sheet — conversational bottom panel with streaming text ─── */
 function AgentSheet({ item, onSend, onEdit, onSkip }) {
   const [phase, setPhase] = useState('thinking');
-  const [showStyleReason, setShowStyleReason] = useState(false);
 
   const questions = ['Should I send it?','Want me to send this?','Ready to send?','Should I go ahead?','Does this work?','Good to send?'];
   const [question] = useState(() => questions[Math.floor(Math.random() * questions.length)]);
@@ -928,81 +1047,25 @@ function AgentSheet({ item, onSend, onEdit, onSkip }) {
   }, []);
 
   return (
-    <div className="sheet-up" style={{
-      position:'absolute', bottom:0, left:0, right:0, zIndex:10,
-      background:'#000', borderRadius:24,
-      padding:'16px 24px 54px',
-      boxShadow:'0 0 20px rgba(0,0,0,0.25)',
-      maxHeight:'80%', display:'flex', flexDirection:'column', gap:16, transition:'height .3s ease',
-    }}>
+    <AgentSheetShell>
+      {phase === 'thinking' && <AgentThinking />}
 
-      {/* Thinking state */}
-      {phase === 'thinking' && (
-        <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center' }}>
-          <div style={{ animation:'pulse 1.2s ease infinite', fontSize:16, color:'rgba(255,255,255,0.45)' }}>Thinking...</div>
-        </div>
-      )}
-
-      {/* Ready */}
       {phase === 'ready' && (
         <>
           <div className="fade-in" style={{ display:'flex', flexDirection:'column', gap:16 }}>
-            {/* Reason — white, 16px */}
             <div style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.5 }}>
               {item.context || ''}
             </div>
-
-            {/* Draft — dark card with border */}
-            <div style={{
-              padding:16, borderRadius:12,
-              background:'#151515', border:'1px solid #292929',
-            }}>
-              <div style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.5 }}>
-                {item.draft}
-              </div>
-            </div>
-
-            {/* Why this reply */}
-            {item.styleReason && (
-              <div>
-                {!showStyleReason && (
-                  <div onClick={() => setShowStyleReason(true)}
-                    style={{ fontSize:12, color:'#707070', cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
-                    Why this reply <span style={{ fontSize:10 }}>&#8964;</span>
-                  </div>
-                )}
-                {showStyleReason && (
-                  <div className="fade-in" style={{ fontSize:14, color:'#707070', lineHeight:1.5 }}>
-                    {item.styleReason}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Question */}
+            <AgentDraftCard text={item.draft} />
+            <AgentWhyReply reason={item.styleReason} />
             <div style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.5 }}>
               {question}
             </div>
           </div>
-
-          {/* Buttons */}
-          <div style={{ display:'flex', gap:8, alignItems:'center', flexShrink:0 }}>
-            <button onClick={onSend}
-              style={{ flex:1, padding:'13px 0', background:'#fff', color:'#0F0F0F', border:'none', borderRadius:50, fontSize:14, fontWeight:700, cursor:'pointer', letterSpacing:'-0.01em' }}>
-              Yes, send
-            </button>
-            <button onClick={onEdit}
-              style={{ flex:1, padding:'13px 0', background:'transparent', border:'1.5px solid rgba(255,255,255,0.18)', borderRadius:50, fontSize:14, fontWeight:500, cursor:'pointer', color:'rgba(255,255,255,0.8)', letterSpacing:'-0.01em' }}>
-              Let me edit
-            </button>
-            <button onClick={onSkip}
-              style={{ padding:'13px 10px', background:'transparent', border:'none', fontSize:13, fontWeight:500, cursor:'pointer', color:'rgba(255,255,255,0.35)', flexShrink:0, whiteSpace:'nowrap' }}>
-              I'll write
-            </button>
-          </div>
+          <AgentButtons onSend={onSend} onEdit={onEdit} onSkip={onSkip} />
         </>
       )}
-    </div>
+    </AgentSheetShell>
   );
 }
 
@@ -1229,7 +1292,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
 
             {/* Context menu */}
             {intentMenu === 'main' && (
-              <div className="fade-in" onClick={e => e.stopPropagation()} style={{ position:'absolute', right:0, top:'100%', marginTop:6, background:'#0F0F0F', borderRadius:14, boxShadow:'0 8px 32px rgba(0,0,0,0.25)', zIndex:20, minWidth:200, overflow:'hidden' }}>
+              <div className="fade-in" onClick={e => e.stopPropagation()} style={{ position:'absolute', right:0, top:'100%', marginTop:6, background:'#151515', borderRadius:14, boxShadow:'0 8px 32px rgba(0,0,0,0.25)', zIndex:20, minWidth:200, overflow:'hidden' }}>
                 <div onClick={() => setIntentMenu('why')}
                   style={{ padding:'13px 16px', fontSize:13, color:'#ff6b6b', cursor:'pointer', borderBottom:'1px solid rgba(255,255,255,0.06)', fontWeight:500 }}>
                   It's not {intentLabel.toLowerCase()}
@@ -1247,7 +1310,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
 
             {/* Why it's wrong */}
             {intentMenu === 'why' && (
-              <div className="fade-in" onClick={e => e.stopPropagation()} style={{ position:'absolute', right:0, top:'100%', marginTop:6, background:'#0F0F0F', borderRadius:14, boxShadow:'0 8px 32px rgba(0,0,0,0.25)', zIndex:20, minWidth:210, overflow:'hidden' }}>
+              <div className="fade-in" onClick={e => e.stopPropagation()} style={{ position:'absolute', right:0, top:'100%', marginTop:6, background:'#151515', borderRadius:14, boxShadow:'0 8px 32px rgba(0,0,0,0.25)', zIndex:20, minWidth:210, overflow:'hidden' }}>
                 <div style={{ padding:'12px 16px', fontSize:11, color:'rgba(255,255,255,0.35)', fontWeight:500, borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
                   Why isn't this {intentLabel.toLowerCase()}?
                 </div>
@@ -1262,7 +1325,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
 
             {/* Change intent */}
             {intentMenu === 'change' && (
-              <div className="fade-in" onClick={e => e.stopPropagation()} style={{ position:'absolute', right:0, top:'100%', marginTop:6, background:'#0F0F0F', borderRadius:14, boxShadow:'0 8px 32px rgba(0,0,0,0.25)', zIndex:20, minWidth:180, overflow:'hidden' }}>
+              <div className="fade-in" onClick={e => e.stopPropagation()} style={{ position:'absolute', right:0, top:'100%', marginTop:6, background:'#151515', borderRadius:14, boxShadow:'0 8px 32px rgba(0,0,0,0.25)', zIndex:20, minWidth:180, overflow:'hidden' }}>
                 <div style={{ padding:'12px 16px', fontSize:11, color:'rgba(255,255,255,0.35)', fontWeight:500, borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
                   Change to:
                 </div>
@@ -1279,28 +1342,41 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
         )}
       </div>
 
-      {/* Chat body — always scrollable, never covered */}
-      <div ref={chatBodyRef} style={{ flex:1, overflowY:'auto', padding:'20px 20px 12px', paddingBottom: mode === 'suggest' ? '300px' : '12px' }}>
+      {/* Chat body */}
+      <div ref={chatBodyRef} style={{ flex:1, overflowY:'auto', padding:'20px 16px 12px', paddingBottom: mode === 'suggest' ? '300px' : '12px' }}>
+        {/* Timestamp marker */}
+        <div style={{ textAlign:'center', marginBottom:16 }}>
+          <span style={{ fontSize:12, color:'#707070' }}>Today {item.time || '8:10 AM'}</span>
+        </div>
+
         {chatHistory.map((m, i) => {
           const isOutgoing = m.from === 'you' || m.from === 'automation';
           const isAutomation = m.from === 'automation';
-          const bubbleBg = isAutomation ? T.warmGray : (m.from === 'you' ? T.accent : T.cardBg);
-          const bubbleColor = isAutomation ? T.ink : (m.from === 'you' ? '#fff' : T.ink);
-          const timeColor = m.from === 'you' ? 'rgba(255,255,255,0.45)' : T.gray;
           return (
-            <div key={i} style={{ marginBottom:12, display:'flex', justifyContent: isOutgoing ? 'flex-end' : 'flex-start' }}>
-              <div style={{ maxWidth:'80%' }}>
-                <div style={{ padding:'12px 16px', borderRadius:18, background:bubbleBg, color:bubbleColor, border: m.from === 'them' ? `1px solid ${T.lightGray}` : 'none', borderTopLeftRadius: m.from === 'them' ? 6 : 18, borderTopRightRadius: isOutgoing ? 6 : 18 }}>
-                  <div style={{ fontSize:14, lineHeight:1.5, letterSpacing:'-0.01em' }}>{m.text}</div>
-                  <div style={{ fontSize:10, color:timeColor, marginTop:4, textAlign:'right' }}>{m.time}</div>
+            <div key={i} style={{ marginBottom:16, paddingRight: !isOutgoing ? 80 : 0, paddingLeft: isOutgoing ? 40 : 0 }}>
+              {/* Contact bubble — #F5F5F5, no border */}
+              {m.from === 'them' && (
+                <div style={{ padding:'8px 8px 8px 12px', borderRadius:12, background:'#F5F5F5' }}>
+                  <div style={{ fontSize:16, lineHeight:1.5, color:'#292929' }}>{m.text}</div>
                 </div>
-                {isAutomation && (
-                  <div style={{ display:'flex', alignItems:'center', justifyContent:'flex-end', gap:4, marginTop:4 }}>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={T.gray} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-                    <span style={{ fontSize:10, color:T.gray }}>Automation</span>
+              )}
+              {/* Automation bubble — #D6D6D6 */}
+              {isAutomation && (
+                <div>
+                  <div style={{ padding:'8px 8px 8px 12px', borderRadius:12, background:'#D6D6D6' }}>
+                    <div style={{ fontSize:16, lineHeight:1.5, color:'#292929' }}>{m.text}</div>
                   </div>
-                )}
-              </div>
+                  <div style={{ textAlign:'right', marginTop:4 }}>
+                    <span style={{ fontSize:12, color:'#707070' }}>Automation</span>
+                  </div>
+                </div>
+              )}
+              {/* User bubble — blue #006BE2 */}
+              {m.from === 'you' && (
+                <div style={{ padding:'8px 8px 8px 12px', borderRadius:12, background:'#006BE2' }}>
+                  <div style={{ fontSize:16, lineHeight:1.5, color:'#fff' }}>{m.text}</div>
+                </div>
+              )}
             </div>
           );
         })}
@@ -1338,7 +1414,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
         {/* Gap 2: Edit feedback — appears after sent when draft was heavily rewritten */}
         {editFeedback === 'asking' && mode === 'sent' && (
           <div className="fade-up" style={{ marginBottom:12 }}>
-            <div style={{ background:'#0F0F0F', borderRadius:14, padding:'14px 16px', maxWidth:'90%' }}>
+            <div style={{ background:'#151515', borderRadius:14, padding:'14px 16px', maxWidth:'90%' }}>
               <div style={{ fontSize:13, color:'#fff', lineHeight:1.5, marginBottom:12 }}>
                 I noticed you changed my reply a lot. Was it off?
               </div>
@@ -1369,102 +1445,55 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
 
       {/* ═══ Bottom: Ask mode — agent needs info from user ═══ */}
       {mode === 'ask' && (
-        <div className="fade-up" style={{ flexShrink:0, background:'#0F0F0F', padding:'0 20px 40px' }}>
-          <div style={{ height:1, background:'rgba(255,255,255,0.06)', marginBottom:16 }} />
-
+        <AgentSheetShell>
           {askPhase === 'input' && (
             <>
-              <div style={{ marginBottom:14 }}>
-                <div style={{ fontSize:14, color:'#fff', lineHeight:1.55, letterSpacing:'-0.01em' }}>
+              <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+                <div style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.5 }}>
                   {item.agentQuestion}
                 </div>
-              </div>
-
-              <div style={{ display:'flex', gap:8, alignItems:'flex-end' }}>
                 <textarea value={askVal} onChange={e => setAskVal(e.target.value)} autoFocus
                   placeholder={item.askPlaceholder || 'Type your answer...'}
-                  style={{ flex:1, fontSize:14, color:'#fff', lineHeight:1.5, padding:'13px 16px', border:'1px solid rgba(255,255,255,0.12)', borderRadius:14, resize:'none', height:60, fontFamily:'Inter, system-ui, sans-serif', background:'rgba(255,255,255,0.06)', outline:'none', letterSpacing:'-0.01em', boxSizing:'border-box' }} />
+                  style={{ width:'100%', fontSize:14, color:'#fff', lineHeight:1.5, padding:'13px 16px', border:'1px solid rgba(255,255,255,0.12)', borderRadius:14, resize:'none', height:60, fontFamily:'Inter, system-ui, sans-serif', background:'rgba(255,255,255,0.06)', outline:'none', letterSpacing:'-0.01em', boxSizing:'border-box' }} />
               </div>
-
-              <div style={{ display:'flex', gap:8, marginTop:12 }}>
+              <div style={{ display:'flex', gap:16, alignItems:'center', flexShrink:0 }}>
                 <button onClick={handleAskSubmit} disabled={!askVal.trim()}
-                  style={{ flex:1, padding:'12px 0', background: askVal.trim() ? '#fff' : 'rgba(255,255,255,0.1)', color: askVal.trim() ? '#0F0F0F' : 'rgba(255,255,255,0.35)', border:'none', borderRadius:12, fontSize:14, fontWeight:600, cursor: askVal.trim() ? 'pointer' : 'default', transition:'all .2s ease' }}>
+                  style={{ flex:1, padding:'8px 16px', background: askVal.trim() ? A.text : 'rgba(255,255,255,0.1)', color: askVal.trim() ? A.btnText : 'rgba(255,255,255,0.35)', border:'none', borderRadius:12, fontSize:15, fontWeight:500, cursor: askVal.trim() ? 'pointer' : 'default', transition:'all .2s ease', lineHeight:'22px', letterSpacing:'-0.195px' }}>
                   Save
                 </button>
                 <button onClick={() => { setMode('custom'); setCustomVal(''); }}
-                  style={{ padding:'12px 20px', background:'transparent', border:'none', fontSize:13, fontWeight:500, cursor:'pointer', color:'rgba(255,255,255,0.35)' }}>
+                  style={{ flex:1, padding:'8px 16px', background:'transparent', border:`1px solid ${A.btnBorder}`, borderRadius:12, fontSize:15, fontWeight:500, cursor:'pointer', color:A.text, lineHeight:'22px', letterSpacing:'-0.195px' }}>
                   I'll reply
                 </button>
               </div>
             </>
           )}
 
-          {askPhase === 'generating' && (
-            <div style={{ padding:'20px 0', textAlign:'center' }}>
-              <div style={{ fontSize:13, color:'rgba(255,255,255,0.5)', marginBottom:8 }}>Creating your draft...</div>
-              <div style={{ display:'flex', justifyContent:'center', gap:4 }}>
-                {[0,1,2].map(i => (
-                  <div key={i} style={{ width:6, height:6, borderRadius:3, background:'rgba(255,255,255,0.2)', animation:`pulse 1s ease-in-out ${i * 0.2}s infinite` }} />
-                ))}
-              </div>
-            </div>
-          )}
+          {askPhase === 'generating' && <AgentThinking />}
 
           {askPhase === 'ready' && (
             <>
-              {/* Reason first sentence — above draft */}
-              {generatedBecause && (
-                <div className="fade-in" style={{ marginBottom:14 }}>
-                  <div style={{ fontSize:15, fontWeight:400, color:'rgba(255,255,255,0.6)', lineHeight:1.55, letterSpacing:'-0.01em' }}>
+              <div className="fade-in" style={{ display:'flex', flexDirection:'column', gap:16 }}>
+                {generatedBecause && (
+                  <div style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.5 }}>
                     {(generatedBecause.match(/[^.!?]+[.!?]?\s*/g) || [generatedBecause])[0]}
                   </div>
+                )}
+                <AgentDraftCard text={generatedDraft} />
+                <AgentWhyReply reason={generatedBecause && (generatedBecause.match(/[^.!?]+[.!?]?\s*/g) || []).length > 1
+                  ? (generatedBecause.match(/[^.!?]+[.!?]?\s*/g) || []).slice(1).join('')
+                  : null} />
+                <div style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.5 }}>
+                  Send this one?
                 </div>
-              )}
-
-              {/* Draft — prominent white card */}
-              <div className="fade-in" style={{ marginBottom:14, padding:'14px 16px', background:'rgba(255,255,255,0.95)', borderRadius:14 }}>
-                <div style={{ fontSize:15, fontWeight:400, color:'#0F0F0F', lineHeight:1.55, letterSpacing:'-0.01em' }}>{generatedDraft}</div>
               </div>
-
-              {/* Why this reply — below draft */}
-              {generatedBecause && (generatedBecause.match(/[^.!?]+[.!?]?\s*/g) || []).length > 1 && (
-                <div className="fade-in" style={{ marginBottom:14 }}>
-                  {!showAskStyleReason && (
-                    <div onClick={() => setShowAskStyleReason(true)} style={{ fontSize:12, color:'rgba(255,255,255,0.25)', cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
-                      Why this reply <span style={{ fontSize:10 }}>↓</span>
-                    </div>
-                  )}
-                  {showAskStyleReason && (
-                    <div className="fade-in" style={{ fontSize:13, color:'rgba(255,255,255,0.4)', lineHeight:1.55 }}>
-                      {(generatedBecause.match(/[^.!?]+[.!?]?\s*/g) || []).slice(1).join('')}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Question */}
-              <div className="fade-in" style={{ fontSize:15, fontWeight:400, color:'#fff', lineHeight:1.55, letterSpacing:'-0.01em', marginBottom:16 }}>
-                Send this one?
-              </div>
-
-              {/* Buttons — matching AgentSheet */}
-              <div className="fade-in" style={{ display:'flex', gap:8, alignItems:'center' }}>
-                <button onClick={handleAskSend}
-                  style={{ flex:1, padding:'13px 0', background:'#fff', color:'#0F0F0F', border:'none', borderRadius:50, fontSize:14, fontWeight:700, cursor:'pointer', letterSpacing:'-0.01em' }}>
-                  Yes, send
-                </button>
-                <button onClick={() => { setMode('editing'); setEditVal(generatedDraft); }}
-                  style={{ flex:1, padding:'13px 0', background:'transparent', border:'1.5px solid rgba(255,255,255,0.18)', borderRadius:50, fontSize:14, fontWeight:500, cursor:'pointer', color:'rgba(255,255,255,0.8)', letterSpacing:'-0.01em' }}>
-                  Let me edit
-                </button>
-                <button onClick={() => { setMode('custom'); setCustomVal(''); }}
-                  style={{ padding:'13px 10px', background:'transparent', border:'none', fontSize:13, fontWeight:500, cursor:'pointer', color:'rgba(255,255,255,0.35)', flexShrink:0, whiteSpace:'nowrap' }}>
-                  I'll write
-                </button>
-              </div>
+              <AgentButtons
+                onSend={handleAskSend}
+                onEdit={() => { setMode('editing'); setEditVal(generatedDraft); }}
+                onSkip={() => { setMode('custom'); setCustomVal(''); }} />
             </>
           )}
-        </div>
+        </AgentSheetShell>
       )}
 
       {/* ═══ Bottom: Edit mode ═══ */}
@@ -1513,7 +1542,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
       {mode === 'feedback' && (
         <div className="sheet-up" style={{
           position:'absolute', bottom:0, left:0, right:0, zIndex:10,
-          background:'#0F0F0F', borderRadius:'22px 22px 0 0',
+          background:'#151515', borderRadius:'22px 22px 0 0',
           padding:'10px 22px 40px', boxShadow:'0 -8px 30px rgba(0,0,0,0.2)',
         }}>
           <div style={{ width:36, height:4, background:'rgba(255,255,255,0.14)', borderRadius:2, margin:'0 auto 18px' }} />
@@ -1557,28 +1586,22 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
         </div>
       )}
 
-      {/* ═══ Bottom: Sensitive message — black agent sheet ═══ */}
+      {/* ═══ Bottom: Sensitive message — agent sheet ═══ */}
       {mode === 'summary' && (
-        <div className="sheet-up" style={{
-          position:'absolute', bottom:0, left:0, right:0, zIndex:10,
-          background:'#0F0F0F', borderRadius:'22px 22px 0 0',
-          padding:'10px 22px 40px', boxShadow:'0 -8px 30px rgba(0,0,0,0.2)',
-          minHeight:200,
-        }}>
-          <div style={{ width:36, height:4, background:'rgba(255,255,255,0.14)', borderRadius:2, margin:'0 auto 18px' }} />
-
-          <div style={{ fontSize:15, fontWeight:400, color:'#fff', lineHeight:1.55, letterSpacing:'-0.01em', marginBottom:12 }}>
-            I read this and decided not to write anything.
+        <AgentSheetShell>
+          <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+            <div style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.5 }}>
+              I read this and decided not to write anything.
+            </div>
+            <div style={{ fontSize:16, fontWeight:400, color:'rgba(255,255,255,0.5)', lineHeight:1.5 }}>
+              {item.summary}
+            </div>
           </div>
-          <div style={{ fontSize:15, fontWeight:400, color:'rgba(255,255,255,0.5)', lineHeight:1.55, letterSpacing:'-0.01em', marginBottom:16 }}>
-            {item.summary}
-          </div>
-
           <button onClick={() => { setMode('custom'); setCustomVal(''); }}
-            style={{ width:'100%', padding:'14px', background:'#fff', color:'#0F0F0F', border:'none', borderRadius:50, fontSize:14, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em' }}>
+            style={{ width:'100%', padding:'8px 16px', background:A.text, color:A.btnText, border:'none', borderRadius:12, fontSize:15, fontWeight:500, cursor:'pointer', lineHeight:'22px', letterSpacing:'-0.195px' }}>
             Reply personally
           </button>
-        </div>
+        </AgentSheetShell>
       )}
 
       {/* ═══ Bottom: Undo toast after sending ═══ */}
@@ -1960,7 +1983,7 @@ function InboxV2({ onOverlayChange, openChatOnLoad }) {
         <div onClick={() => setSummaryOpen(true)}
           style={{
             position:'absolute', bottom:90, right:20, zIndex:20,
-            background:'#0F0F0F', borderRadius:50,
+            background:'#151515', borderRadius:50,
             padding:'9px 16px', width:190,
             display:'flex', alignItems:'center', gap:7,
             cursor:'pointer',
@@ -1983,7 +2006,7 @@ function InboxV2({ onOverlayChange, openChatOnLoad }) {
           {/* Sheet */}
           <div className="sheet-up" style={{
             position:'absolute', bottom:0, left:0, right:0,
-            background:'#0F0F0F', borderRadius:'22px 22px 0 0',
+            background:'#151515', borderRadius:'22px 22px 0 0',
             padding:'10px 22px 48px',
           }}>
             <div style={{ width:36, height:4, background:'rgba(255,255,255,0.14)', borderRadius:2, margin:'0 auto 20px' }} />
@@ -2012,7 +2035,7 @@ function InboxV2({ onOverlayChange, openChatOnLoad }) {
               {feedbackCustomText.trim() && (
                 <div onClick={handleFeedbackCustom}
                   style={{ width:36, height:36, borderRadius:18, background:'#fff', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0 }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0F0F0F" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#151515" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                 </div>
               )}
             </div>
@@ -2094,7 +2117,7 @@ function ObWelcomeV2b({ onNext }) {
   });
 
   return (
-    <div style={{ background:'#0F0F0F', height:'100%', display:'flex', flexDirection:'column', position:'relative', overflow:'hidden' }}>
+    <div style={{ background:'#151515', height:'100%', display:'flex', flexDirection:'column', position:'relative', overflow:'hidden' }}>
 
       <div style={{ flex:1, display:'flex', flexDirection:'column', padding:'100px 28px 0' }}>
         <div style={{ marginBottom:20, ...show(1) }}>
@@ -2151,7 +2174,7 @@ function ObResultsV2b({ onReplyNow, onOpenInbox }) {
   });
 
   return (
-    <div style={{ background:'#0F0F0F', height:'100%', display:'flex', flexDirection:'column', position:'relative', overflow:'hidden' }}>
+    <div style={{ background:'#151515', height:'100%', display:'flex', flexDirection:'column', position:'relative', overflow:'hidden' }}>
 
       <div style={{ flex:1, display:'flex', flexDirection:'column', padding:'100px 28px 0' }}>
         <div style={{ marginBottom:16, ...show(1) }}>
@@ -2198,7 +2221,7 @@ function ObResultsV2b({ onReplyNow, onOpenInbox }) {
         </div>
 
         <div style={{ ...show(8) }}>
-          <button onClick={onReplyNow} style={{ width:'100%', padding:'16px', background:'#fff', color:'#0F0F0F', border:'none', borderRadius:50, fontSize:16, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em', marginBottom:10 }}>
+          <button onClick={onReplyNow} style={{ width:'100%', padding:'16px', background:'#fff', color:'#151515', border:'none', borderRadius:50, fontSize:16, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em', marginBottom:10 }}>
             Reply now
           </button>
         </div>
