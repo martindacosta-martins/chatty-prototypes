@@ -1409,30 +1409,49 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
 
           {askPhase === 'ready' && (
             <>
-              {item.context && (
-                <div className="fade-in" style={{ marginBottom:14 }}>
-                  <div style={{ fontSize:14, color:T.gray, lineHeight:1.55, letterSpacing:'-0.01em' }}>{item.context}</div>
-                </div>
-              )}
-              <div style={{ fontSize:11, color:T.gray, marginBottom:6, fontWeight:500 }}>Inbox Agent</div>
-              <div style={{ fontSize:14, color:T.ink, lineHeight:1.55, letterSpacing:'-0.01em', marginBottom:8 }}>Here's what I'd send:</div>
-              <div style={{ padding:'13px 16px', borderRadius:14, border:`1.5px dashed ${T.lightGray}`, background:T.warmGray, marginBottom:8 }}>
-                <div style={{ fontSize:14, lineHeight:1.5, color:T.ink, letterSpacing:'-0.01em' }}>{generatedDraft}</div>
-              </div>
+              {/* Reason — matches AgentSheet style */}
               {generatedBecause && (
-                <div style={{ marginBottom:14 }}>
-                  {!showAskStyleReason ? (
-                    <div onClick={() => setShowAskStyleReason(true)} style={{ fontSize:12, color:T.gray, cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
+                <div className="fade-in" style={{ marginBottom:14 }}>
+                  <div style={{ fontSize:15, fontWeight:400, color:'rgba(255,255,255,0.6)', lineHeight:1.55, letterSpacing:'-0.01em' }}>
+                    {(generatedBecause.match(/[^.!?]+[.!?]?\s*/g) || [generatedBecause])[0]}
+                  </div>
+                  {!showAskStyleReason && (generatedBecause.match(/[^.!?]+[.!?]?\s*/g) || []).length > 1 && (
+                    <div onClick={() => setShowAskStyleReason(true)} style={{ fontSize:12, color:'rgba(255,255,255,0.25)', marginTop:6, cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
                       Why this reply <span style={{ fontSize:10 }}>↓</span>
                     </div>
-                  ) : (
-                    <div className="fade-in" style={{ fontSize:12, color:T.gray, lineHeight:1.5, letterSpacing:'-0.01em' }}>{generatedBecause}</div>
+                  )}
+                  {showAskStyleReason && (
+                    <div className="fade-in" style={{ fontSize:13, color:'rgba(255,255,255,0.4)', lineHeight:1.55, marginTop:6 }}>
+                      {(generatedBecause.match(/[^.!?]+[.!?]?\s*/g) || []).slice(1).join('')}
+                    </div>
                   )}
                 </div>
               )}
-              <div style={{ display:'flex', gap:8 }}>
-                <button onClick={handleAskSend} style={{ flex:1, padding:'12px 0', background:T.ink, color:'#fff', border:'none', borderRadius:12, fontSize:14, fontWeight:600, cursor:'pointer' }}>Approve & Send</button>
-                <button onClick={() => { setMode('editing'); setEditVal(generatedDraft); }} style={{ padding:'12px 16px', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:12, fontSize:13, fontWeight:500, cursor:'pointer', color:T.ink }}>Edit</button>
+
+              {/* Draft — prominent white card */}
+              <div className="fade-in" style={{ marginBottom:16, padding:'14px 16px', background:'rgba(255,255,255,0.95)', borderRadius:14 }}>
+                <div style={{ fontSize:15, fontWeight:400, color:'#0F0F0F', lineHeight:1.55, letterSpacing:'-0.01em' }}>{generatedDraft}</div>
+              </div>
+
+              {/* Question */}
+              <div className="fade-in" style={{ fontSize:15, fontWeight:400, color:'#fff', lineHeight:1.55, letterSpacing:'-0.01em', marginBottom:16 }}>
+                Send this one?
+              </div>
+
+              {/* Buttons — matching AgentSheet */}
+              <div className="fade-in" style={{ display:'flex', gap:8, alignItems:'center' }}>
+                <button onClick={handleAskSend}
+                  style={{ flex:1, padding:'13px 0', background:'#fff', color:'#0F0F0F', border:'none', borderRadius:50, fontSize:14, fontWeight:700, cursor:'pointer', letterSpacing:'-0.01em' }}>
+                  Yes, send
+                </button>
+                <button onClick={() => { setMode('editing'); setEditVal(generatedDraft); }}
+                  style={{ flex:1, padding:'13px 0', background:'transparent', border:'1.5px solid rgba(255,255,255,0.18)', borderRadius:50, fontSize:14, fontWeight:500, cursor:'pointer', color:'rgba(255,255,255,0.8)', letterSpacing:'-0.01em' }}>
+                  Let me edit
+                </button>
+                <button onClick={() => { setMode('custom'); setCustomVal(''); }}
+                  style={{ padding:'13px 10px', background:'transparent', border:'none', fontSize:13, fontWeight:500, cursor:'pointer', color:'rgba(255,255,255,0.35)', flexShrink:0, whiteSpace:'nowrap' }}>
+                  I'll write
+                </button>
               </div>
             </>
           )}
