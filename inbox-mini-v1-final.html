@@ -920,27 +920,22 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
           const isOutgoing = m.from === 'you' || m.from === 'automation';
           const isAutomation = m.from === 'automation';
           return (
-            <div key={i} style={{ marginBottom:16, paddingRight: !isOutgoing ? 80 : 0, paddingLeft: isOutgoing ? 40 : 0 }}>
-              {/* Contact bubble — #F5F5F5, no border */}
+            <div key={i} style={{ marginBottom:16, display:'flex', flexDirection:'column', alignItems: isOutgoing ? 'flex-end' : 'flex-start' }}>
               {m.from === 'them' && (
-                <div style={{ padding:'8px 8px 8px 12px', borderRadius:12, background:'#F5F5F5' }}>
+                <div style={{ maxWidth:'75%', padding:'8px 12px', borderRadius:12, background:'#F5F5F5' }}>
                   <div style={{ fontSize:16, lineHeight:1.5, color:'#292929' }}>{m.text}</div>
                 </div>
               )}
-              {/* Automation bubble — #D6D6D6 */}
               {isAutomation && (
-                <div>
-                  <div style={{ padding:'8px 8px 8px 12px', borderRadius:12, background:'#D6D6D6' }}>
+                <>
+                  <div style={{ maxWidth:'75%', padding:'8px 12px', borderRadius:12, background:'#D6D6D6' }}>
                     <div style={{ fontSize:16, lineHeight:1.5, color:'#292929' }}>{m.text}</div>
                   </div>
-                  <div style={{ textAlign:'right', marginTop:4 }}>
-                    <span style={{ fontSize:12, color:'#707070' }}>Automation</span>
-                  </div>
-                </div>
+                  <span style={{ fontSize:12, color:'#707070', marginTop:4 }}>Automation</span>
+                </>
               )}
-              {/* User bubble — blue #006BE2 */}
               {m.from === 'you' && (
-                <div style={{ padding:'8px 8px 8px 12px', borderRadius:12, background:'#006BE2' }}>
+                <div style={{ maxWidth:'75%', padding:'8px 12px', borderRadius:12, background:'#006BE2' }}>
                   <div style={{ fontSize:16, lineHeight:1.5, color:'#fff' }}>{m.text}</div>
                 </div>
               )}
