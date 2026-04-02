@@ -1073,22 +1073,18 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
       {/* ═══ Bottom: Free text input (custom / sent) ═══ */}
       {(mode === 'custom' || mode === 'sent') && (
         <div style={{ flexShrink:0, borderTop:`1px solid ${T.lightGray}`, background:T.paper, padding:'12px 20px 40px' }}>
-          {/* Gap 3: "I'll write" feedback — inline, dismissible */}
+          {/* "I'll write" feedback — simple Yes / No */}
           {mode === 'custom' && customFeedback === 'asking' && (
             <div className="fade-up" style={{ marginBottom:10 }}>
-              <div style={{ fontSize:12, color:T.gray, marginBottom:8 }}>Was the draft helpful as a starting point?</div>
+              <div style={{ fontSize:12, color:T.gray, marginBottom:8 }}>Was the draft helpful?</div>
               <div style={{ display:'flex', gap:6 }}>
-                <div onClick={() => {
-                  setCustomFeedback('done');
-                  triggerToast('Got it — you wanted your voice here.');
-                }} style={{ padding:'8px 14px', background:T.warmGray, borderRadius:20, cursor:'pointer', fontSize:12, color:T.ink, fontWeight:500, transition:'all .15s ease' }}>
-                  Yes, but my voice
+                <div onClick={() => { setCustomFeedback('done'); triggerToast('Got it — glad it helped.'); }}
+                  style={{ padding:'8px 14px', background:T.warmGray, borderRadius:20, cursor:'pointer', fontSize:12, color:T.ink, fontWeight:500 }}>
+                  Yes
                 </div>
-                <div onClick={() => {
-                  setCustomFeedback('done');
-                  triggerToast('Got it — I\'ll improve my drafts.');
-                }} style={{ padding:'8px 14px', background:T.warmGray, borderRadius:20, cursor:'pointer', fontSize:12, color:T.ink, fontWeight:500, transition:'all .15s ease' }}>
-                  No, missed the mark
+                <div onClick={() => { setCustomFeedback('done'); triggerToast('Got it — I\'ll improve.'); }}
+                  style={{ padding:'8px 14px', background:T.warmGray, borderRadius:20, cursor:'pointer', fontSize:12, color:T.ink, fontWeight:500 }}>
+                  No
                 </div>
               </div>
             </div>
@@ -1678,9 +1674,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 
 <!-- Version toggle -->
 <div style="position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;background:#fff;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,0.12);overflow:hidden;font-family:Inter,sans-serif;font-size:12px;">
-  <a href="inbox-mini-v1-final-v1.html" style="padding:8px 16px;text-decoration:none;color:#888;font-weight:500;">V1</a>
-  <a href="inbox-mini-v1-final.html" style="padding:8px 16px;text-decoration:none;color:#fff;background:#1C1A16;font-weight:600;">V2</a>
-  <a href="inbox-mini-v1-final-v3.html" style="padding:8px 16px;text-decoration:none;color:#888;font-weight:500;">V3</a>
+  <a href="index-v1.html" style="padding:8px 16px;text-decoration:none;color:#888;font-weight:500;">V1</a>
+  <a href="index-v2.html" style="padding:8px 16px;text-decoration:none;color:#fff;background:#1C1A16;font-weight:600;">V2</a>
 </div>
 </body>
 </html>
