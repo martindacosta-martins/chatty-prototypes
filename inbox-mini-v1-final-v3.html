@@ -1825,31 +1825,42 @@ function ObResultsV2b({ onReplyNow, onOpenInbox }) {
         }} />
       )}
 
-      <div style={{ flex:1, display:'flex', flexDirection:'column', justifyContent:'center', padding:'0 32px', position:'relative', zIndex:1 }}>
-        <div style={{ marginBottom:32, ...wave(0) }}>
-          <div style={{ fontSize:34, fontWeight:800, color:'#fff', letterSpacing:'-0.04em', lineHeight:1.1 }}>Ready to go, Sofia.</div>
+      <div style={{ flex:1, display:'flex', flexDirection:'column', padding:'100px 28px 0', position:'relative', zIndex:1 }}>
+        <div style={{ marginBottom:16, ...wave(0) }}>
+          <h1 style={{ fontSize:34, fontWeight:900, color:'#fff', letterSpacing:'-0.04em', lineHeight:1.12, WebkitTextStroke:'0.5px #fff' }}>Ready to go.</h1>
         </div>
-        <div style={{ ...wave(0.08) }}>
-          {OB_STATS.map((s, i) => (
-            <div key={i} style={{ display:'flex', alignItems:'baseline', gap:18, padding:'14px 0', borderBottom: i < OB_STATS.length - 1 ? '1px solid rgba(255,255,255,0.07)' : 'none' }}>
-              <div style={{ fontSize:30, fontWeight:700, color:'#fff', letterSpacing:'-0.04em', minWidth:48 }}>{s.n}</div>
-              <div style={{ fontSize:13, color:'rgba(255,255,255,0.45)' }}>{s.label}</div>
-            </div>
-          ))}
+
+        <div style={{ ...wave(0.06) }}>
+          <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:24 }}>
+            I analyzed 142 DMs and this is what I found:
+          </p>
+        </div>
+
+        <div style={{ ...wave(0.1) }}>
+          <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:16 }}>
+            <span style={{ fontWeight:700 }}>8</span> interested in your 12-week course
+          </p>
+          <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:16 }}>
+            <span style={{ fontWeight:700 }}>12</span> want to collaborate
+          </p>
+          <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6 }}>
+            <span style={{ fontWeight:700 }}>2</span> expressed emotions and need your advice
+          </p>
         </div>
       </div>
 
       <div style={{ padding:'0 28px 90px', position:'relative', zIndex:1 }}>
-        {/* Chat extract teaser */}
-        <div style={{ fontSize:13, color:'rgba(255,255,255,0.35)', marginBottom:10, letterSpacing:'-0.01em', ...wave(0.14) }}>
-          Someone's already interested in your coaching:
+        <div style={{ ...wave(0.14) }}>
+          <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:12 }}>
+            Someone's already interested in your coaching
+          </p>
         </div>
         <div className="fade-up" style={{ padding:'14px 16px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:16, marginBottom:16, ...wave(0.18) }}>
           <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
             <img src="https://i.pravatar.cc/88?u=jayrunz" alt="" style={{ width:24, height:24, borderRadius:12, objectFit:'cover' }} />
             <span style={{ fontSize:12, color:'rgba(255,255,255,0.4)', fontWeight:500 }}>@jayrunz</span>
           </div>
-          <div style={{ fontSize:13, color:'rgba(255,255,255,0.55)', lineHeight:1.5, fontStyle:'italic' }}>
+          <div style={{ fontSize:14, color:'rgba(255,255,255,0.55)', lineHeight:1.5, fontStyle:'italic' }}>
             "I've been struggling for 2 years. Is it too late to start?"
           </div>
         </div>

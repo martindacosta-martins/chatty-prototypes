@@ -2646,40 +2646,40 @@ function ObResultsV2b({ onNext }) {
     <div className="fade-up" style={{ background:'#fff', height:'100%', display:'flex', flexDirection:'column', position:'relative', overflow:'hidden' }}>
       <GradientOrbs />
 
-      <div style={{ flex:1, display:'flex', flexDirection:'column', justifyContent:'center', padding:'0 32px', position:'relative', zIndex:1 }}>
-        <div className="fade-up" style={{ marginBottom:6 }}>
-          <div style={{ fontSize:32, fontWeight:800, color:T.ink, letterSpacing:'-0.04em', lineHeight:1.1 }}>Ready to go, Sofia.</div>
+      <div style={{ flex:1, display:'flex', flexDirection:'column', padding:'100px 28px 0', position:'relative', zIndex:1 }}>
+        <div className="fade-up" style={{ marginBottom:16 }}>
+          <h1 style={{ fontSize:34, fontWeight:900, color:T.ink, letterSpacing:'-0.04em', lineHeight:1.12, WebkitTextStroke:'0.5px ' + T.ink }}>Ready to go.</h1>
         </div>
-        <p className="fade-up" style={{ fontSize:16, color:T.gray, marginBottom:40, animationDelay:'0.1s' }}>
-          No more "Am I missing something?"
+        <p className="fade-up" style={{ fontSize:16, fontWeight:400, color:T.ink, lineHeight:1.6, marginBottom:24, animationDelay:'0.1s' }}>
+          I analyzed 142 DMs and this is what I found:
         </p>
-        <div className="fade-up" style={{ animationDelay:'0.2s' }}>
-          {OB_STATS.map((s, i) => (
-            <div key={i} style={{ display:'flex', alignItems:'baseline', gap:18, padding:'14px 0', borderBottom: i < OB_STATS.length - 1 ? `1px solid ${T.lightGray}` : 'none' }}>
-              <div style={{ fontSize:30, fontWeight:700, color:T.ink, letterSpacing:'-0.04em', minWidth:48 }}>{s.n}</div>
-              <div style={{ fontSize:13, color:T.gray }}>{s.label}</div>
-            </div>
-          ))}
+        <div className="fade-up" style={{ animationDelay:'0.15s' }}>
+          <p style={{ fontSize:16, fontWeight:400, color:T.ink, lineHeight:1.6, marginBottom:16 }}>
+            <span style={{ fontWeight:700 }}>8</span> interested in your 12-week course
+          </p>
+          <p style={{ fontSize:16, fontWeight:400, color:T.ink, lineHeight:1.6, marginBottom:16 }}>
+            <span style={{ fontWeight:700 }}>12</span> want to collaborate
+          </p>
+          <p style={{ fontSize:16, fontWeight:400, color:T.ink, lineHeight:1.6 }}>
+            <span style={{ fontWeight:700 }}>2</span> expressed emotions and need your advice
+          </p>
         </div>
       </div>
 
-      <div className="fade-up" style={{ padding:'0 28px 90px', position:'relative', zIndex:1, animationDelay:'0.3s' }}>
-        {/* Chat extract teaser */}
-        <div className="fade-up" style={{ marginTop:28, padding:'14px 16px', background:'rgba(0,0,0,0.04)', border:'1px solid rgba(0,0,0,0.08)', borderRadius:16 }}>
+      <div className="fade-up" style={{ padding:'0 28px 90px', position:'relative', zIndex:1, animationDelay:'0.25s' }}>
+        <p style={{ fontSize:16, fontWeight:400, color:T.ink, lineHeight:1.6, marginBottom:12 }}>
+          Someone's already interested in your coaching
+        </p>
+        <div style={{ padding:'14px 16px', background:'rgba(0,0,0,0.04)', border:'1px solid rgba(0,0,0,0.08)', borderRadius:16, marginBottom:16 }}>
           <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
             <img src="https://i.pravatar.cc/88?u=jayrunz" alt="" style={{ width:24, height:24, borderRadius:12, objectFit:'cover' }} />
             <span style={{ fontSize:12, color:'rgba(0,0,0,0.4)', fontWeight:500 }}>@jayrunz</span>
           </div>
-          <div style={{ fontSize:13, color:'rgba(0,0,0,0.5)', lineHeight:1.5, marginBottom:10, fontStyle:'italic' }}>
+          <div style={{ fontSize:14, color:'rgba(0,0,0,0.5)', lineHeight:1.5, fontStyle:'italic' }}>
             "I've been struggling for 2 years. Is it too late to start?"
           </div>
-          <div style={{ fontSize:13, color:T.ink, fontWeight:500 }}>
-            I already have a reply for that →
-          </div>
         </div>
-        <div style={{ marginTop:20 }}>
-          <BlackBtn label="Let's go" onClick={onNext} />
-        </div>
+        <BlackBtn label="Let's go" onClick={onNext} />
       </div>
     </div>
   );
