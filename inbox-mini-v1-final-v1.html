@@ -865,10 +865,12 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
     setUndoCount(0);
   };
 
-  // Scroll chat to bottom on mode change
+  // Scroll chat to bottom on mode change — smooth, timed with sheet animation
   useEffect(() => {
     if (chatBodyRef.current) {
-      setTimeout(() => { chatBodyRef.current.scrollTop = chatBodyRef.current.scrollHeight; }, 50);
+      setTimeout(() => {
+        chatBodyRef.current.scrollTo({ top: chatBodyRef.current.scrollHeight, behavior: 'smooth' });
+      }, mode === 'suggest' ? 300 : 50);
     }
   }, [mode]);
 
@@ -965,7 +967,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
       </div>
 
       {/* Chat body */}
-      <div ref={chatBodyRef} style={{ flex:1, overflowY:'auto', padding:'20px 16px 12px', paddingBottom: mode === 'suggest' ? '300px' : '12px' }}>
+      <div ref={chatBodyRef} style={{ flex:1, overflowY:'auto', padding:'20px 16px 12px', paddingBottom: mode === 'suggest' ? '60%' : '12px' }}>
         {/* Timestamp marker */}
         <div style={{ textAlign:'center', marginBottom:16 }}>
           <span style={{ fontSize:12, color:'#707070' }}>Today {item.time || '8:10 AM'}</span>
