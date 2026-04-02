@@ -1279,8 +1279,19 @@ function ImportantTab({ onOpenChat, answeredChats, priorityFeedbackDone, onFeedb
     g.items.filter(item => answeredChats.has(item.user)).map(item => ({ ...item, _sensitive: !!item._sensitive }))
   );
 
+  const totalPending = IMPORTANT_GROUPS.reduce((sum, g) => sum + g.items.filter(item => !answeredChats.has(item.user)).length, 0);
+
   return (
     <div>
+      {/* Empty state — all important DMs answered */}
+      {totalPending === 0 && (
+        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'80px 32px 40px', textAlign:'center' }}>
+          <div style={{ fontSize:64, marginBottom:16 }}>🚀</div>
+          <div style={{ fontSize:20, fontWeight:700, color:T.ink, letterSpacing:'-0.02em', marginBottom:6 }}>Time to grab a coffee</div>
+          <div style={{ fontSize:14, color:T.gray, lineHeight:1.5 }}>I'll let you know when something that needs your attention comes in</div>
+        </div>
+      )}
+
       {/* Active groups — only pending items */}
       {IMPORTANT_GROUPS.map((group, gi) => {
         const pending = group.items.filter(item => !answeredChats.has(item.user));

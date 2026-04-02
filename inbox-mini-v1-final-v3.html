@@ -88,8 +88,8 @@ const { useState, useEffect, useRef, useCallback } = React;
 /* ═══ DESIGN TOKENS ═══ */
 const T = {
   paper: '#FFFFFF',
-  ink: '#1B1B18',
-  gray: '#7F7E76',
+  ink: '#292929',
+  gray: '#707070',
   lightGray: '#D6D6D6',
   cardBg: '#FFFFFF',
   accent: '#006BE2',
@@ -834,7 +834,7 @@ function AgentExpandedScreen({ onDismiss }) {
 
       {/* TOP: Status + Stats */}
       <div style={{ display:'flex', alignItems:'center', gap:7, marginBottom:24 }}>
-        <div style={{ width:7, height:7, borderRadius:4, background:'#0095F6', flexShrink:0, animation:'pulse 1.4s ease-in-out infinite' }} />
+        <div style={{ width:7, height:7, borderRadius:4, background:'#2E86FD', flexShrink:0, animation:'pulse 1.4s ease-in-out infinite' }} />
         <div style={{ fontSize:15, fontWeight:600, color:'#fff', letterSpacing:'-0.02em' }}>Analyzing your DMs</div>
       </div>
 
@@ -889,29 +889,34 @@ function AgentExpandedScreen({ onDismiss }) {
 /* ─── Message row (IG DM style) ─── */
 function MsgRow({ user, name, avatar, time, onClick, isLast, isAsk, summary, status }) {
   return (
-    <div onClick={onClick} style={{ display:'flex', alignItems:'flex-start', gap:12, padding:'14px 0', cursor:'pointer', borderBottom: isLast ? 'none' : `1px solid ${T.lightGray}` }}>
-      <img src={avatar} alt="" style={{ width:36, height:36, borderRadius:18, objectFit:'cover', flexShrink:0, background:T.lightGray, marginTop:2 }} />
-      <div style={{ flex:1, minWidth:0 }}>
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:2 }}>
-          <span style={{ fontSize:15, fontWeight:500, color:T.ink, letterSpacing:'-0.01em' }}>{name || user}</span>
-          <span style={{ fontSize:12, color:T.gray, fontWeight:400, flexShrink:0 }}>{time}</span>
-        </div>
-        {summary && (
-          <div style={{ fontSize:14, color:T.ink, fontWeight:400, lineHeight:1.45, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{summary}</div>
-        )}
-        {status && (
-          <div style={{ fontSize:12, color:T.gray, fontWeight:400, marginTop:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-            {status}
+    <div>
+      <div onClick={onClick} style={{ display:'flex', alignItems:'flex-start', gap:12, padding:'16px 0 8px', cursor:'pointer' }}>
+        <img src={avatar} alt="" style={{ width:32, height:32, borderRadius:400, objectFit:'cover', flexShrink:0, border:'0.5px solid rgba(44,50,58,0.12)', marginTop:2 }} />
+        <div style={{ flex:1, minWidth:0 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:4 }}>
+            <span style={{ fontSize:14, fontWeight:500, color:T.ink, letterSpacing:'-0.01em', lineHeight:'20px' }}>{name || user}</span>
+            <span style={{ fontSize:12, color:T.gray, fontWeight:400, flexShrink:0, lineHeight:'16px' }}>{time}</span>
           </div>
-        )}
+          {summary && (
+            <div style={{ fontSize:14, color:T.ink, fontWeight:400, lineHeight:'20px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', marginBottom:4 }}>{summary}</div>
+          )}
+          {status && (
+            <div style={{ fontSize:12, color:T.gray, fontWeight:400, lineHeight:'16px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+              {status}
+            </div>
+          )}
+        </div>
       </div>
+      {!isLast && (
+        <div style={{ marginLeft:44, height:1, background:T.lightGray }} />
+      )}
     </div>
   );
 }
 
 /* ─── Agent Sheet — conversational bottom panel with streaming text ─── */
 function AgentSheet({ item, onSend, onEdit, onSkip }) {
-  const [phase, setPhase] = useState('skeleton');
+  const [phase, setPhase] = useState('thinking');
   const [showStyleReason, setShowStyleReason] = useState(false);
 
   const questions = ['Want me to send this?','Ready to send?','Should I go ahead?','Does this work?','Good to send?','Send this one?'];
@@ -919,29 +924,11 @@ function AgentSheet({ item, onSend, onEdit, onSkip }) {
 
   const t = { fontSize:15, fontWeight:400, color:'#fff', lineHeight:1.55, letterSpacing:'-0.01em' };
 
-  // Phase: skeleton → context → draft → styleReason → ask → buttons
+  // thinking → ready (all content at once)
   useEffect(() => {
-    const t1 = setTimeout(() => setPhase('context'), 500);
-    return () => clearTimeout(t1);
+    const timer = setTimeout(() => setPhase('ready'), 800);
+    return () => clearTimeout(timer);
   }, []);
-  useEffect(() => {
-    if (phase !== 'context') return;
-    const t1 = setTimeout(() => setPhase('draft'), 500);
-    return () => clearTimeout(t1);
-  }, [phase]);
-  useEffect(() => {
-    if (phase !== 'draft') return;
-    const t1 = setTimeout(() => setPhase('ask'), 500);
-    return () => clearTimeout(t1);
-  }, [phase]);
-  useEffect(() => {
-    if (phase !== 'ask') return;
-    const t1 = setTimeout(() => setPhase('buttons'), 350);
-    return () => clearTimeout(t1);
-  }, [phase]);
-
-  const phaseOrder = ['skeleton','context','draft','ask','buttons'];
-  const p = phaseOrder.indexOf(phase);
 
   return (
     <div className="sheet-up" style={{
@@ -952,79 +939,73 @@ function AgentSheet({ item, onSend, onEdit, onSkip }) {
     }}>
       <div style={{ width:36, height:4, background:'rgba(255,255,255,0.14)', borderRadius:2, margin:'0 auto 16px', flexShrink:0 }} />
 
-      <div style={{ flex:1, overflowY:'auto' }}>
-        {/* Skeleton */}
-        {phase === 'skeleton' && (
-          <div>
-            <div className="skeleton-line" style={{ width:'80%', marginBottom:10 }} />
-            <div className="skeleton-line" style={{ width:'50%', marginBottom:16 }} />
-            <div className="skeleton-line" style={{ width:'100%', height:56, borderRadius:12, marginBottom:14 }} />
-            <div className="skeleton-line" style={{ width:'40%' }} />
-          </div>
-        )}
-
-        {/* Context — about the contact/situation, always visible */}
-        {p >= 1 && (
-          <div className="fade-in" style={{ marginBottom:14 }}>
-            <div style={{ ...t, color:'rgba(255,255,255,0.6)' }}>
-              {item.context || ''}
-            </div>
-          </div>
-        )}
-
-        {/* Draft — prominent white card */}
-        {p >= 2 && (
-          <div className="fade-in" style={{
-            marginBottom:12, padding:'14px 16px',
-            background:'rgba(255,255,255,0.95)', borderRadius:14,
-          }}>
-            <div style={{ fontSize:15, fontWeight:400, color:'#0F0F0F', lineHeight:1.55, letterSpacing:'-0.01em' }}>
-              {item.draft}
-            </div>
-          </div>
-        )}
-
-        {/* Style reason — why this tone/approach, expandable */}
-        {p >= 2 && item.styleReason && (
-          <div style={{ marginBottom:14 }}>
-            {!showStyleReason && (
-              <div onClick={() => setShowStyleReason(true)}
-                style={{ fontSize:12, color:'rgba(255,255,255,0.25)', cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
-                Why this reply <span style={{ fontSize:10 }}>↓</span>
-              </div>
-            )}
-            {showStyleReason && (
-              <div className="fade-in" style={{ ...t, color:'rgba(255,255,255,0.4)', fontSize:13 }}>
-                {item.styleReason}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Question */}
-        {p >= 3 && (
-          <div className="fade-in" style={{ ...t, marginBottom:4 }}>
-            {question}
-          </div>
-        )}
-      </div>
-
-      {/* Buttons — always at bottom */}
-      {p >= 4 && (
-        <div className="fade-in" style={{ display:'flex', gap:8, alignItems:'center', flexShrink:0, paddingTop:12 }}>
-          <button onClick={onSend}
-            style={{ flex:1, padding:'13px 0', background:'#fff', color:'#0F0F0F', border:'none', borderRadius:50, fontSize:14, fontWeight:700, cursor:'pointer', letterSpacing:'-0.01em' }}>
-            Yes, send
-          </button>
-          <button onClick={onEdit}
-            style={{ flex:1, padding:'13px 0', background:'transparent', border:'1.5px solid rgba(255,255,255,0.18)', borderRadius:50, fontSize:14, fontWeight:500, cursor:'pointer', color:'rgba(255,255,255,0.8)', letterSpacing:'-0.01em' }}>
-            Let me edit
-          </button>
-          <button onClick={onSkip}
-            style={{ padding:'13px 10px', background:'transparent', border:'none', fontSize:13, fontWeight:500, cursor:'pointer', color:'rgba(255,255,255,0.35)', flexShrink:0, whiteSpace:'nowrap' }}>
-            I'll write
-          </button>
+      {/* Thinking state */}
+      {phase === 'thinking' && (
+        <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <div style={{ animation:'pulse 1.2s ease infinite', fontSize:14, color:'rgba(255,255,255,0.45)', letterSpacing:'-0.01em' }}>Thinking...</div>
         </div>
+      )}
+
+      {/* Ready — everything at once */}
+      {phase === 'ready' && (
+        <>
+          <div className="fade-in" style={{ flex:1, overflowY:'auto' }}>
+            {/* Context */}
+            <div style={{ marginBottom:14 }}>
+              <div style={{ ...t, color:'rgba(255,255,255,0.6)' }}>
+                {item.context || ''}
+              </div>
+            </div>
+
+            {/* Draft — prominent white card */}
+            <div style={{
+              marginBottom:12, padding:'14px 16px',
+              background:'rgba(255,255,255,0.95)', borderRadius:14,
+            }}>
+              <div style={{ fontSize:15, fontWeight:400, color:'#0F0F0F', lineHeight:1.55, letterSpacing:'-0.01em' }}>
+                {item.draft}
+              </div>
+            </div>
+
+            {/* Style reason — expandable */}
+            {item.styleReason && (
+              <div style={{ marginBottom:14 }}>
+                {!showStyleReason && (
+                  <div onClick={() => setShowStyleReason(true)}
+                    style={{ fontSize:12, color:'rgba(255,255,255,0.25)', cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
+                    Why this reply <span style={{ fontSize:10 }}>↓</span>
+                  </div>
+                )}
+                {showStyleReason && (
+                  <div className="fade-in" style={{ ...t, color:'rgba(255,255,255,0.4)', fontSize:13 }}>
+                    {item.styleReason}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Question */}
+            <div style={{ ...t, marginBottom:4 }}>
+              {question}
+            </div>
+          </div>
+
+          {/* Buttons */}
+          <div style={{ display:'flex', gap:8, alignItems:'center', flexShrink:0, paddingTop:12 }}>
+            <button onClick={onSend}
+              style={{ flex:1, padding:'13px 0', background:'#fff', color:'#0F0F0F', border:'none', borderRadius:50, fontSize:14, fontWeight:700, cursor:'pointer', letterSpacing:'-0.01em' }}>
+              Yes, send
+            </button>
+            <button onClick={onEdit}
+              style={{ flex:1, padding:'13px 0', background:'transparent', border:'1.5px solid rgba(255,255,255,0.18)', borderRadius:50, fontSize:14, fontWeight:500, cursor:'pointer', color:'rgba(255,255,255,0.8)', letterSpacing:'-0.01em' }}>
+              Let me edit
+            </button>
+            <button onClick={onSkip}
+              style={{ padding:'13px 10px', background:'transparent', border:'none', fontSize:13, fontWeight:500, cursor:'pointer', color:'rgba(255,255,255,0.35)', flexShrink:0, whiteSpace:'nowrap' }}>
+              I'll write
+            </button>
+          </div>
+        </>
       )}
     </div>
   );
@@ -1658,38 +1639,71 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
   );
 }
 
-/* ─── Intention group header ─── */
-function IntentionHeader({ label, count, desc }) {
+/* ─── Chevron icon ─── */
+function ChevronIcon({ collapsed }) {
   return (
-    <div style={{ padding:'24px 0 4px' }}>
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-        <span style={{ fontSize:16, fontWeight:600, color:T.ink, letterSpacing:'-0.02em' }}>{label}</span>
-        <span style={{ fontSize:12, fontWeight:500, color:'#999', background:'#F2F2F2', padding:'3px 10px', borderRadius:12, letterSpacing:'-0.01em' }}>{count}</span>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={T.gray} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+      style={{ transition:'transform .25s ease', transform: collapsed ? 'rotate(-90deg)' : 'rotate(0deg)' }}>
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  );
+}
+
+/* ─── Intention group header ─── */
+function IntentionHeader({ label, count, collapsed, onToggle }) {
+  return (
+    <div onClick={onToggle} style={{ height:56, display:'flex', alignItems:'center', justifyContent:'space-between', cursor:'pointer' }}>
+      <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+        <div style={{ width:32, height:32, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+          <ChevronIcon collapsed={collapsed} />
+        </div>
+        <span style={{ fontSize:16, fontWeight:500, color:T.ink, letterSpacing:'-0.02em' }}>{label}</span>
       </div>
-{/* desc removed */}
+      <span style={{ fontSize:12, fontWeight:500, color:T.ink, background:'#F5F5F5', padding:'4px 8px', borderRadius:16, letterSpacing:'-0.01em' }}>{count}</span>
     </div>
   );
 }
 
 /* ─── Important Tab ─── */
 function ImportantTab({ onOpenChat, answeredChats, priorityFeedbackDone, onFeedbackGood, onFeedbackBad }) {
+  const [collapsedGroups, setCollapsedGroups] = useState(new Set());
   // Collect all answered items across all groups into one flat list
   const allAnswered = IMPORTANT_GROUPS.flatMap(g =>
     g.items.filter(item => answeredChats.has(item.user)).map(item => ({ ...item, _sensitive: !!item._sensitive }))
   );
 
+  const totalPending = IMPORTANT_GROUPS.reduce((sum, g) => sum + g.items.filter(item => !answeredChats.has(item.user)).length, 0);
+
+  const toggleGroup = (gi) => {
+    setCollapsedGroups(prev => {
+      const next = new Set(prev);
+      next.has(gi) ? next.delete(gi) : next.add(gi);
+      return next;
+    });
+  };
+
   return (
     <div>
+      {/* Empty state — all important DMs answered */}
+      {totalPending === 0 && (
+        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'80px 32px 40px', textAlign:'center' }}>
+          <div style={{ fontSize:64, marginBottom:16 }}>🚀</div>
+          <div style={{ fontSize:20, fontWeight:700, color:T.ink, letterSpacing:'-0.02em', marginBottom:6 }}>Time to grab a coffee</div>
+          <div style={{ fontSize:14, color:T.gray, lineHeight:1.5 }}>I'll let you know when something that needs your attention comes in</div>
+        </div>
+      )}
+
       {/* Active groups — only pending items */}
       {IMPORTANT_GROUPS.map((group, gi) => {
         const pending = group.items.filter(item => !answeredChats.has(item.user));
         if (pending.length === 0) return null;
+        const isCollapsed = collapsedGroups.has(gi);
 
         return (
           <div key={gi}>
-            <IntentionHeader label={group.intention} count={pending.length} desc={group.desc} />
+            <IntentionHeader label={group.intention} count={pending.length} collapsed={isCollapsed} onToggle={() => toggleGroup(gi)} />
             <div style={{ height:1, background:T.lightGray }} />
-            {pending.map((item, i) => (
+            {!isCollapsed && pending.map((item, i) => (
               <MsgRow key={item.user} user={item.user} name={item.name} avatar={item.avatar} time={item.time}
                 isAsk={item.mode === 'ask'}
                 isLast={i === pending.length - 1}
@@ -1733,21 +1747,26 @@ function ImportantTab({ onOpenChat, answeredChats, priorityFeedbackDone, onFeedb
       {allAnswered.length > 0 && (
         <div style={{ margin:'4px -20px 0', padding:'0 20px 20px', background:'#F7F7F7', borderRadius:'16px 16px 0 0' }}>
           <div style={{ padding:'20px 0 4px' }}>
-            <span style={{ fontSize:16, fontWeight:600, color:T.ink, letterSpacing:'-0.02em' }}>Recently answered</span>
+            <span style={{ fontSize:20, fontWeight:700, color:T.ink, lineHeight:'32px', letterSpacing:'-0.02em' }}>Recently answered</span>
           </div>
           <div style={{ height:1, background:'#E8E8E8' }} />
           {allAnswered.map((item, i) => (
-            <div key={`a${item.user}`} onClick={() => onOpenChat(item, '', T.gray, item._sensitive)}
-              style={{ display:'flex', alignItems:'flex-start', gap:12, padding:'14px 0', cursor:'pointer', borderBottom: i === allAnswered.length - 1 ? 'none' : '1px solid #E8E8E8' }}>
-              <img src={item.avatar} alt="" style={{ width:36, height:36, borderRadius:18, objectFit:'cover', flexShrink:0, background:'#E8E8E8', marginTop:2 }} />
-              <div style={{ flex:1, minWidth:0 }}>
-                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:3 }}>
-                  <span style={{ fontSize:15, fontWeight:400, color:T.ink, letterSpacing:'-0.01em' }}>{item.name || item.user}</span>
-                  <span style={{ fontSize:12, color:T.gray, fontWeight:400, flexShrink:0 }}>{item.time}</span>
+            <div key={`a${item.user}`}>
+              <div onClick={() => onOpenChat(item, '', T.gray, item._sensitive)}
+                style={{ display:'flex', alignItems:'flex-start', gap:12, padding:'16px 0 8px', cursor:'pointer' }}>
+                <img src={item.avatar} alt="" style={{ width:32, height:32, borderRadius:400, objectFit:'cover', flexShrink:0, border:'0.5px solid rgba(44,50,58,0.12)', marginTop:2 }} />
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:4 }}>
+                    <span style={{ fontSize:14, fontWeight:500, color:T.ink, letterSpacing:'-0.01em', lineHeight:'20px' }}>{item.name || item.user}</span>
+                    <span style={{ fontSize:12, color:T.gray, fontWeight:400, flexShrink:0, lineHeight:'16px' }}>{item.time}</span>
+                  </div>
+                  <div style={{ fontSize:14, color:T.gray, fontWeight:400, lineHeight:'20px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', marginBottom:4 }}>{item.msg}</div>
+                  <span style={{ fontSize:12, color:'#3D7A3D', fontWeight:500 }}>Answered</span>
                 </div>
-                <div style={{ fontSize:14, color:'#999', fontWeight:400, lineHeight:1.45, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', marginBottom:4 }}>{item.msg}</div>
-                <span style={{ fontSize:12, color:'#3D7A3D', fontWeight:500 }}>Answered</span>
               </div>
+              {i < allAnswered.length - 1 && (
+                <div style={{ marginLeft:44, height:1, background:'#E8E8E8' }} />
+              )}
             </div>
           ))}
         </div>
@@ -1792,11 +1811,11 @@ function PrioritiesOverlay({ onDismiss }) {
             return (
               <div key={p.id} onClick={() => toggle(p.id)}
                 style={{ display:'flex', alignItems:'center', gap:14, padding:'18px', borderRadius:14,
-                  border: on ? '1.5px solid #0095F6' : `1.5px solid ${T.lightGray}`,
+                  border: on ? '1.5px solid #2E86FD' : `1.5px solid ${T.lightGray}`,
                   background: on ? '#F0F7FF' : T.cardBg, cursor:'pointer', transition:'all .2s ease' }}>
                 <div style={{ width:32, height:32, borderRadius:16,
                   border: on ? 'none' : `1.5px solid ${T.lightGray}`,
-                  background: on ? '#0095F6' : 'transparent',
+                  background: on ? '#2E86FD' : 'transparent',
                   display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, transition:'all .2s ease' }}>
                   {on && <span style={{ color:'#fff', fontSize:14 }}>✓</span>}
                 </div>
@@ -1915,7 +1934,11 @@ function InboxV2({ onOverlayChange, openChatOnLoad }) {
 
       {/* Scrollable content */}
       <div ref={scrollRef} onScroll={handleScroll}
-        style={{ flex:1, overflowY:'auto', overflowX:'hidden', padding:'0 20px 100px 20px' }}>
+        style={{ flex:1, overflowY:'auto', overflowX:'hidden', padding:'0 16px 100px 16px' }}>
+        {/* Page header */}
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', paddingBottom:16 }}>
+          <span style={{ fontSize:20, fontWeight:700, color:T.ink, lineHeight:'32px' }}>Important</span>
+        </div>
         {showModeChangeNotif && (
           <div className="fade-up" style={{ marginBottom:16, padding:'14px 16px', background:'#F5F5F5', borderRadius:14, display:'flex', gap:12, alignItems:'flex-start' }}>
             <div style={{ flex:1 }}>
@@ -1943,7 +1966,7 @@ function InboxV2({ onOverlayChange, openChatOnLoad }) {
             boxShadow:'0 4px 20px rgba(0,0,0,0.18)',
             animation:'fadeUp .4s ease both',
           }}>
-          <div style={{ width:6, height:6, borderRadius:3, background:'#0095F6', flexShrink:0, animation:'pulse 1.4s ease-in-out infinite' }} />
+          <div style={{ width:6, height:6, borderRadius:3, background:'#2E86FD', flexShrink:0, animation:'pulse 1.4s ease-in-out infinite' }} />
           <AgentPillText />
         </div>
       )}
