@@ -1315,7 +1315,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
           <div className="fade-up" style={{ marginBottom:12 }}>
             <div style={{ background:'#0F0F0F', borderRadius:14, padding:'14px 16px', maxWidth:'90%' }}>
               <div style={{ fontSize:13, color:'#fff', lineHeight:1.5, marginBottom:12 }}>
-                I noticed you changed a lot. Was the draft off?
+                I noticed you changed my reply a lot. Was it off?
               </div>
               <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
                 {[
@@ -1549,7 +1549,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
           {/* "I'll write" feedback — simple Yes / No */}
           {mode === 'custom' && customFeedback === 'asking' && (
             <div className="fade-up" style={{ marginBottom:10 }}>
-              <div style={{ fontSize:12, color:T.gray, marginBottom:8 }}>Was the draft helpful?</div>
+              <div style={{ fontSize:12, color:T.gray, marginBottom:8 }}>Was my reply helpful as a starting point?</div>
               <div style={{ display:'flex', gap:6 }}>
                 <div onClick={() => { setCustomFeedback('done'); triggerToast('Got it — glad it helped.'); }}
                   style={{ padding:'8px 14px', background:T.warmGray, borderRadius:20, cursor:'pointer', fontSize:12, color:T.ink, fontWeight:500 }}>
