@@ -207,144 +207,128 @@ function InboxMessages({ messages, onAllDone }) {
 }
 
 /* ─── NEW Step 2: "Watch Me Work" — Live Processing Feed ─── */
-function ObSorting({ onNext, onSkip }) {
-  // 142 DMs — first ones slow & readable, then accelerates
-  // 8 important matches screen 3 stats
-  const dmFeed = [
-    // Slow — 5 items, readable
-    { user:'@jayrunz', snippet:'"Is it too late to start?"', important:true, speed:'slow' },
-    { user:'@mike', snippet:'"What\'s in the premium program?"', important:true, speed:'slow' },
-    { user:'@sarah_m', snippet:'"love this!"', important:false, speed:'slow' },
-    { user:'@lena.fit', snippet:'"I\'ve tried everything..."', important:true, speed:'slow' },
-    { user:'@emma_k', snippet:'"Nervous about the cost"', important:true, speed:'slow' },
-    // Medium — 7 items
-    { user:'@spam_1', snippet:'"Free followers! Click here"', important:false, speed:'medium' },
-    { user:'@brand_co', snippet:'"Partnership — 200k followers"', important:true, speed:'medium' },
-    { user:'@user_42', snippet:'"thanks!"', important:false, speed:'medium' },
-    { user:'@fit_mom', snippet:'"Can I reschedule?"', important:false, speed:'medium' },
-    { user:'@ana_r', snippet:'"Going through a hard time..."', important:true, speed:'medium' },
-    { user:'@random_1', snippet:'"hey"', important:false, speed:'medium' },
-    { user:'@carlos_m', snippet:'"Do you ship internationally?"', important:false, speed:'medium' },
-    // Fast — bulk, 130 items to reach 142 total
-    ...Array.from({ length: 130 }, (_, i) => {
-      const names = ['@user_','@fan_','@dm_','@msg_','@follower_','@insta_','@reply_','@ask_','@note_','@ping_'];
-      const snippets = ['"hey"','"thanks!"','"nice post"','"love it"','"cool"','"hi there"','"great content"','"wow"','"amazing"','"send link"','"when?"','"how much?"','"interested"','"question..."','"."','"hi!"','"sup"','"love this"','"awesome"','"more info?"'];
-      // 2 more important ones scattered in the fast phase
-      const isImportant = (i === 22 || i === 67);
-      const snip = isImportant
-        ? ['"12-week course — sign me up"','"I want to collaborate"'][i === 22 ? 0 : 1]
-        : snippets[i % snippets.length];
-      return {
-        user: names[i % names.length] + (i + 10),
-        snippet: snip,
-        important: isImportant,
-        speed: 'fast',
-      };
-    }),
+/* ─── Quick scan — 3 seconds, just a few status lines ─── */
+function ObSorting({ onNext }) {
+  const [vis, setVis] = useState(0);
+  const lines = [
+    'Reading your DMs...',
+    'Found some interesting conversations',
+    'I have a few questions for you',
   ];
 
-  const [items, setItems] = useState([]); // { ...dm, sorted: false }
-  const [phase, setPhase] = useState('processing');
-  const feedRef = useRef(null);
-  const timers = useRef([]);
-  const speedMap = { slow: 600, medium: 250, fast: 20 };
-
   useEffect(() => {
-    let cum = 500;
-    dmFeed.forEach((dm, i) => {
-      timers.current.push(setTimeout(() => {
-        setItems(prev => [...prev, { ...dm, sorted: false }]);
-        if (feedRef.current) setTimeout(() => { feedRef.current.scrollTop = feedRef.current.scrollHeight; }, 20);
-      }, cum));
-      const sortDelay = dm.speed === 'slow' ? 350 : dm.speed === 'medium' ? 150 : 15;
-      timers.current.push(setTimeout(() => {
-        setItems(prev => prev.map((it, idx) => idx === i ? { ...it, sorted: true } : it));
-      }, cum + sortDelay));
-      cum += speedMap[dm.speed];
+    const timers = [];
+    lines.forEach((_, i) => {
+      timers.push(setTimeout(() => setVis(i + 1), i * 900 + 400));
     });
-
-    timers.current.push(setTimeout(() => setPhase('summary'), cum + 300));
-    timers.current.push(setTimeout(onNext, cum + 1200));
-    return () => timers.current.forEach(t => clearTimeout(t));
+    timers.push(setTimeout(onNext, lines.length * 900 + 800));
+    return () => timers.forEach(t => clearTimeout(t));
   }, []);
 
-  const importantCount = items.filter(d => d.important && d.sorted).length;
-  const otherCount = items.filter(d => !d.important && d.sorted).length;
+  return (
+    <div style={{ background:'#0F0F0F', height:'100%', display:'flex', flexDirection:'column', justifyContent:'center', padding:'0 28px' }}>
+      {lines.map((line, i) => (
+        <div key={i} style={{
+          fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:12,
+          opacity: vis > i ? 1 : 0,
+          transform: vis > i ? 'translateY(0)' : 'translateY(8px)',
+          transition:'opacity .45s ease, transform .45s ease',
+        }}>
+          {line}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ─── Business question — voice or type ─── */
+function ObQuestion({ onNext }) {
+  const [vis, setVis] = useState(0);
+  const [mode, setMode] = useState('voice'); // voice | typing
+  const [inputVal, setInputVal] = useState('');
+
+  useEffect(() => {
+    const timers = [];
+    for (let i = 1; i <= 3; i++) timers.push(setTimeout(() => setVis(i), i * 500 + 200));
+    return () => timers.forEach(t => clearTimeout(t));
+  }, []);
+
+  const show = (i) => ({
+    opacity: vis >= i ? 1 : 0,
+    transform: vis >= i ? 'translateY(0)' : 'translateY(8px)',
+    transition:'opacity .45s ease, transform .45s ease',
+  });
 
   return (
     <div style={{ background:'#0F0F0F', height:'100%', display:'flex', flexDirection:'column', position:'relative' }}>
-      {/* Header */}
-      <div style={{ padding:'56px 24px 0', flexShrink:0 }}>
-        <div style={{ fontSize:10, fontWeight:700, color:'rgba(255,255,255,0.3)', letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:16 }}>
-          Processing your inbox
+
+      <div style={{ flex:1, display:'flex', flexDirection:'column', padding:'100px 28px 0' }}>
+        <div style={{ marginBottom:16, ...show(1) }}>
+          <h1 style={{ fontSize:34, fontWeight:900, color:'#fff', letterSpacing:'-0.04em', lineHeight:1.12, WebkitTextStroke:'0.5px #fff' }}>
+            Tell me more about your business
+          </h1>
+        </div>
+
+        <div style={{ ...show(2) }}>
+          <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6 }}>
+            I have found people like Emma Kim interested in your service, but I would like to learn more about your business to find the right messages.
+          </p>
         </div>
       </div>
 
-      {/* Live feed */}
-      <div ref={feedRef} style={{
-        flex:1, overflowY:'auto', padding:'0 24px',
-        maskImage:'linear-gradient(to bottom, transparent 0%, black 6%, black 88%, transparent 100%)',
-        WebkitMaskImage:'linear-gradient(to bottom, transparent 0%, black 6%, black 88%, transparent 100%)',
-      }}>
-        {items.map((dm, i) => {
-          const isFast = dm.speed === 'fast';
-          const slideDir = dm.sorted ? (dm.important ? 1 : -1) : 0;
-          const slideX = slideDir * (isFast ? 60 : 40);
-
-          return (
-            <div key={i} style={{
-              display:'flex', alignItems:'center', gap:10,
-              padding: isFast ? '4px 0' : '7px 0',
-              opacity: dm.sorted ? (isFast ? 0.15 : 0.35) : (isFast ? 0.5 : 0.9),
-              transform: `translateX(${slideX}px)`,
-              transition: `transform .4s cubic-bezier(.25,.46,.45,.94), opacity .4s ease`,
-              animation: !dm.sorted ? 'fadeUp .25s ease both' : 'none',
-            }}>
-              {/* Sort indicator */}
-              <div style={{
-                width:16, height:16, borderRadius:8, flexShrink:0,
-                display:'flex', alignItems:'center', justifyContent:'center',
-                opacity: dm.sorted ? 1 : 0, transition:'opacity .3s ease',
-                background: dm.important ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.06)',
-              }}>
-                {dm.sorted && (
-                  dm.important
-                    ? <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                    : <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                )}
-              </div>
-
-              {/* Content */}
-              <div style={{
-                flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
-                fontSize: isFast ? 12 : 14, letterSpacing:'-0.01em',
-                color: dm.sorted
-                  ? (dm.important ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.25)')
-                  : 'rgba(255,255,255,0.75)',
-                transition:'color .3s ease',
-              }}>
-                <span style={{ fontWeight:600, color: dm.sorted && dm.important ? '#fff' : 'inherit' }}>{dm.user}</span>
-                <span style={{ fontWeight:400 }}> — {dm.snippet}</span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Bottom */}
-      <div style={{ flexShrink:0, padding:'16px 24px 50px', borderTop:'1px solid rgba(255,255,255,0.06)' }}>
-        {phase === 'processing' && (
-          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-            <div style={{ width:6, height:6, borderRadius:3, background:'#0095F6', animation:'pulse 1s ease-in-out infinite' }} />
-            <span style={{ fontSize:13, color:'rgba(255,255,255,0.4)', fontWeight:500 }}>{items.length} messages processed</span>
+      {/* Voice / Type area */}
+      {mode === 'voice' && (
+        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', padding:'0 28px 40px', ...show(3) }}>
+          {/* Mic button */}
+          <div style={{
+            width:64, height:64, borderRadius:32, background:'#fff',
+            display:'flex', alignItems:'center', justifyContent:'center',
+            cursor:'pointer', marginBottom:12,
+          }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0F0F0F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+              <line x1="12" y1="19" x2="12" y2="23"/>
+              <line x1="8" y1="23" x2="16" y2="23"/>
+            </svg>
           </div>
-        )}
-        {phase === 'summary' && (
-          <div className="fade-up" style={{ fontSize:14, fontWeight:600, color:'#fff', letterSpacing:'-0.01em' }}>
-            142 reviewed · 8 need you · 12 replies drafted
+          <span style={{ fontSize:14, color:'rgba(255,255,255,0.6)', marginBottom:40 }}>Hold and talk</span>
+
+          <span onClick={() => setMode('typing')}
+            style={{ fontSize:14, color:'rgba(255,255,255,0.4)', cursor:'pointer' }}>
+            Or tap to type
+          </span>
+        </div>
+      )}
+
+      {mode === 'typing' && (
+        <div style={{ padding:'0 28px 40px', ...show(3) }}>
+          <div style={{ display:'flex', gap:8, alignItems:'flex-end' }}>
+            <textarea value={inputVal} onChange={e => setInputVal(e.target.value)} autoFocus
+              placeholder="Tell me about your business..."
+              style={{
+                flex:1, fontSize:16, color:'#fff', lineHeight:1.5,
+                padding:'14px 16px', background:'rgba(255,255,255,0.06)',
+                border:'1px solid rgba(255,255,255,0.12)', borderRadius:16,
+                resize:'none', height:100, fontFamily:'Inter, system-ui, sans-serif',
+                outline:'none', letterSpacing:'-0.01em',
+              }} />
           </div>
-        )}
-      </div>
+          <div style={{ display:'flex', gap:10, marginTop:12 }}>
+            <button onClick={onNext}
+              style={{ flex:1, padding:'14px', background:'#fff', color:'#0F0F0F', border:'none', borderRadius:50, fontSize:15, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em' }}>
+              Continue
+            </button>
+            <button onClick={() => setMode('voice')}
+              style={{ padding:'14px 20px', background:'transparent', border:'1.5px solid rgba(255,255,255,0.12)', borderRadius:50, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1652,7 +1636,8 @@ function App() {
 
       {/* ─── Onboarding (3-screen flow: welcome → loading → results) ─── */}
       {screen === 'ob-welcome' && <ObWelcomeV2b onNext={() => setScreen('ob-loading')} />}
-      {screen === 'ob-loading' && <ObSorting onNext={() => setScreen('ob-results')} />}
+      {screen === 'ob-loading' && <ObSorting onNext={() => setScreen('ob-question')} />}
+      {screen === 'ob-question' && <ObQuestion onNext={() => setScreen('ob-results')} />}
       {screen === 'ob-results' && <ObResultsV2b
         onReplyNow={() => { setOpenChatOnLoad(jayrunzItem); setScreen('main'); }}
         onOpenInbox={() => setScreen('main')}
