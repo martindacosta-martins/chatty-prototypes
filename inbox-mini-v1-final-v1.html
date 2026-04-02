@@ -948,8 +948,8 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
         {/* Gap 2: Edit feedback — appears after sent when draft was heavily rewritten */}
         {editFeedback === 'asking' && mode === 'sent' && (
           <div className="fade-up" style={{ marginBottom:12 }}>
-            <div style={{ background:T.warmGray, borderRadius:14, padding:'14px 16px', maxWidth:'90%' }}>
-              <div style={{ fontSize:13, color:T.ink, lineHeight:1.5, marginBottom:12 }}>
+            <div style={{ background:'rgba(255,255,255,0.06)', borderRadius:14, padding:'14px 16px', maxWidth:'90%' }}>
+              <div style={{ fontSize:13, color:'#fff', lineHeight:1.5, marginBottom:12 }}>
                 I noticed you changed a lot. Was the draft off?
               </div>
               <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
@@ -964,7 +964,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
                       ? 'Got it — draft was fine, you wanted your touch.'
                       : 'Got it — ' + reason.toLowerCase() + '. I\'ll adjust.');
                   }}
-                    style={{ padding:'8px 14px', background:'#fff', borderRadius:20, cursor:'pointer', fontSize:12, color:T.ink, border:`1px solid ${T.lightGray}`, fontWeight:500, transition:'all .15s ease' }}>
+                    style={{ padding:'8px 14px', background:'rgba(255,255,255,0.06)', borderRadius:20, cursor:'pointer', fontSize:12, color:'#fff', border:'1px solid rgba(255,255,255,0.12)', fontWeight:500, transition:'all .15s ease' }}>
                     {reason}
                   </div>
                 ))}
@@ -979,14 +979,14 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
 
       {/* ═══ Bottom: Ask mode — agent needs info from user ═══ */}
       {mode === 'ask' && (
-        <div className="fade-up" style={{ flexShrink:0, background:T.paper, padding:'0 20px 40px' }}>
-          <div style={{ height:1, background:T.lightGray, marginBottom:16 }} />
+        <div className="fade-up" style={{ flexShrink:0, background:'#0F0F0F', padding:'0 20px 40px' }}>
+          <div style={{ height:1, background:'rgba(255,255,255,0.06)', marginBottom:16 }} />
 
           {askPhase === 'input' && (
             <>
               <div style={{ marginBottom:14 }}>
-                <div style={{ fontSize:11, color:T.gray, marginBottom:6, fontWeight:500 }}>Inbox Agent</div>
-                <div style={{ fontSize:14, color:T.ink, lineHeight:1.55, letterSpacing:'-0.01em' }}>
+                <div style={{ fontSize:11, color:'rgba(255,255,255,0.35)', marginBottom:6, fontWeight:500 }}>Inbox Agent</div>
+                <div style={{ fontSize:14, color:'#fff', lineHeight:1.55, letterSpacing:'-0.01em' }}>
                   {item.agentQuestion}
                 </div>
               </div>
@@ -994,16 +994,16 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
               <div style={{ display:'flex', gap:8, alignItems:'flex-end' }}>
                 <textarea value={askVal} onChange={e => setAskVal(e.target.value)} autoFocus
                   placeholder={item.askPlaceholder || 'Type your answer...'}
-                  style={{ flex:1, fontSize:14, color:T.ink, lineHeight:1.5, padding:'13px 16px', border:`1.5px solid ${T.ink}`, borderRadius:14, resize:'none', height:60, fontFamily:'Inter, system-ui, sans-serif', background:'#fff', outline:'none', letterSpacing:'-0.01em', boxSizing:'border-box' }} />
+                  style={{ flex:1, fontSize:14, color:'#fff', lineHeight:1.5, padding:'13px 16px', border:'1px solid rgba(255,255,255,0.12)', borderRadius:14, resize:'none', height:60, fontFamily:'Inter, system-ui, sans-serif', background:'rgba(255,255,255,0.06)', outline:'none', letterSpacing:'-0.01em', boxSizing:'border-box' }} />
               </div>
 
               <div style={{ display:'flex', gap:8, marginTop:12 }}>
                 <button onClick={handleAskSubmit} disabled={!askVal.trim()}
-                  style={{ flex:1, padding:'12px 0', background: askVal.trim() ? T.ink : T.lightGray, color: askVal.trim() ? '#fff' : T.gray, border:'none', borderRadius:12, fontSize:14, fontWeight:600, cursor: askVal.trim() ? 'pointer' : 'default', transition:'all .2s ease' }}>
+                  style={{ flex:1, padding:'12px 0', background: askVal.trim() ? '#fff' : 'rgba(255,255,255,0.1)', color: askVal.trim() ? '#0F0F0F' : 'rgba(255,255,255,0.35)', border:'none', borderRadius:12, fontSize:14, fontWeight:600, cursor: askVal.trim() ? 'pointer' : 'default', transition:'all .2s ease' }}>
                   Create draft
                 </button>
                 <button onClick={() => { setMode('custom'); setCustomVal(''); }}
-                  style={{ padding:'12px 20px', background:'transparent', border:'none', fontSize:13, fontWeight:500, cursor:'pointer', color:T.gray }}>
+                  style={{ padding:'12px 20px', background:'transparent', border:'none', fontSize:13, fontWeight:500, cursor:'pointer', color:'rgba(255,255,255,0.35)' }}>
                   I'll reply
                 </button>
               </div>
@@ -1012,10 +1012,10 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
 
           {askPhase === 'generating' && (
             <div style={{ padding:'20px 0', textAlign:'center' }}>
-              <div style={{ fontSize:13, color:T.gray, marginBottom:8 }}>Creating your draft...</div>
+              <div style={{ fontSize:13, color:'rgba(255,255,255,0.35)', marginBottom:8 }}>Creating your draft...</div>
               <div style={{ display:'flex', justifyContent:'center', gap:4 }}>
                 {[0,1,2].map(i => (
-                  <div key={i} style={{ width:6, height:6, borderRadius:3, background:T.lightGray, animation:`pulse 1s ease-in-out ${i * 0.2}s infinite` }} />
+                  <div key={i} style={{ width:6, height:6, borderRadius:3, background:'rgba(255,255,255,0.12)', animation:`pulse 1s ease-in-out ${i * 0.2}s infinite` }} />
                 ))}
               </div>
             </div>
@@ -1024,29 +1024,29 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
           {askPhase === 'ready' && (
             <>
               <div style={{ marginBottom:14 }}>
-                <div style={{ fontSize:11, color:T.gray, marginBottom:6, fontWeight:500 }}>Inbox Agent</div>
-                <div style={{ fontSize:14, color:T.ink, lineHeight:1.55, letterSpacing:'-0.01em', marginBottom:8 }}>
+                <div style={{ fontSize:11, color:'rgba(255,255,255,0.35)', marginBottom:6, fontWeight:500 }}>Inbox Agent</div>
+                <div style={{ fontSize:14, color:'#fff', lineHeight:1.55, letterSpacing:'-0.01em', marginBottom:8 }}>
                   Here's what I'd send:
                 </div>
               </div>
 
-              <div style={{ padding:'13px 16px', borderRadius:14, border:`1.5px dashed ${T.lightGray}`, background:T.warmGray, marginBottom:8 }}>
-                <div style={{ fontSize:14, lineHeight:1.5, color:T.ink, letterSpacing:'-0.01em' }}>{generatedDraft}</div>
+              <div style={{ padding:'13px 16px', borderRadius:14, border:'1.5px dashed rgba(255,255,255,0.12)', background:'rgba(255,255,255,0.06)', marginBottom:8 }}>
+                <div style={{ fontSize:14, lineHeight:1.5, color:'#fff', letterSpacing:'-0.01em' }}>{generatedDraft}</div>
               </div>
 
               {generatedBecause && (
-                <div style={{ fontSize:12, color:T.gray, lineHeight:1.5, marginBottom:14, letterSpacing:'-0.01em' }}>
+                <div style={{ fontSize:12, color:'rgba(255,255,255,0.35)', lineHeight:1.5, marginBottom:14, letterSpacing:'-0.01em' }}>
                   {generatedBecause}
                 </div>
               )}
 
               <div style={{ display:'flex', gap:8 }}>
                 <button onClick={handleAskSend}
-                  style={{ flex:1, padding:'12px 0', background:T.ink, color:'#fff', border:'none', borderRadius:12, fontSize:14, fontWeight:600, cursor:'pointer' }}>
+                  style={{ flex:1, padding:'12px 0', background:'#fff', color:'#0F0F0F', border:'none', borderRadius:12, fontSize:14, fontWeight:600, cursor:'pointer' }}>
                   Approve & Send
                 </button>
                 <button onClick={() => { setMode('editing'); setEditVal(generatedDraft); }}
-                  style={{ padding:'12px 16px', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:12, fontSize:13, fontWeight:500, cursor:'pointer', color:T.ink }}>
+                  style={{ padding:'12px 16px', background:'transparent', border:'1px solid rgba(255,255,255,0.12)', borderRadius:12, fontSize:13, fontWeight:500, cursor:'pointer', color:'rgba(255,255,255,0.8)' }}>
                   Edit
                 </button>
               </div>
@@ -1057,11 +1057,11 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
 
       {/* ═══ Bottom: Edit mode ═══ */}
       {mode === 'editing' && (
-        <div className="fade-up" style={{ flexShrink:0, background:T.paper, padding:'0 20px 40px' }}>
-          <div style={{ height:1, background:T.lightGray, marginBottom:16 }} />
+        <div className="fade-up" style={{ flexShrink:0, background:'#0F0F0F', padding:'0 20px 40px' }}>
+          <div style={{ height:1, background:'rgba(255,255,255,0.06)', marginBottom:16 }} />
 
           <textarea value={editVal} onChange={e => setEditVal(e.target.value)} autoFocus
-            style={{ width:'100%', fontSize:14, color:T.ink, lineHeight:1.5, padding:'13px 16px', border:`1.5px solid ${T.ink}`, borderRadius:14, resize:'none', height:80, fontFamily:'Inter, system-ui, sans-serif', background:'#fff', outline:'none', letterSpacing:'-0.01em', boxSizing:'border-box' }} />
+            style={{ width:'100%', fontSize:14, color:'#fff', lineHeight:1.5, padding:'13px 16px', border:'1px solid rgba(255,255,255,0.12)', borderRadius:14, resize:'none', height:80, fontFamily:'Inter, system-ui, sans-serif', background:'rgba(255,255,255,0.06)', outline:'none', letterSpacing:'-0.01em', boxSizing:'border-box' }} />
 
           {/* Tone chips */}
           <div style={{ display:'flex', gap:6, marginTop:10, flexWrap:'wrap' }}>
@@ -1080,17 +1080,17 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
                   const sentences = base.split(/(?<=[.!?])\s+/);
                   setEditVal(sentences.filter(s => s.length > 20).join(' ') || base);
                 }
-              }} style={{ fontSize:12, padding:'6px 14px', borderRadius:20, border: activeTone === tone ? `1.5px solid ${T.ink}` : `1px solid ${T.lightGray}`, cursor:'pointer', color: activeTone === tone ? '#fff' : T.ink, fontWeight:500, background: activeTone === tone ? T.ink : '#fff', transition:'all .15s ease' }}>{tone}</span>
+              }} style={{ fontSize:12, padding:'6px 14px', borderRadius:20, border: activeTone === tone ? '1.5px solid #fff' : '1px solid rgba(255,255,255,0.12)', cursor:'pointer', color: activeTone === tone ? '#0F0F0F' : 'rgba(255,255,255,0.8)', fontWeight:500, background: activeTone === tone ? '#fff' : 'rgba(255,255,255,0.06)', transition:'all .15s ease' }}>{tone}</span>
             ))}
           </div>
 
           <div style={{ display:'flex', gap:8, marginTop:12 }}>
             <button onClick={handleSend}
-              style={{ flex:1, padding:'12px 0', background:T.ink, color:'#fff', border:'none', borderRadius:12, fontSize:14, fontWeight:600, cursor:'pointer' }}>
+              style={{ flex:1, padding:'12px 0', background:'#fff', color:'#0F0F0F', border:'none', borderRadius:12, fontSize:14, fontWeight:600, cursor:'pointer' }}>
               Send
             </button>
             <button onClick={() => { setMode('suggest'); setActiveTone(null); setEditVal(item.draft); }}
-              style={{ padding:'12px 20px', background:'transparent', border:'none', fontSize:13, fontWeight:500, cursor:'pointer', color:T.gray }}>
+              style={{ padding:'12px 20px', background:'transparent', border:'none', fontSize:13, fontWeight:500, cursor:'pointer', color:'rgba(255,255,255,0.35)' }}>
               Back
             </button>
           </div>
@@ -1129,17 +1129,17 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
 
       {/* ═══ Bottom: Inline draft mode (draft in chat + input) ═══ */}
       {mode === 'inline' && item.draft && (
-        <div style={{ flexShrink:0, borderTop:`1px solid ${T.lightGray}`, background:T.paper, padding:'12px 20px 40px' }}>
+        <div style={{ flexShrink:0, borderTop:'1px solid rgba(255,255,255,0.06)', background:'#0F0F0F', padding:'12px 20px 40px' }}>
           <div style={{ display:'flex', gap:8, alignItems:'center' }}>
-            <div style={{ flex:1, padding:'11px 16px', background:'#fff', border:`1px solid ${T.lightGray}`, borderRadius:24 }}>
+            <div style={{ flex:1, padding:'11px 16px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:24 }}>
               <input value={customVal} onChange={e => setCustomVal(e.target.value)}
                 placeholder="Type your message..."
                 onKeyDown={e => { if (e.key === 'Enter' && customVal.trim()) handleSendCustom(); }}
-                style={{ border:'none', outline:'none', fontSize:14, color:T.ink, width:'100%', background:'transparent', fontFamily:'Inter, system-ui, sans-serif' }} />
+                style={{ border:'none', outline:'none', fontSize:14, color:'#fff', width:'100%', background:'transparent', fontFamily:'Inter, system-ui, sans-serif' }} />
             </div>
             <div onClick={() => { if (customVal.trim()) handleSendCustom(); }}
-              style={{ width:36, height:36, borderRadius:18, background: customVal.trim() ? T.ink : T.lightGray, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'background .2s', flexShrink:0 }}>
-              <span style={{ color:'#fff', fontSize:13 }}>↑</span>
+              style={{ width:36, height:36, borderRadius:18, background: customVal.trim() ? '#fff' : 'rgba(255,255,255,0.1)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'background .2s', flexShrink:0 }}>
+              <span style={{ color: customVal.trim() ? '#0F0F0F' : 'rgba(255,255,255,0.35)', fontSize:13 }}>↑</span>
             </div>
           </div>
         </div>
@@ -1171,44 +1171,44 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
 
       {/* ═══ Bottom: Undo bar after sending ═══ */}
       {mode === 'sent' && undoCount > 0 && (
-        <div style={{ flexShrink:0, padding:'10px 20px 32px', display:'flex', alignItems:'center', justifyContent:'space-between', borderTop:`1px solid ${T.lightGray}`, background:T.paper }}>
-          <span style={{ fontSize:13, color:T.gray }}>✓ Sent to {item.user}</span>
+        <div style={{ flexShrink:0, padding:'10px 20px 32px', display:'flex', alignItems:'center', justifyContent:'space-between', borderTop:'1px solid rgba(255,255,255,0.06)', background:'#0F0F0F' }}>
+          <span style={{ fontSize:13, color:'rgba(255,255,255,0.35)' }}>✓ Sent to {item.user}</span>
           <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-            <button onClick={handleUndo} style={{ fontSize:13, color:T.ink, background:'none', border:'none', cursor:'pointer', fontWeight:600, padding:'4px 8px' }}>Undo</button>
-            <span style={{ fontSize:12, color:T.lightGray }}>({undoCount})</span>
+            <button onClick={handleUndo} style={{ fontSize:13, color:'#fff', background:'none', border:'none', cursor:'pointer', fontWeight:600, padding:'4px 8px' }}>Undo</button>
+            <span style={{ fontSize:12, color:'rgba(255,255,255,0.2)' }}>({undoCount})</span>
           </div>
         </div>
       )}
 
       {/* ═══ Bottom: Free text input (custom / sent) ═══ */}
       {(mode === 'custom' || mode === 'sent') && (
-        <div style={{ flexShrink:0, borderTop:`1px solid ${T.lightGray}`, background:T.paper, padding:'12px 20px 40px' }}>
+        <div style={{ flexShrink:0, borderTop:'1px solid rgba(255,255,255,0.06)', background:'#0F0F0F', padding:'12px 20px 40px' }}>
           {/* "I'll write" feedback — simple Yes / No */}
           {mode === 'custom' && customFeedback === 'asking' && (
             <div className="fade-up" style={{ marginBottom:10 }}>
-              <div style={{ fontSize:12, color:T.gray, marginBottom:8 }}>Was the draft helpful?</div>
+              <div style={{ fontSize:12, color:'rgba(255,255,255,0.35)', marginBottom:8 }}>Was the draft helpful?</div>
               <div style={{ display:'flex', gap:6 }}>
                 <div onClick={() => { setCustomFeedback('done'); triggerToast('Got it — glad it helped.'); }}
-                  style={{ padding:'8px 14px', background:T.warmGray, borderRadius:20, cursor:'pointer', fontSize:12, color:T.ink, fontWeight:500 }}>
+                  style={{ padding:'8px 14px', background:'rgba(255,255,255,0.06)', borderRadius:20, cursor:'pointer', fontSize:12, color:'#fff', fontWeight:500 }}>
                   Yes
                 </div>
                 <div onClick={() => { setCustomFeedback('done'); triggerToast('Got it — I\'ll improve.'); }}
-                  style={{ padding:'8px 14px', background:T.warmGray, borderRadius:20, cursor:'pointer', fontSize:12, color:T.ink, fontWeight:500 }}>
+                  style={{ padding:'8px 14px', background:'rgba(255,255,255,0.06)', borderRadius:20, cursor:'pointer', fontSize:12, color:'#fff', fontWeight:500 }}>
                   No
                 </div>
               </div>
             </div>
           )}
           <div style={{ display:'flex', gap:8, alignItems:'center' }}>
-            <div style={{ flex:1, padding:'11px 16px', background:'#fff', border:`1px solid ${T.lightGray}`, borderRadius:24 }}>
+            <div style={{ flex:1, padding:'11px 16px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:24 }}>
               <input value={customVal} onChange={e => setCustomVal(e.target.value)}
                 placeholder="Type your message..."
                 onKeyDown={e => { if (e.key === 'Enter' && customVal.trim()) handleSendCustom(); }}
-                style={{ border:'none', outline:'none', fontSize:14, color:T.ink, width:'100%', background:'transparent', fontFamily:'Inter, system-ui, sans-serif' }} />
+                style={{ border:'none', outline:'none', fontSize:14, color:'#fff', width:'100%', background:'transparent', fontFamily:'Inter, system-ui, sans-serif' }} />
             </div>
             <div onClick={() => { if (customVal.trim()) handleSendCustom(); }}
-              style={{ width:36, height:36, borderRadius:18, background: customVal.trim() ? T.ink : T.lightGray, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'background .2s', flexShrink:0 }}>
-              <span style={{ color:'#fff', fontSize:13 }}>↑</span>
+              style={{ width:36, height:36, borderRadius:18, background: customVal.trim() ? '#fff' : 'rgba(255,255,255,0.1)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'background .2s', flexShrink:0 }}>
+              <span style={{ color: customVal.trim() ? '#0F0F0F' : 'rgba(255,255,255,0.35)', fontSize:13 }}>↑</span>
             </div>
           </div>
         </div>
