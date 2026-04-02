@@ -996,7 +996,6 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
           {askPhase === 'input' && (
             <>
               <div style={{ marginBottom:14 }}>
-                <div style={{ fontSize:11, color:'rgba(255,255,255,0.5)', marginBottom:6, fontWeight:500 }}>Inbox Agent</div>
                 <div style={{ fontSize:14, color:'#fff', lineHeight:1.55, letterSpacing:'-0.01em' }}>
                   {item.agentQuestion}
                 </div>
@@ -1034,6 +1033,11 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
 
           {askPhase === 'ready' && (
             <>
+              {/* Draft — prominent white card */}
+              <div className="fade-in" style={{ marginBottom:16, padding:'14px 16px', background:'rgba(255,255,255,0.95)', borderRadius:14 }}>
+                <div style={{ fontSize:15, fontWeight:400, color:'#0F0F0F', lineHeight:1.55, letterSpacing:'-0.01em' }}>{generatedDraft}</div>
+              </div>
+
               {/* Reason — matches AgentSheet style */}
               {generatedBecause && (
                 <div className="fade-in" style={{ marginBottom:14 }}>
@@ -1052,11 +1056,6 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
                   )}
                 </div>
               )}
-
-              {/* Draft — prominent white card */}
-              <div className="fade-in" style={{ marginBottom:16, padding:'14px 16px', background:'rgba(255,255,255,0.95)', borderRadius:14 }}>
-                <div style={{ fontSize:15, fontWeight:400, color:'#0F0F0F', lineHeight:1.55, letterSpacing:'-0.01em' }}>{generatedDraft}</div>
-              </div>
 
               {/* Question */}
               <div className="fade-in" style={{ fontSize:15, fontWeight:400, color:'#fff', lineHeight:1.55, letterSpacing:'-0.01em', marginBottom:16 }}>

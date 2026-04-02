@@ -885,7 +885,7 @@ function MsgRow({ user, name, avatar, time, onClick, isLast, isAsk, summary, sta
           <div style={{ fontSize:14, color:T.ink, fontWeight:400, lineHeight:1.45, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{summary}</div>
         )}
         {status && (
-          <div style={{ fontSize:12, color: isAsk ? T.accent : T.gray, fontWeight:400, marginTop:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+          <div style={{ fontSize:12, color:T.gray, fontWeight:400, marginTop:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
             {status}
           </div>
         )}
@@ -1371,7 +1371,6 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
           {askPhase === 'input' && (
             <>
               <div style={{ marginBottom:14 }}>
-                <div style={{ fontSize:11, color:'rgba(255,255,255,0.5)', marginBottom:6, fontWeight:500 }}>Inbox Agent</div>
                 <div style={{ fontSize:14, color:'#fff', lineHeight:1.55, letterSpacing:'-0.01em' }}>
                   {item.agentQuestion}
                 </div>
@@ -1409,6 +1408,11 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
 
           {askPhase === 'ready' && (
             <>
+              {/* Draft — prominent white card */}
+              <div className="fade-in" style={{ marginBottom:16, padding:'14px 16px', background:'rgba(255,255,255,0.95)', borderRadius:14 }}>
+                <div style={{ fontSize:15, fontWeight:400, color:'#0F0F0F', lineHeight:1.55, letterSpacing:'-0.01em' }}>{generatedDraft}</div>
+              </div>
+
               {/* Reason — matches AgentSheet style */}
               {generatedBecause && (
                 <div className="fade-in" style={{ marginBottom:14 }}>
@@ -1427,11 +1431,6 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
                   )}
                 </div>
               )}
-
-              {/* Draft — prominent white card */}
-              <div className="fade-in" style={{ marginBottom:16, padding:'14px 16px', background:'rgba(255,255,255,0.95)', borderRadius:14 }}>
-                <div style={{ fontSize:15, fontWeight:400, color:'#0F0F0F', lineHeight:1.55, letterSpacing:'-0.01em' }}>{generatedDraft}</div>
-              </div>
 
               {/* Question */}
               <div className="fade-in" style={{ fontSize:15, fontWeight:400, color:'#fff', lineHeight:1.55, letterSpacing:'-0.01em', marginBottom:16 }}>
@@ -1633,7 +1632,7 @@ function IntentionHeader({ label, count, desc }) {
         <span style={{ fontSize:16, fontWeight:600, color:T.ink, letterSpacing:'-0.02em' }}>{label}</span>
         <span style={{ fontSize:12, fontWeight:500, color:'#999', background:'#F2F2F2', padding:'3px 10px', borderRadius:12, letterSpacing:'-0.01em' }}>{count}</span>
       </div>
-      {desc && <div style={{ fontSize:12, color:'#999', lineHeight:1.4, marginTop:4, letterSpacing:'-0.01em' }}>{desc}</div>}
+{/* desc removed */}
     </div>
   );
 }
