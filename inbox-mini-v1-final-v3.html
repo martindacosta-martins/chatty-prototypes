@@ -1737,57 +1737,36 @@ function ObResorting({ onNext }) {
 }
 
 function ObWelcomeV2b({ onNext }) {
-  const [fired, setFired] = useState(false);
-
-  const handleCTA = () => {
-    if (fired) return;
-    setFired(true);
-    setTimeout(onNext, 820);
-  };
-
-  const wave = (delay) => fired ? {
-    animation: `text-wave 0.65s cubic-bezier(.4,0,.2,1) ${delay}s both`
-  } : {};
+  const [vis, setVis] = useState(0);
+  useEffect(() => {
+    const timers = [];
+    for (let i = 1; i <= 4; i++) timers.push(setTimeout(() => setVis(i), i * 500 + 200));
+    return () => timers.forEach(t => clearTimeout(t));
+  }, []);
+  const show = (i) => ({ opacity: vis >= i ? 1 : 0, transform: vis >= i ? 'translateY(0)' : 'translateY(8px)', transition:'opacity .45s ease, transform .45s ease' });
 
   return (
     <div style={{ background:'#0F0F0F', height:'100%', display:'flex', flexDirection:'column', position:'relative', overflow:'hidden' }}>
-
-      {/* ── Gradient wave overlay — erupts from button, fills screen ── */}
-      {fired && (
-        <div style={{
-          position:'absolute', inset:0, zIndex:10, pointerEvents:'none',
-          background:'linear-gradient(165deg, #006BE2 0%, #5B21B6 40%, #3B1280 100%)',
-          animation:'agent-takeover 0.82s cubic-bezier(.4,0,.2,1) forwards',
-        }} />
-      )}
-
-      <div style={{ flex:1, display:'flex', flexDirection:'column', padding:'100px 28px 0', position:'relative', zIndex:1 }}>
-
-        <div style={{ marginBottom:20, ...wave(0) }}>
+      <div style={{ flex:1, display:'flex', flexDirection:'column', padding:'100px 28px 0' }}>
+        <div style={{ marginBottom:20, ...show(1) }}>
           <h1 style={{ fontSize:34, fontWeight:900, color:'#fff', letterSpacing:'-0.04em', lineHeight:1.12, WebkitTextStroke:'0.5px #fff' }}>
             Sofia, you receive around 140 DMs a week and that's a lot.
           </h1>
         </div>
-
-        <div style={{ ...wave(0.06) }}>
+        <div style={{ ...show(2) }}>
           <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:12 }}>
             Between real leads and quick replies, knowing where to start takes too much time.
           </p>
         </div>
-
-        <div style={{ ...wave(0.12) }}>
+        <div style={{ ...show(3) }}>
           <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6 }}>
             No worries, because that's my job.
           </p>
         </div>
-
       </div>
-
-      <div style={{ padding:'0 28px 90px', position:'relative', zIndex:1 }}>
-        <button
-          onClick={handleCTA}
-          style={{ width:'100%', padding:'16px', background:'transparent', color:'rgba(255,255,255,0.8)', border:'1.5px solid rgba(255,255,255,0.18)', borderRadius:50, fontSize:16, fontWeight:500, cursor:'pointer', letterSpacing:'-0.01em' }}
-        >
+      <div style={{ padding:'0 28px 90px', ...show(4) }}>
+        <button onClick={onNext}
+          style={{ width:'100%', padding:'16px', background:'transparent', color:'rgba(255,255,255,0.8)', border:'1.5px solid rgba(255,255,255,0.18)', borderRadius:50, fontSize:16, fontWeight:500, cursor:'pointer', letterSpacing:'-0.01em' }}>
           Show me
         </button>
       </div>
@@ -1796,66 +1775,49 @@ function ObWelcomeV2b({ onNext }) {
 }
 
 function ObResultsV2b({ onReplyNow, onOpenInbox }) {
-  const [fired, setFired] = useState(null); // null | 'reply' | 'inbox'
-
-  const handleReply = () => {
-    if (fired) return;
-    setFired('reply');
-    setTimeout(onReplyNow, 820);
-  };
-
-  const handleInbox = () => {
-    if (fired) return;
-    setFired('inbox');
-    setTimeout(onOpenInbox, 820);
-  };
-
-  const wave = (delay) => fired ? {
-    animation: `text-wave 0.65s cubic-bezier(.4,0,.2,1) ${delay}s both`
-  } : {};
+  const [vis, setVis] = useState(0);
+  useEffect(() => {
+    const timers = [];
+    for (let i = 1; i <= 9; i++) timers.push(setTimeout(() => setVis(i), i * 400 + 300));
+    return () => timers.forEach(t => clearTimeout(t));
+  }, []);
+  const show = (i) => ({ opacity: vis >= i ? 1 : 0, transform: vis >= i ? 'translateY(0)' : 'translateY(8px)', transition:'opacity .45s ease, transform .45s ease' });
 
   return (
-    <div className="fade-up" style={{ background:'#0F0F0F', height:'100%', display:'flex', flexDirection:'column', position:'relative', overflow:'hidden' }}>
-
-      {fired && (
-        <div style={{
-          position:'absolute', inset:0, zIndex:10, pointerEvents:'none',
-          background:'linear-gradient(165deg, #006BE2 0%, #5B21B6 40%, #3B1280 100%)',
-          animation:'agent-takeover 0.82s cubic-bezier(.4,0,.2,1) forwards',
-        }} />
-      )}
-
-      <div style={{ flex:1, display:'flex', flexDirection:'column', padding:'100px 28px 0', position:'relative', zIndex:1 }}>
-        <div style={{ marginBottom:16, ...wave(0) }}>
+    <div style={{ background:'#0F0F0F', height:'100%', display:'flex', flexDirection:'column', position:'relative', overflow:'hidden' }}>
+      <div style={{ flex:1, display:'flex', flexDirection:'column', padding:'100px 28px 0' }}>
+        <div style={{ marginBottom:16, ...show(1) }}>
           <h1 style={{ fontSize:34, fontWeight:900, color:'#fff', letterSpacing:'-0.04em', lineHeight:1.12, WebkitTextStroke:'0.5px #fff' }}>Ready to go.</h1>
         </div>
-
-        <div style={{ ...wave(0.06) }}>
+        <div style={{ ...show(2) }}>
           <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:24 }}>
             I analyzed 142 DMs and this is what I found:
           </p>
         </div>
-
-        <div style={{ ...wave(0.1) }}>
+        <div style={{ ...show(3) }}>
           <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:16 }}>
             <span style={{ fontWeight:700 }}>8</span> interested in your 12-week course
           </p>
+        </div>
+        <div style={{ ...show(4) }}>
           <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:16 }}>
             <span style={{ fontWeight:700 }}>12</span> want to collaborate
           </p>
+        </div>
+        <div style={{ ...show(5) }}>
           <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6 }}>
             <span style={{ fontWeight:700 }}>2</span> expressed emotions and need your advice
           </p>
         </div>
       </div>
 
-      <div style={{ padding:'0 28px 90px', position:'relative', zIndex:1 }}>
-        <div style={{ ...wave(0.14) }}>
+      <div style={{ padding:'0 28px 90px' }}>
+        <div style={{ ...show(6) }}>
           <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:12 }}>
             Someone's already interested in your coaching
           </p>
         </div>
-        <div className="fade-up" style={{ padding:'14px 16px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:16, marginBottom:16, ...wave(0.18) }}>
+        <div style={{ padding:'14px 16px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:16, marginBottom:16, ...show(7) }}>
           <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
             <img src="https://i.pravatar.cc/88?u=jayrunz" alt="" style={{ width:24, height:24, borderRadius:12, objectFit:'cover' }} />
             <span style={{ fontSize:12, color:'rgba(255,255,255,0.4)', fontWeight:500 }}>@jayrunz</span>
@@ -1864,13 +1826,16 @@ function ObResultsV2b({ onReplyNow, onOpenInbox }) {
             "I've been struggling for 2 years. Is it too late to start?"
           </div>
         </div>
-
-        <button onClick={handleReply} style={{ width:'100%', padding:'16px', background:'#fff', color:'#0F0F0F', border:'none', borderRadius:50, fontSize:16, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em', marginBottom:10 }}>
-          Reply now
-        </button>
-        <button onClick={handleInbox} style={{ width:'100%', padding:'16px', background:'transparent', color:'rgba(255,255,255,0.5)', border:'1.5px solid rgba(255,255,255,0.12)', borderRadius:50, fontSize:15, fontWeight:500, cursor:'pointer', letterSpacing:'-0.01em' }}>
-          Open inbox
-        </button>
+        <div style={{ ...show(8) }}>
+          <button onClick={onReplyNow} style={{ width:'100%', padding:'16px', background:'#fff', color:'#0F0F0F', border:'none', borderRadius:50, fontSize:16, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em', marginBottom:10 }}>
+            Reply now
+          </button>
+        </div>
+        <div style={{ ...show(9) }}>
+          <button onClick={onOpenInbox} style={{ width:'100%', padding:'16px', background:'transparent', color:'rgba(255,255,255,0.5)', border:'1.5px solid rgba(255,255,255,0.12)', borderRadius:50, fontSize:15, fontWeight:500, cursor:'pointer', letterSpacing:'-0.01em' }}>
+            Open inbox
+          </button>
+        </div>
       </div>
     </div>
   );
