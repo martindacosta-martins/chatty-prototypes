@@ -263,6 +263,7 @@ function ObQuestion({ onNext }) {
   const [inputVal, setInputVal] = useState('');
   const [vis, setVis] = useState(0);
   const [confirmVis, setConfirmVis] = useState(0);
+  const [confirmBottom, setConfirmBottom] = useState('buttons'); // buttons | voice | typing
 
   // Fake summary the agent "understood"
   const summary = "I run a fitness coaching business called Sofia Reyes Coaching. My main offer is a 12-Week Reboot program with weekly 1-on-1 calls, custom meal plans, and a private community. I also have a 4-Week Kickstart for beginners. Most of my leads come from Instagram DMs and post comments.";
@@ -286,7 +287,7 @@ function ObQuestion({ onNext }) {
   // Processing → confirm
   useEffect(() => {
     if (phase !== 'processing') return;
-    const t = setTimeout(() => setPhase('confirm'), 2000);
+    const t = setTimeout(() => { setPhase('confirm'); setConfirmBottom('buttons'); }, 2000);
     return () => clearTimeout(t);
   }, [phase]);
 
@@ -319,9 +320,7 @@ function ObQuestion({ onNext }) {
   };
 
   const handleEdit = () => {
-    setPhase('ask');
-    setVis(3); // skip intro animation, show everything
-    setConfirmVis(0);
+    setConfirmBottom('voice');
   };
 
   const MicIcon = ({ size=24, color='#0F0F0F' }) => (
@@ -435,14 +434,50 @@ function ObQuestion({ onNext }) {
       </div>
 
       <div style={{ padding:'0 28px 40px', ...cShow(4) }}>
-        <button onClick={() => setPhase('fantastic')}
-          style={{ width:'100%', padding:'16px', background:'#fff', color:'#0F0F0F', border:'none', borderRadius:50, fontSize:16, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em', marginBottom:10 }}>
-          It's good
-        </button>
-        <button onClick={handleEdit}
-          style={{ width:'100%', padding:'16px', background:'transparent', color:'rgba(255,255,255,0.5)', border:'1.5px solid rgba(255,255,255,0.12)', borderRadius:50, fontSize:15, fontWeight:500, cursor:'pointer', letterSpacing:'-0.01em' }}>
-          Edit
-        </button>
+        {/* Buttons mode */}
+        {confirmBottom === 'buttons' && (
+          <div className="fade-in">
+            <button onClick={() => setPhase('fantastic')}
+              style={{ width:'100%', padding:'16px', background:'#fff', color:'#0F0F0F', border:'none', borderRadius:50, fontSize:16, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em', marginBottom:10 }}>
+              It's good
+            </button>
+            <button onClick={handleEdit}
+              style={{ width:'100%', padding:'16px', background:'transparent', color:'rgba(255,255,255,0.5)', border:'1.5px solid rgba(255,255,255,0.12)', borderRadius:50, fontSize:15, fontWeight:500, cursor:'pointer', letterSpacing:'-0.01em' }}>
+              Edit
+            </button>
+          </div>
+        )}
+
+        {/* Voice edit mode */}
+        {confirmBottom === 'voice' && (
+          <div className="fade-in" style={{ display:'flex', flexDirection:'column', alignItems:'center' }}>
+            <div onMouseDown={() => setPhase('recording')} onTouchStart={() => setPhase('recording')}
+              style={{ width:56, height:56, borderRadius:28, background:'#fff', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', marginBottom:8 }}>
+              <MicIcon size={20} />
+            </div>
+            <span style={{ fontSize:13, color:'rgba(255,255,255,0.4)', marginBottom:24 }}>Talk to make changes</span>
+            <span onClick={() => setConfirmBottom('typing')} style={{ fontSize:14, color:'rgba(255,255,255,0.3)', cursor:'pointer' }}>Or tap to type</span>
+          </div>
+        )}
+
+        {/* Typing edit mode */}
+        {confirmBottom === 'typing' && (
+          <div className="fade-in">
+            <textarea value={inputVal} onChange={e => setInputVal(e.target.value)} autoFocus
+              placeholder="Tell me what to change..."
+              style={{ width:'100%', fontSize:16, color:'#fff', lineHeight:1.5, padding:'14px 16px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:16, resize:'none', height:80, fontFamily:'Inter, system-ui, sans-serif', outline:'none', letterSpacing:'-0.01em' }} />
+            <div style={{ display:'flex', gap:10, marginTop:12 }}>
+              <button onClick={() => { setPhase('processing'); setConfirmBottom('buttons'); }}
+                style={{ flex:1, padding:'14px', background:'#fff', color:'#0F0F0F', border:'none', borderRadius:50, fontSize:15, fontWeight:600, cursor:'pointer' }}>
+                Update
+              </button>
+              <button onClick={() => setConfirmBottom('voice')}
+                style={{ padding:'14px 20px', background:'transparent', border:'1.5px solid rgba(255,255,255,0.12)', borderRadius:50, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                <MicIcon size={18} color="rgba(255,255,255,0.5)" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
