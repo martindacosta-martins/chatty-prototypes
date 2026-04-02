@@ -264,9 +264,28 @@ function ObQuestion({ onNext }) {
   const [vis, setVis] = useState(0);
   const [confirmVis, setConfirmVis] = useState(0);
   const [confirmBottom, setConfirmBottom] = useState('buttons'); // buttons | voice | typing
+  const [revision, setRevision] = useState(0);
 
-  // Fake summary the agent "understood"
-  const summary = "I run a fitness coaching business called Sofia Reyes Coaching. My main offer is a 12-Week Reboot program with weekly 1-on-1 calls, custom meal plans, and a private community. I also have a 4-Week Kickstart for beginners. Most of my leads come from Instagram DMs and post comments.";
+  // Each revision shows a different title + summary — the agent is learning
+  const revisions = [
+    {
+      title: "Did I get it right?",
+      subtitle: "Let me know if this is correct",
+      summary: "I run a fitness coaching business called Sofia Reyes Coaching. My main offer is a 12-Week Reboot program with weekly 1-on-1 calls, custom meal plans, and a private community. I also have a 4-Week Kickstart for beginners. Most of my leads come from Instagram DMs and post comments.",
+    },
+    {
+      title: "Okay, let me try again.",
+      subtitle: "Here's what I understand now",
+      summary: "Sofia Reyes Coaching offers two programs: the 12-Week Reboot ($597 or 3x $197/mo) with weekly 1-on-1 coaching, custom meal plans, and a private community — and the 4-Week Kickstart ($197) for beginners. Your main audience is women 25-40 interested in fitness transformations. Leads mostly come through Instagram DMs and comments on transformation posts.",
+    },
+    {
+      title: "Third time's the charm?",
+      subtitle: "I think I've got it now",
+      summary: "Sofia Reyes Coaching helps women 25-40 transform their fitness with two programs: the flagship 12-Week Reboot (1-on-1 coaching, custom nutrition, private community) and the entry-level 4-Week Kickstart. Most clients discover you through Instagram — especially your before/after posts and Reels. Your biggest conversion driver is DM conversations where you address hesitation around cost and commitment. You also get collab requests from fitness brands weekly.",
+    },
+  ];
+
+  const current = revisions[Math.min(revision, revisions.length - 1)];
 
   // Intro animation
   useEffect(() => {
@@ -287,7 +306,11 @@ function ObQuestion({ onNext }) {
   // Processing → confirm
   useEffect(() => {
     if (phase !== 'processing') return;
-    const t = setTimeout(() => { setPhase('confirm'); setConfirmBottom('buttons'); }, 2000);
+    const t = setTimeout(() => {
+      setConfirmVis(0);
+      setConfirmBottom('buttons');
+      setPhase('confirm');
+    }, 2000);
     return () => clearTimeout(t);
   }, [phase]);
 
@@ -418,17 +441,17 @@ function ObQuestion({ onNext }) {
       <div style={{ flex:1, display:'flex', flexDirection:'column', padding:'100px 28px 0' }}>
         <div style={{ marginBottom:12, ...cShow(1) }}>
           <h1 style={{ fontSize:34, fontWeight:900, color:'#fff', letterSpacing:'-0.04em', lineHeight:1.12, WebkitTextStroke:'0.5px #fff' }}>
-            Did I get it right?
+            {current.title}
           </h1>
         </div>
         <div style={{ ...cShow(2) }}>
           <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:20 }}>
-            Let me know if this is correct
+            {current.subtitle}
           </p>
         </div>
         <div style={{ ...cShow(3) }}>
           <div style={{ padding:'18px 18px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:16 }}>
-            <p style={{ fontSize:15, fontWeight:400, color:'rgba(255,255,255,0.5)', lineHeight:1.6 }}>{summary}</p>
+            <p style={{ fontSize:15, fontWeight:400, color:'rgba(255,255,255,0.5)', lineHeight:1.6 }}>{current.summary}</p>
           </div>
         </div>
       </div>
@@ -451,7 +474,7 @@ function ObQuestion({ onNext }) {
         {/* Voice edit mode */}
         {confirmBottom === 'voice' && (
           <div className="fade-in" style={{ display:'flex', flexDirection:'column', alignItems:'center' }}>
-            <div onMouseDown={() => setPhase('recording')} onTouchStart={() => setPhase('recording')}
+            <div onMouseDown={() => { setRevision(r => r + 1); setPhase('recording'); }} onTouchStart={() => { setRevision(r => r + 1); setPhase('recording'); }}
               style={{ width:56, height:56, borderRadius:28, background:'#fff', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', marginBottom:8 }}>
               <MicIcon size={20} />
             </div>
@@ -467,7 +490,7 @@ function ObQuestion({ onNext }) {
               placeholder="Tell me what to change..."
               style={{ width:'100%', fontSize:16, color:'#fff', lineHeight:1.5, padding:'14px 16px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:16, resize:'none', height:80, fontFamily:'Inter, system-ui, sans-serif', outline:'none', letterSpacing:'-0.01em' }} />
             <div style={{ display:'flex', gap:10, marginTop:12 }}>
-              <button onClick={() => { setPhase('processing'); setConfirmBottom('buttons'); }}
+              <button onClick={() => { setRevision(r => r + 1); setPhase('processing'); setConfirmBottom('buttons'); }}
                 style={{ flex:1, padding:'14px', background:'#fff', color:'#0F0F0F', border:'none', borderRadius:50, fontSize:15, fontWeight:600, cursor:'pointer' }}>
                 Update
               </button>
