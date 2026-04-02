@@ -88,61 +88,71 @@ const T = {
 /* ═══ DATA ═══ */
 const IMPORTANT_GROUPS = [
   {
-    intention: 'Interested in your 12-week course',
-    desc: 'Asked about pricing, signing up, or your program.',
+    intention: 'Interested in your services',
+    desc: 'These people want what you offer.',
     items: [
-      { user:'@jayrunz', name:'Jay Ruiz', avatar:'https://i.pravatar.cc/88?u=jayrunz', msg:"I've been struggling for 2 years. Is it too late to start?", source:'DM', time:'2h', unread:3, intent:'Interested',
-        draft:"It's never too late — 2 years of trying tells me you're serious about change. The 12-week Reboot program is built for people exactly where you are. Want to see what week 1 looks like?",
-        because:"He mentioned struggling for 2 years — that maps to your 12-Week Reboot, not the 4-Week Kickstart. He's not asking about price, he's asking if it's too late. So I led with validation, not a sales pitch. I also added a soft next step — showing week 1 lowers the commitment barrier.",
+      { user:'@jayrunz', name:'Jay Ruiz', avatar:'https://i.pravatar.cc/88?u=jayrunz', msg:"I've been struggling for 2 years. Is it too late to start?", source:'DM', time:'2h', unread:3, intent:'Interested', mode:'confident',
+        draft:"It's never too late — 2 years of trying tells me you're serious about change. The 12-Week Reboot is built for people exactly where you are. Want to see what week 1 looks like?",
+        because:"He mentioned struggling for 2 years — that maps to your 12-Week Reboot, not the 4-Week Kickstart. He's been following you for 14 months and saved your transformation reel last week. He's not asking about price — he's asking if it's too late. So I led with validation, not a sales pitch.",
         agentRead:'Ready to sign up · Reply drafted' },
-      { user:'@emma.k', name:'Emma Kim', avatar:'https://i.pravatar.cc/88?u=emmak', msg:"I want to sign up but nervous about the cost", source:'DM', time:'4h', unread:2, intent:'Interested',
-        draft:"Totally understand — investing in yourself is a big step. The 12-Week Reboot has a 3-payment plan at $197/mo. And there's a 7-day guarantee, so there's zero risk. Want me to send the details?",
-        because:"She said 'nervous about cost' — not 'too expensive.' That's a different signal. She wants to buy but needs reassurance. I pulled the exact payment plan for the 12-Week Reboot ($197/mo x 3) and mentioned your 7-day guarantee to remove risk. Didn't discount — just removed friction.",
-        agentRead:'Interested, hesitant about cost · Reply drafted' },
+      { user:'@emma.k', name:'Emma Kim', avatar:'https://i.pravatar.cc/88?u=emmak', msg:"How much is the coaching program? I've been thinking about it for weeks", source:'DM', time:'4h', unread:2, intent:'Interested', mode:'ask',
+        agentQuestion:"Emma wants to know your coaching program price. She's been engaging with your content for weeks — this feels like a warm lead. What's the pricing?",
+        askPlaceholder:"e.g., $597 or 3 payments of $197/mo",
+        draftTemplate:"Great news — the 12-Week Reboot is {answer}. It includes weekly 1-on-1 coaching, custom meal plans, and access to the private community. I also have a flexible payment plan if that helps. Want me to send the full details?",
+        becauseTemplate:"She said she's been 'thinking about it for weeks' — that's a warm lead, not a casual question. She commented on 5 of your posts and saved your course breakdown. I used the pricing you shared and mentioned the payment plan since cost hesitation is common. Added a soft next step.",
+        agentRead:'Asking about pricing · Needs your input' },
+      { user:'@marcus.fit', name:'Marcus Rivera', avatar:'https://i.pravatar.cc/88?u=marcusfit', msg:"I saw your client Ana's results. That's exactly what I need. How do I start?", source:'DM', time:'1h', unread:1, intent:'Interested', mode:'confident',
+        draft:"Love that Ana's journey resonated with you! The first step is a quick chat to see which program fits — I have a 12-week deep dive and a 4-week kickstart. What's your main goal right now?",
+        because:"He referenced a specific client result — that's high buying intent. He's not price-shopping, he's ready to act. He's followed you for 3 months and liked Ana's transformation post. I offered both programs to qualify him without overwhelming. Asking 'what's your main goal' opens the conversation.",
+        agentRead:'High intent · Reply drafted' },
     ],
   },
   {
-    intention: 'Want to collaborate',
-    desc: 'Brands and media reaching out.',
+    intention: 'Want to book a call',
+    desc: 'Ready to talk — just need scheduling.',
     items: [
-      { user:'@fitbrand.co', name:'FitBrand', avatar:'https://i.pravatar.cc/88?u=fitbrand', msg:"Would love to explore a partnership. We have 200k followers", source:'DM', time:'6h', unread:1, intent:'Collab',
-        draft:"Hey! Love FitBrand's content — especially the athlete recovery series. I'd be open to exploring something. What kind of partnership are you thinking? Affiliate, co-branded content, or something else?",
-        because:"FitBrand has 200k followers in the fitness/recovery space — directly overlaps with your audience. Their last 3 posts got 4-8% engagement, which is strong. I referenced their recovery series to show we actually looked. And I asked what type of collab to qualify them before committing your time.",
-        agentRead:'Partnership request · Reply drafted' },
-      { user:'@wellness.mag', name:'Wellness Magazine', avatar:'https://i.pravatar.cc/88?u=wellnessmag', msg:"We'd like to feature you in our next issue", source:'DM', time:'1d', intent:'Collab',
-        draft:"That sounds amazing — I'd be honored! I have some recent client transformation stories that could work well. What's the angle for the piece, and what do you need from me?",
-        because:"Wellness Magazine has 85k followers and publishes monthly. A feature there could drive traffic to your 12-Week Reboot landing page. I offered client stories because that's their format — real transformations, not just tips. Asking about the angle helps you prepare the right material.",
-        agentRead:'Media feature request · Reply drafted' },
+      { user:'@sarah.wellness', name:'Sarah Cho', avatar:'https://i.pravatar.cc/88?u=sarahcho', msg:"I'd love to book a discovery call. When are you available?", source:'DM', time:'3h', unread:1, intent:'Interested', mode:'confident',
+        draft:"Great to hear from you again, Sarah! I have openings Tuesday and Thursday afternoons this week. Which works better for you? I'll send a link to grab a spot.",
+        because:"She came back after 2 weeks — that's a strong signal. People who return are usually ready. She's been following you for 6 months and DM'd before about the program. I kept it warm and offered specific times instead of a generic 'check my calendar' to reduce friction.",
+        agentRead:'Returning lead · Reply drafted' },
+      { user:'@daniela.r', name:'Daniela Ruiz', avatar:'https://i.pravatar.cc/88?u=danielar', msg:"Do you do free consultations? I'd love to talk before committing", source:'DM', time:'5h', unread:1, intent:'Interested', mode:'ask',
+        agentQuestion:"Daniela wants to talk before committing — do you offer free consultations? If yes, how should she book?",
+        askPlaceholder:"e.g., Yes, 15-min call at calendly.com/sofia",
+        draftTemplate:"Absolutely! I offer a free {answer}. It's a casual conversation — no commitment, just a chance to see if we're a good fit. Here's the link to grab a spot.",
+        becauseTemplate:"First-time contact, been following for 2 weeks. She wants to talk before buying — that's normal for high-ticket services. I used your booking details and kept it low-pressure. 'No commitment, just a conversation' removes the friction.",
+        agentRead:'Wants a call · Needs your input' },
     ],
   },
   {
     intention: 'Questions about your services',
-    desc: 'Pricing, shipping, and scheduling.',
+    desc: 'They need info I don\'t have yet — help me answer.',
     items: [
-      { user:'@mike.coach', name:'Mike Chen', avatar:'https://i.pravatar.cc/88?u=mikecoach', msg:"What's included in the premium program?", source:'DM', time:'3h', intent:'FAQ',
-        draft:"Great question! The 12-Week Reboot includes weekly 1-on-1 coaching calls, a custom meal plan updated every 4 weeks, access to the private community, and a workout library with 60+ videos. Want me to send the full breakdown?",
-        because:"He asked about 'premium' — that's your 12-Week Reboot (not the 4-Week Kickstart). I listed the specific inclusions: 1-on-1 calls, custom meal plan, private community, 60+ video library. These are the four things that differentiate it from the basic tier. The question about a 'full breakdown' gives you a reason to send the sales page.",
-        agentRead:'Product question · Reply drafted' },
-      { user:'@carlos.m', name:'Carlos Mendez', avatar:'https://i.pravatar.cc/88?u=carlosm', msg:"Do you ship internationally?", source:'DM', time:'2h', intent:'FAQ',
-        draft:"Yes! The program is 100% online, so it works from anywhere. You get instant access to everything — coaching calls are via Zoom, and the meal plans adapt to what's available in your region. Where are you based?",
-        because:"He's asking about shipping, but your product is digital — no shipping needed. Instead of just saying 'yes,' I reframed: it's online, works anywhere, and Zoom-based. Asking where he's based opens the door to personalize the meal plan conversation and qualify him as a lead.",
-        agentRead:'Shipping question · Reply drafted' },
-      { user:'@alex.j', name:'Alex Jordan', avatar:'https://i.pravatar.cc/88?u=alexj', msg:"Is there a refund policy?", source:'DM', time:'5h', intent:'FAQ',
-        draft:"Yes — there's a 7-day money-back guarantee on all programs, no questions asked. Most people know within the first week if it's the right fit. Want to take a look at what's included before deciding?",
-        because:"Refund questions usually mean they're close to buying but need safety. Your policy is 7 days, no questions. I added 'most people know within the first week' — that reframes the guarantee as confidence, not a safety net. Then I offered to show what's included, which is a softer push than 'ready to sign up?'",
-        agentRead:'Refund policy question · Reply drafted' },
-      { user:'@maria.v', name:'María Vargas', avatar:'https://i.pravatar.cc/88?u=mariav', msg:"Can I reschedule my session to next week?", source:'DM', time:'3h', intent:'FAQ',
-        draft:"Of course! Your next session is Thursday at 3pm. I can move it to any day next week — what works best for you?",
-        because:"She's an existing client in the 12-Week Reboot. Her next session is Thursday at 3pm (from your calendar). I confirmed the current time so she doesn't have to check, and offered flexibility for rescheduling. Kept it short — this doesn't need a sales angle.",
-        agentRead:'Scheduling request · Reply drafted' },
+      { user:'@mike.coach', name:'Mike Chen', avatar:'https://i.pravatar.cc/88?u=mikecoach', msg:"What's included in the premium program?", source:'DM', time:'3h', unread:1, intent:'FAQ', mode:'ask',
+        agentQuestion:"Mike is asking what's included in your premium program. What are the main features?",
+        askPlaceholder:"e.g., Weekly calls, meal plan, community, 60+ videos",
+        draftTemplate:"Great question! The program includes {answer}. Want me to send the full breakdown?",
+        becauseTemplate:"He asked about 'premium' — I matched that to the program details you shared. He's been following for 4 months, so this isn't casual browsing. Listed the key features and ended with a soft push to see more.",
+        agentRead:'Product question · Needs your input' },
+      { user:'@alex.j', name:'Alex Jordan', avatar:'https://i.pravatar.cc/88?u=alexj', msg:"Is there a refund policy?", source:'DM', time:'5h', unread:1, intent:'FAQ', mode:'ask',
+        agentQuestion:"Alex is asking about your refund policy. What should I tell them?",
+        askPlaceholder:"e.g., 7-day money-back guarantee, no questions asked",
+        draftTemplate:"Yes — {answer}. Most people know within the first week if it's the right fit. Want to take a look at what's included before deciding?",
+        becauseTemplate:"Refund questions usually mean they're close to buying but need safety. I used the guarantee you shared and framed it as confidence, not a safety net. He's only been following a week — still building trust.",
+        agentRead:'Refund question · Needs your input' },
+      { user:'@carlos.m', name:'Carlos Mendez', avatar:'https://i.pravatar.cc/88?u=carlosm', msg:"Do you offer group sessions or is it only 1-on-1?", source:'DM', time:'2h', unread:1, intent:'FAQ', mode:'ask',
+        agentQuestion:"Carlos wants to know if you offer group sessions. Do you?",
+        askPlaceholder:"e.g., 1-on-1 only right now, group program launching in January",
+        draftTemplate:"Right now it's {answer}. I'd love to find the right fit for you — want to chat about what you're looking for?",
+        becauseTemplate:"He commented on your group workout post last week, so the interest is specific. I used your answer and kept the door open for a conversation.",
+        agentRead:'Group sessions question · Needs your input' },
     ],
   },
   {
-    intention: 'Shared something personal',
-    desc: 'These felt too personal for a drafted reply — they need your voice.',
+    intention: 'Needs your voice',
+    desc: 'Too personal for a drafted reply — they need you.',
     items: [
-      { user:'@lena.fit', name:'Lena Müller', avatar:'https://i.pravatar.cc/88?u=lenafit', msg:"You seem real. I've tried everything. I'm scared to spend more money.", source:'DM', time:'1h', intent:'Emotional', _sensitive:true, summary:"She's been through at least 3 other programs (mentioned in previous DMs). She's not asking about your course — she's asking if she can trust you. This isn't a sales moment. She needs to hear from you, not a drafted reply.", agentRead:'Needs your personal reply' },
-      { user:'@ana.healing', name:'Ana Reyes', avatar:'https://i.pravatar.cc/88?u=anahealing', msg:"I'm going through a really hard time and need something to focus on", source:'DM', time:'5h', intent:'Emotional', _sensitive:true, summary:"She's going through something personal and looking for structure, not a program pitch. She's followed you for 8 months but never DM'd before. The fact that she reached out at all is significant. Handle with care.", agentRead:'Needs your personal reply' },
+      { user:'@lena.fit', name:'Lena Müller', avatar:'https://i.pravatar.cc/88?u=lenafit', msg:"You seem real. I've tried everything. I'm scared to spend more money.", source:'DM', time:'1h', unread:1, intent:'Emotional', mode:'sensitive', _sensitive:true, summary:"She's been through at least 3 other programs (mentioned in previous DMs). She's not asking about your course — she's asking if she can trust you. She's followed you for 10 months and engages regularly — this relationship matters. This isn't a sales moment.", agentRead:'Needs your personal reply' },
+      { user:'@ana.healing', name:'Ana Reyes', avatar:'https://i.pravatar.cc/88?u=anahealing', msg:"I'm going through a really hard time and need something to focus on", source:'DM', time:'5h', unread:1, intent:'Emotional', mode:'sensitive', _sensitive:true, summary:"She's going through something personal and looking for structure, not a program pitch. She's followed you for 8 months but this is her first DM — the fact she reached out at all is significant. Handle with care.", agentRead:'Needs your personal reply' },
     ],
   },
 ];
@@ -477,7 +487,7 @@ function AgentExpandedScreen({ onDismiss }) {
 }
 
 /* ─── Message row (IG DM style) ─── */
-function MsgRow({ user, name, avatar, msg, time, badge, badgeColor, onClick, hasDraft, unread, isLast, agentRead }) {
+function MsgRow({ user, name, avatar, msg, time, badge, badgeColor, onClick, hasDraft, unread, isLast, agentRead, isAsk }) {
   const isUnread = unread && unread > 0;
   return (
     <div onClick={onClick} style={{ display:'flex', alignItems:'flex-start', gap:12, padding:'14px 0', cursor:'pointer', borderBottom: isLast ? 'none' : `1px solid ${T.lightGray}` }}>
@@ -490,7 +500,11 @@ function MsgRow({ user, name, avatar, msg, time, badge, badgeColor, onClick, has
           <span style={{ fontSize:12, color:T.gray, fontWeight:400, flexShrink:0 }}>{time}</span>
         </div>
         <div style={{ fontSize:14, color:'#6B6B6B', fontWeight:400, lineHeight:1.45, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{msg}</div>
-        {agentRead && <div style={{ fontSize:12, color:'#aaa', fontWeight:400, marginTop:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>→ {agentRead}</div>}
+        {agentRead && (
+          <div style={{ fontSize:12, color: isAsk ? T.accent : '#aaa', fontWeight: isAsk ? 500 : 400, marginTop:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+            {isAsk ? '💬 ' : '→ '}{agentRead}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -660,6 +674,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
   // feedback — AI asks why user keeps skipping drafts
   const getInitialMode = () => {
     if (isSensitive) return 'summary';
+    if (item.mode === 'ask') return 'ask';
     if (!item.draft) return 'custom';
     return useSuggestMode ? 'suggest' : 'inline';
   };
@@ -673,6 +688,10 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
   const [activeTone, setActiveTone] = useState(null);
   const [editFeedback, setEditFeedback] = useState(null); // null | 'asking' | 'done'
   const [customFeedback, setCustomFeedback] = useState(null); // null | 'asking' | 'done'
+  const [askVal, setAskVal] = useState('');
+  const [askPhase, setAskPhase] = useState('input'); // 'input' | 'generating' | 'ready'
+  const [generatedDraft, setGeneratedDraft] = useState('');
+  const [generatedBecause, setGeneratedBecause] = useState('');
   const [showSendCelebration, setShowSendCelebration] = useState(false);
   const [undoCount, setUndoCount] = useState(0);
   const undoTimerRef = useRef(null);
@@ -749,6 +768,25 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
     setMode('custom');
     setCustomVal('');
     if (item.draft) setCustomFeedback('asking');
+  };
+
+  const handleAskSubmit = () => {
+    if (!askVal.trim()) return;
+    setAskPhase('generating');
+    setTimeout(() => {
+      const draft = (item.draftTemplate || '').replace('{answer}', askVal.trim());
+      const because = item.becauseTemplate || '';
+      setGeneratedDraft(draft);
+      setGeneratedBecause(because);
+      setAskPhase('ready');
+    }, 1500);
+  };
+
+  const handleAskSend = () => {
+    setSentMsg(generatedDraft);
+    setMode('sent');
+    triggerToast('Got it — I\'ll use this for similar questions.');
+    if (onSent) onSent(item.user);
   };
 
   const handleFeedbackChoice = (reason) => {
@@ -938,6 +976,84 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
 
       {/* ═══ Inbox Agent bottom sheet — conversational, streaming ═══ */}
       {mode === 'suggest' && item.draft && <AgentSheet item={item} onSend={handleSend} onEdit={() => { setMode('editing'); setEditVal(item.draft); }} onSkip={handleIllReply} />}
+
+      {/* ═══ Bottom: Ask mode — agent needs info from user ═══ */}
+      {mode === 'ask' && (
+        <div className="fade-up" style={{ flexShrink:0, background:T.paper, padding:'0 20px 40px' }}>
+          <div style={{ height:1, background:T.lightGray, marginBottom:16 }} />
+
+          {askPhase === 'input' && (
+            <>
+              <div style={{ marginBottom:14 }}>
+                <div style={{ fontSize:11, color:T.gray, marginBottom:6, fontWeight:500 }}>Inbox Agent</div>
+                <div style={{ fontSize:14, color:T.ink, lineHeight:1.55, letterSpacing:'-0.01em' }}>
+                  {item.agentQuestion}
+                </div>
+              </div>
+
+              <div style={{ display:'flex', gap:8, alignItems:'flex-end' }}>
+                <textarea value={askVal} onChange={e => setAskVal(e.target.value)} autoFocus
+                  placeholder={item.askPlaceholder || 'Type your answer...'}
+                  style={{ flex:1, fontSize:14, color:T.ink, lineHeight:1.5, padding:'13px 16px', border:`1.5px solid ${T.ink}`, borderRadius:14, resize:'none', height:60, fontFamily:'Inter, system-ui, sans-serif', background:'#fff', outline:'none', letterSpacing:'-0.01em', boxSizing:'border-box' }} />
+              </div>
+
+              <div style={{ display:'flex', gap:8, marginTop:12 }}>
+                <button onClick={handleAskSubmit} disabled={!askVal.trim()}
+                  style={{ flex:1, padding:'12px 0', background: askVal.trim() ? T.ink : T.lightGray, color: askVal.trim() ? '#fff' : T.gray, border:'none', borderRadius:12, fontSize:14, fontWeight:600, cursor: askVal.trim() ? 'pointer' : 'default', transition:'all .2s ease' }}>
+                  Create draft
+                </button>
+                <button onClick={() => { setMode('custom'); setCustomVal(''); }}
+                  style={{ padding:'12px 20px', background:'transparent', border:'none', fontSize:13, fontWeight:500, cursor:'pointer', color:T.gray }}>
+                  I'll reply
+                </button>
+              </div>
+            </>
+          )}
+
+          {askPhase === 'generating' && (
+            <div style={{ padding:'20px 0', textAlign:'center' }}>
+              <div style={{ fontSize:13, color:T.gray, marginBottom:8 }}>Creating your draft...</div>
+              <div style={{ display:'flex', justifyContent:'center', gap:4 }}>
+                {[0,1,2].map(i => (
+                  <div key={i} style={{ width:6, height:6, borderRadius:3, background:T.lightGray, animation:`pulse 1s ease-in-out ${i * 0.2}s infinite` }} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {askPhase === 'ready' && (
+            <>
+              <div style={{ marginBottom:14 }}>
+                <div style={{ fontSize:11, color:T.gray, marginBottom:6, fontWeight:500 }}>Inbox Agent</div>
+                <div style={{ fontSize:14, color:T.ink, lineHeight:1.55, letterSpacing:'-0.01em', marginBottom:8 }}>
+                  Here's what I'd send:
+                </div>
+              </div>
+
+              <div style={{ padding:'13px 16px', borderRadius:14, border:`1.5px dashed ${T.lightGray}`, background:T.warmGray, marginBottom:8 }}>
+                <div style={{ fontSize:14, lineHeight:1.5, color:T.ink, letterSpacing:'-0.01em' }}>{generatedDraft}</div>
+              </div>
+
+              {generatedBecause && (
+                <div style={{ fontSize:12, color:T.gray, lineHeight:1.5, marginBottom:14, letterSpacing:'-0.01em' }}>
+                  {generatedBecause}
+                </div>
+              )}
+
+              <div style={{ display:'flex', gap:8 }}>
+                <button onClick={handleAskSend}
+                  style={{ flex:1, padding:'12px 0', background:T.ink, color:'#fff', border:'none', borderRadius:12, fontSize:14, fontWeight:600, cursor:'pointer' }}>
+                  Approve & Send
+                </button>
+                <button onClick={() => { setMode('editing'); setEditVal(generatedDraft); }}
+                  style={{ padding:'12px 16px', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:12, fontSize:13, fontWeight:500, cursor:'pointer', color:T.ink }}>
+                  Edit
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
       {/* ═══ Bottom: Edit mode ═══ */}
       {mode === 'editing' && (
@@ -1141,7 +1257,8 @@ function ImportantTab({ onOpenChat, answeredChats, priorityFeedbackDone, onFeedb
             <div style={{ height:1, background:T.lightGray }} />
             {pending.map((item, i) => (
               <MsgRow key={item.user} user={item.user} name={item.name} avatar={item.avatar} msg={item.msg} time={item.time}
-                unread={item.unread} hasDraft={!item._sensitive && !!item.draft}
+                unread={item.unread} hasDraft={!item._sensitive && (!!item.draft || item.mode === 'ask')}
+                isAsk={item.mode === 'ask'}
                 isLast={i === pending.length - 1}
                 agentRead={item.agentRead}
                 onClick={() => onOpenChat(item, '', T.gray, !!item._sensitive)} />
