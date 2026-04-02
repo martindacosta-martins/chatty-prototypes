@@ -1033,24 +1033,30 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
 
           {askPhase === 'ready' && (
             <>
-              {/* Draft — prominent white card */}
-              <div className="fade-in" style={{ marginBottom:16, padding:'14px 16px', background:'rgba(255,255,255,0.95)', borderRadius:14 }}>
-                <div style={{ fontSize:15, fontWeight:400, color:'#0F0F0F', lineHeight:1.55, letterSpacing:'-0.01em' }}>{generatedDraft}</div>
-              </div>
-
-              {/* Reason — matches AgentSheet style */}
+              {/* Reason first sentence — above draft */}
               {generatedBecause && (
                 <div className="fade-in" style={{ marginBottom:14 }}>
                   <div style={{ fontSize:15, fontWeight:400, color:'rgba(255,255,255,0.6)', lineHeight:1.55, letterSpacing:'-0.01em' }}>
                     {(generatedBecause.match(/[^.!?]+[.!?]?\s*/g) || [generatedBecause])[0]}
                   </div>
-                  {!showAskStyleReason && (generatedBecause.match(/[^.!?]+[.!?]?\s*/g) || []).length > 1 && (
-                    <div onClick={() => setShowAskStyleReason(true)} style={{ fontSize:12, color:'rgba(255,255,255,0.25)', marginTop:6, cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
+                </div>
+              )}
+
+              {/* Draft — prominent white card */}
+              <div className="fade-in" style={{ marginBottom:14, padding:'14px 16px', background:'rgba(255,255,255,0.95)', borderRadius:14 }}>
+                <div style={{ fontSize:15, fontWeight:400, color:'#0F0F0F', lineHeight:1.55, letterSpacing:'-0.01em' }}>{generatedDraft}</div>
+              </div>
+
+              {/* Why this reply — below draft */}
+              {generatedBecause && (generatedBecause.match(/[^.!?]+[.!?]?\s*/g) || []).length > 1 && (
+                <div className="fade-in" style={{ marginBottom:14 }}>
+                  {!showAskStyleReason && (
+                    <div onClick={() => setShowAskStyleReason(true)} style={{ fontSize:12, color:'rgba(255,255,255,0.25)', cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
                       Why this reply <span style={{ fontSize:10 }}>↓</span>
                     </div>
                   )}
                   {showAskStyleReason && (
-                    <div className="fade-in" style={{ fontSize:13, color:'rgba(255,255,255,0.4)', lineHeight:1.55, marginTop:6 }}>
+                    <div className="fade-in" style={{ fontSize:13, color:'rgba(255,255,255,0.4)', lineHeight:1.55 }}>
                       {(generatedBecause.match(/[^.!?]+[.!?]?\s*/g) || []).slice(1).join('')}
                     </div>
                   )}

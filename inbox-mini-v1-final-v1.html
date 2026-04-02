@@ -92,12 +92,22 @@ const IMPORTANT_GROUPS = [
     desc: 'These people want what you offer.',
     items: [
       { user:'@jayrunz', name:'Jay Ruiz', avatar:'https://i.pravatar.cc/88?u=jayrunz', msg:"I've been struggling for 2 years. Is it too late to start?", source:'DM', time:'2h', unread:3, intent:'Interested', mode:'confident',
+        chatHistory: [
+          { from:'them', text:'Hey!', time:'2h ago' },
+          { from:'automation', text:"Hey! Thank you so much for reaching out. Would you like me to keep you informed about my new programs?", time:'2h ago' },
+          { from:'them', text:"Yes please! I've been struggling for 2 years. Is it too late to start?", time:'2h ago' },
+        ],
         context:"Following you for 14 months. Saved your transformation reel last week. He's not asking about price — he's asking if it's too late.",
         draft:"It's never too late — 2 years of trying tells me you're serious about change. The 12-Week Reboot is built for people exactly where you are. Want to see what week 1 looks like?",
         styleReason:"I went with validation first, no pitch. Similar to how you replied to @sarah.wellness when she had doubts — you tend to lead with encouragement before sharing details.",
         summary:'Ready to sign up', status:'Reply ready',
         agentRead:'Ready to sign up · Reply drafted' },
       { user:'@emma.k', name:'Emma Kim', avatar:'https://i.pravatar.cc/88?u=emmak', msg:"How much is the coaching program? I've been thinking about it for weeks", source:'DM', time:'4h', unread:2, intent:'Interested', mode:'ask',
+        chatHistory: [
+          { from:'them', text:"Hi! I saw your reel about the coaching program", time:'4h ago' },
+          { from:'automation', text:"Hey! Thanks for reaching out. I'd love to tell you more — what are you most interested in?", time:'4h ago' },
+          { from:'them', text:"How much is the coaching program? I've been thinking about it for weeks", time:'4h ago' },
+        ],
         context:"Engaged for weeks — commented on 5 posts, saved your course breakdown. Warm lead asking about pricing.",
         agentQuestion:"Emma wants to know your coaching program price. She's been engaging with your content for weeks — this feels like a warm lead. What's the pricing?",
         askPlaceholder:"e.g., $597 or 3 payments of $197/mo",
@@ -138,6 +148,11 @@ const IMPORTANT_GROUPS = [
     desc: 'They need info I don\'t have yet — help me answer.',
     items: [
       { user:'@mike.coach', name:'Mike Chen', avatar:'https://i.pravatar.cc/88?u=mikecoach', msg:"What's included in the premium program?", source:'DM', time:'3h', unread:1, intent:'FAQ', mode:'ask',
+        chatHistory: [
+          { from:'them', text:"Hey, quick question", time:'3h ago' },
+          { from:'automation', text:"Hi! Thanks for your message. I'll get back to you shortly — in the meantime, feel free to share what you're looking for!", time:'3h ago' },
+          { from:'them', text:"What's included in the premium program?", time:'3h ago' },
+        ],
         context:"Following 4 months, engaged with content regularly. Direct question — not casual browsing.",
         agentQuestion:"Mike is asking what's included in your premium program. What are the main features?",
         askPlaceholder:"e.g., Weekly calls, meal plan, community, 60+ videos",
@@ -844,13 +859,11 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
     return () => clearInterval(undoTimerRef.current);
   }, [mode]);
 
-  // Conversation history
-  const chatHistory = [
+  // Conversation history — use item.chatHistory if provided, otherwise generate default
+  const chatHistory = item.chatHistory || [
+    ...(item.source === 'DM' ? [{ from: 'them', text: 'Hey!', time: '2h ago' }] : []),
     { from: 'them', text: item.msg, time: item.time || '2h ago' },
   ];
-  if (item.source === 'DM') {
-    chatHistory.unshift({ from: 'them', text: 'Hey!', time: '2h ago' });
-  }
 
   return (
     <div className="fade-up" onClick={(e) => e.stopPropagation()} style={{ position:'absolute', inset:0, zIndex:100, background:T.paper, display:'flex', flexDirection:'column' }}>
@@ -927,14 +940,29 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
 
       {/* Chat body — always scrollable, never covered */}
       <div ref={chatBodyRef} style={{ flex:1, overflowY:'auto', padding:'20px 20px 12px', paddingBottom: mode === 'suggest' ? '300px' : '12px' }}>
-        {chatHistory.map((m, i) => (
-          <div key={i} style={{ marginBottom:12, display:'flex', justifyContent: m.from === 'you' ? 'flex-end' : 'flex-start' }}>
-            <div style={{ maxWidth:'80%', padding:'12px 16px', borderRadius:18, background: m.from === 'you' ? T.ink : T.cardBg, color: m.from === 'you' ? '#fff' : T.ink, border: m.from === 'them' ? `1px solid ${T.lightGray}` : 'none', borderTopLeftRadius: m.from === 'them' ? 6 : 18, borderTopRightRadius: m.from === 'you' ? 6 : 18 }}>
-              <div style={{ fontSize:14, lineHeight:1.5, letterSpacing:'-0.01em' }}>{m.text}</div>
-              <div style={{ fontSize:10, color: m.from === 'you' ? 'rgba(255,255,255,0.45)' : T.gray, marginTop:4, textAlign:'right' }}>{m.time}</div>
+        {chatHistory.map((m, i) => {
+          const isOutgoing = m.from === 'you' || m.from === 'automation';
+          const isAutomation = m.from === 'automation';
+          const bubbleBg = isAutomation ? T.warmGray : (m.from === 'you' ? T.accent : T.cardBg);
+          const bubbleColor = isAutomation ? T.ink : (m.from === 'you' ? '#fff' : T.ink);
+          const timeColor = m.from === 'you' ? 'rgba(255,255,255,0.45)' : T.gray;
+          return (
+            <div key={i} style={{ marginBottom:12, display:'flex', justifyContent: isOutgoing ? 'flex-end' : 'flex-start' }}>
+              <div style={{ maxWidth:'80%' }}>
+                <div style={{ padding:'12px 16px', borderRadius:18, background:bubbleBg, color:bubbleColor, border: m.from === 'them' ? `1px solid ${T.lightGray}` : 'none', borderTopLeftRadius: m.from === 'them' ? 6 : 18, borderTopRightRadius: isOutgoing ? 6 : 18 }}>
+                  <div style={{ fontSize:14, lineHeight:1.5, letterSpacing:'-0.01em' }}>{m.text}</div>
+                  <div style={{ fontSize:10, color:timeColor, marginTop:4, textAlign:'right' }}>{m.time}</div>
+                </div>
+                {isAutomation && (
+                  <div style={{ display:'flex', alignItems:'center', justifyContent:'flex-end', gap:4, marginTop:4 }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={T.gray} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                    <span style={{ fontSize:10, color:T.gray }}>Automation</span>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         {/* Summary removed from chat body — agent explains in bottom sheet */}
 
@@ -1043,24 +1071,30 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
 
           {askPhase === 'ready' && (
             <>
-              {/* Draft — prominent white card */}
-              <div className="fade-in" style={{ marginBottom:16, padding:'14px 16px', background:'rgba(255,255,255,0.95)', borderRadius:14 }}>
-                <div style={{ fontSize:15, fontWeight:400, color:'#0F0F0F', lineHeight:1.55, letterSpacing:'-0.01em' }}>{generatedDraft}</div>
-              </div>
-
-              {/* Reason — matches AgentSheet style */}
+              {/* Reason first sentence — above draft */}
               {generatedBecause && (
                 <div className="fade-in" style={{ marginBottom:14 }}>
                   <div style={{ fontSize:15, fontWeight:400, color:'rgba(255,255,255,0.6)', lineHeight:1.55, letterSpacing:'-0.01em' }}>
                     {(generatedBecause.match(/[^.!?]+[.!?]?\s*/g) || [generatedBecause])[0]}
                   </div>
-                  {!showAskStyleReason && (generatedBecause.match(/[^.!?]+[.!?]?\s*/g) || []).length > 1 && (
-                    <div onClick={() => setShowAskStyleReason(true)} style={{ fontSize:12, color:'rgba(255,255,255,0.25)', marginTop:6, cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
+                </div>
+              )}
+
+              {/* Draft — prominent white card */}
+              <div className="fade-in" style={{ marginBottom:14, padding:'14px 16px', background:'rgba(255,255,255,0.95)', borderRadius:14 }}>
+                <div style={{ fontSize:15, fontWeight:400, color:'#0F0F0F', lineHeight:1.55, letterSpacing:'-0.01em' }}>{generatedDraft}</div>
+              </div>
+
+              {/* Why this reply — below draft */}
+              {generatedBecause && (generatedBecause.match(/[^.!?]+[.!?]?\s*/g) || []).length > 1 && (
+                <div className="fade-in" style={{ marginBottom:14 }}>
+                  {!showAskStyleReason && (
+                    <div onClick={() => setShowAskStyleReason(true)} style={{ fontSize:12, color:'rgba(255,255,255,0.25)', cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
                       Why this reply <span style={{ fontSize:10 }}>↓</span>
                     </div>
                   )}
                   {showAskStyleReason && (
-                    <div className="fade-in" style={{ fontSize:13, color:'rgba(255,255,255,0.4)', lineHeight:1.55, marginTop:6 }}>
+                    <div className="fade-in" style={{ fontSize:13, color:'rgba(255,255,255,0.4)', lineHeight:1.55 }}>
                       {(generatedBecause.match(/[^.!?]+[.!?]?\s*/g) || []).slice(1).join('')}
                     </div>
                   )}
