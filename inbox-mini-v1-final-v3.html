@@ -520,6 +520,155 @@ function ObQuestion({ onNext }) {
   );
 }
 
+/* ─── Quick loading after business question ─── */
+function ObLoading2({ onNext }) {
+  const [vis, setVis] = useState(0);
+  const lines = [
+    'Got it, analyzing your conversations...',
+    'Matching messages to your business...',
+    'Found some patterns',
+  ];
+
+  useEffect(() => {
+    const timers = [];
+    lines.forEach((_, i) => {
+      timers.push(setTimeout(() => setVis(i + 1), i * 800 + 300));
+    });
+    timers.push(setTimeout(onNext, lines.length * 800 + 700));
+    return () => timers.forEach(t => clearTimeout(t));
+  }, []);
+
+  return (
+    <div style={{ background:'#0F0F0F', height:'100%', display:'flex', flexDirection:'column', justifyContent:'center', padding:'0 28px' }}>
+      {lines.map((line, i) => (
+        <div key={i} style={{
+          fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:12,
+          opacity: vis > i ? 1 : 0,
+          transform: vis > i ? 'translateY(0)' : 'translateY(8px)',
+          transition:'opacity .45s ease, transform .45s ease',
+        }}>
+          {line}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ─── Categorization screen — toggle categories + add custom ─── */
+function ObCategories({ onNext }) {
+  const [vis, setVis] = useState(0);
+  const [categories, setCategories] = useState([
+    { id:'coaching', label:'Interested in your coaching programs', on:true },
+    { id:'booking', label:'Want to book a session or call', on:true },
+    { id:'pricing', label:'Questions about pricing', on:true },
+    { id:'collab', label:'Collaboration and partnership requests', on:true },
+    { id:'support', label:'Existing clients needing support', on:false },
+    { id:'personal', label:'Personal or emotional messages', on:true },
+  ]);
+  const [customVal, setCustomVal] = useState('');
+  const [showCustom, setShowCustom] = useState(false);
+
+  useEffect(() => {
+    const timers = [];
+    for (let i = 1; i <= 4; i++) timers.push(setTimeout(() => setVis(i), i * 400 + 200));
+    return () => timers.forEach(t => clearTimeout(t));
+  }, []);
+
+  const show = (i) => ({
+    opacity: vis >= i ? 1 : 0,
+    transform: vis >= i ? 'translateY(0)' : 'translateY(8px)',
+    transition:'opacity .45s ease, transform .45s ease',
+  });
+
+  const toggle = (id) => {
+    setCategories(cats => cats.map(c => c.id === id ? { ...c, on: !c.on } : c));
+  };
+
+  const addCustom = () => {
+    if (!customVal.trim()) return;
+    setCategories(cats => [...cats, { id:'custom-' + Date.now(), label:customVal.trim(), on:true }]);
+    setCustomVal('');
+    setShowCustom(false);
+  };
+
+  return (
+    <div style={{ background:'#0F0F0F', height:'100%', display:'flex', flexDirection:'column' }}>
+      <div style={{ flex:1, overflowY:'auto', padding:'100px 28px 0' }}>
+        <div style={{ marginBottom:12, ...show(1) }}>
+          <h1 style={{ fontSize:34, fontWeight:900, color:'#fff', letterSpacing:'-0.04em', lineHeight:1.12, WebkitTextStroke:'0.5px #fff' }}>
+            Here's what I found.
+          </h1>
+        </div>
+        <div style={{ ...show(2) }}>
+          <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:24 }}>
+            I grouped your conversations into these categories. Turn off any that don't matter to you.
+          </p>
+        </div>
+
+        {/* Category toggles */}
+        <div style={{ display:'flex', flexDirection:'column', gap:8, ...show(3) }}>
+          {categories.map(cat => (
+            <div key={cat.id} onClick={() => toggle(cat.id)}
+              style={{
+                display:'flex', alignItems:'center', justifyContent:'space-between',
+                padding:'16px 16px', borderRadius:14,
+                background: cat.on ? 'rgba(255,255,255,0.06)' : 'transparent',
+                border: cat.on ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(255,255,255,0.06)',
+                cursor:'pointer', transition:'all .2s ease',
+              }}>
+              <span style={{ fontSize:15, fontWeight:400, color: cat.on ? '#fff' : 'rgba(255,255,255,0.3)', letterSpacing:'-0.01em', flex:1, transition:'color .2s ease' }}>
+                {cat.label}
+              </span>
+              {/* Toggle switch */}
+              <div style={{
+                width:40, height:24, borderRadius:12, flexShrink:0, marginLeft:12,
+                background: cat.on ? '#fff' : 'rgba(255,255,255,0.12)',
+                padding:2, transition:'background .2s ease', position:'relative',
+              }}>
+                <div style={{
+                  width:20, height:20, borderRadius:10,
+                  background: cat.on ? '#0F0F0F' : 'rgba(255,255,255,0.3)',
+                  transform: cat.on ? 'translateX(16px)' : 'translateX(0)',
+                  transition:'all .2s ease',
+                }} />
+              </div>
+            </div>
+          ))}
+
+          {/* Add custom */}
+          {!showCustom ? (
+            <div onClick={() => setShowCustom(true)}
+              style={{ display:'flex', alignItems:'center', gap:10, padding:'16px', borderRadius:14, border:'1.5px dashed rgba(255,255,255,0.1)', cursor:'pointer' }}>
+              <span style={{ fontSize:16, color:'rgba(255,255,255,0.2)', fontWeight:300 }}>+</span>
+              <span style={{ fontSize:15, color:'rgba(255,255,255,0.3)' }}>Add a category</span>
+            </div>
+          ) : (
+            <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+              <input value={customVal} onChange={e => setCustomVal(e.target.value)} autoFocus
+                placeholder="Type a category..."
+                onKeyDown={e => { if (e.key === 'Enter') addCustom(); }}
+                style={{ flex:1, padding:'14px 16px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:14, fontSize:15, color:'#fff', fontFamily:'Inter, system-ui, sans-serif', outline:'none', letterSpacing:'-0.01em' }} />
+              {customVal.trim() && (
+                <div onClick={addCustom}
+                  style={{ width:40, height:40, borderRadius:20, background:'#fff', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0 }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0F0F0F" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div style={{ padding:'0 28px 40px', ...show(4) }}>
+        <button onClick={onNext}
+          style={{ width:'100%', padding:'16px', background:'#fff', color:'#0F0F0F', border:'none', borderRadius:50, fontSize:16, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em' }}>
+          Looks good
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /* ═══ INBOX COMPONENTS ═══ */
 function AgentPillText() {
   const [idx, setIdx] = useState(0);
@@ -1824,7 +1973,9 @@ function App() {
       {/* ─── Onboarding (3-screen flow: welcome → loading → results) ─── */}
       {screen === 'ob-welcome' && <ObWelcomeV2b onNext={() => setScreen('ob-loading')} />}
       {screen === 'ob-loading' && <ObSorting onNext={() => setScreen('ob-question')} />}
-      {screen === 'ob-question' && <ObQuestion onNext={() => setScreen('ob-results')} />}
+      {screen === 'ob-question' && <ObQuestion onNext={() => setScreen('ob-loading2')} />}
+      {screen === 'ob-loading2' && <ObLoading2 onNext={() => setScreen('ob-categories')} />}
+      {screen === 'ob-categories' && <ObCategories onNext={() => setScreen('ob-results')} />}
       {screen === 'ob-results' && <ObResultsV2b
         onReplyNow={() => { setOpenChatOnLoad(jayrunzItem); setScreen('main'); }}
         onOpenInbox={() => setScreen('main')}
