@@ -92,18 +92,21 @@ const IMPORTANT_GROUPS = [
     desc: 'These people want what you offer.',
     items: [
       { user:'@jayrunz', name:'Jay Ruiz', avatar:'https://i.pravatar.cc/88?u=jayrunz', msg:"I've been struggling for 2 years. Is it too late to start?", source:'DM', time:'2h', unread:3, intent:'Interested', mode:'confident',
+        context:"Following you for 14 months. Saved your transformation reel last week. He's not asking about price — he's asking if it's too late.",
         draft:"It's never too late — 2 years of trying tells me you're serious about change. The 12-Week Reboot is built for people exactly where you are. Want to see what week 1 looks like?",
-        because:"He mentioned struggling for 2 years — that maps to your 12-Week Reboot, not the 4-Week Kickstart. He's been following you for 14 months and saved your transformation reel last week. He's not asking about price — he's asking if it's too late. So I led with validation, not a sales pitch.",
+        styleReason:"I went with validation first, no pitch. Similar to how you replied to @sarah.wellness when she had doubts — you tend to lead with encouragement before sharing details.",
         agentRead:'Ready to sign up · Reply drafted' },
       { user:'@emma.k', name:'Emma Kim', avatar:'https://i.pravatar.cc/88?u=emmak', msg:"How much is the coaching program? I've been thinking about it for weeks", source:'DM', time:'4h', unread:2, intent:'Interested', mode:'ask',
+        context:"Engaged for weeks — commented on 5 posts, saved your course breakdown. Warm lead asking about pricing.",
         agentQuestion:"Emma wants to know your coaching program price. She's been engaging with your content for weeks — this feels like a warm lead. What's the pricing?",
         askPlaceholder:"e.g., $597 or 3 payments of $197/mo",
         draftTemplate:"Great news — the 12-Week Reboot is {answer}. It includes weekly 1-on-1 coaching, custom meal plans, and access to the private community. I also have a flexible payment plan if that helps. Want me to send the full details?",
-        becauseTemplate:"She said she's been 'thinking about it for weeks' — that's a warm lead, not a casual question. She commented on 5 of your posts and saved your course breakdown. I used the pricing you shared and mentioned the payment plan since cost hesitation is common. Added a soft next step.",
+        styleReasonTemplate:"Used the pricing you shared + mentioned the payment plan. Cost hesitation is her main blocker — you tend to remove friction, not discount. Similar to how you handled @marcus.fit's first message.",
         agentRead:'Asking about pricing · Needs your input' },
       { user:'@marcus.fit', name:'Marcus Rivera', avatar:'https://i.pravatar.cc/88?u=marcusfit', msg:"I saw your client Ana's results. That's exactly what I need. How do I start?", source:'DM', time:'1h', unread:1, intent:'Interested', mode:'confident',
+        context:"First DM, but high intent — referenced Ana's results. Followed 3 months, liked Ana's transformation post.",
         draft:"Love that Ana's journey resonated with you! The first step is a quick chat to see which program fits — I have a 12-week deep dive and a 4-week kickstart. What's your main goal right now?",
-        because:"He referenced a specific client result — that's high buying intent. He's not price-shopping, he's ready to act. He's followed you for 3 months and liked Ana's transformation post. I offered both programs to qualify him without overwhelming. Asking 'what's your main goal' opens the conversation.",
+        styleReason:"Went conversational and qualifying. You usually ask 'what's your main goal' with new leads — keeps it open without overwhelming. 89% of your first replies to new leads are under 3 sentences.",
         agentRead:'High intent · Reply drafted' },
     ],
   },
@@ -112,14 +115,16 @@ const IMPORTANT_GROUPS = [
     desc: 'Ready to talk — just need scheduling.',
     items: [
       { user:'@sarah.wellness', name:'Sarah Cho', avatar:'https://i.pravatar.cc/88?u=sarahcho', msg:"I'd love to book a discovery call. When are you available?", source:'DM', time:'3h', unread:1, intent:'Interested', mode:'confident',
+        context:"Came back after 2 weeks — DM'd before about the program. Following 6 months. People who return are usually ready.",
         draft:"Great to hear from you again, Sarah! I have openings Tuesday and Thursday afternoons this week. Which works better for you? I'll send a link to grab a spot.",
-        because:"She came back after 2 weeks — that's a strong signal. People who return are usually ready. She's been following you for 6 months and DM'd before about the program. I kept it warm and offered specific times instead of a generic 'check my calendar' to reduce friction.",
+        styleReason:"Warm and specific — offered real times, not a generic link. When @jayrunz came back after going quiet, you also gave specific next steps. Returning leads get your personal touch.",
         agentRead:'Returning lead · Reply drafted' },
       { user:'@daniela.r', name:'Daniela Ruiz', avatar:'https://i.pravatar.cc/88?u=danielar', msg:"Do you do free consultations? I'd love to talk before committing", source:'DM', time:'5h', unread:1, intent:'Interested', mode:'ask',
+        context:"New follower (2 weeks), first DM. Wants to talk before buying — normal for high-ticket services.",
         agentQuestion:"Daniela wants to talk before committing — do you offer free consultations? If yes, how should she book?",
         askPlaceholder:"e.g., Yes, 15-min call at calendly.com/sofia",
         draftTemplate:"Absolutely! I offer a free {answer}. It's a casual conversation — no commitment, just a chance to see if we're a good fit. Here's the link to grab a spot.",
-        becauseTemplate:"First-time contact, been following for 2 weeks. She wants to talk before buying — that's normal for high-ticket services. I used your booking details and kept it low-pressure. 'No commitment, just a conversation' removes the friction.",
+        styleReasonTemplate:"Kept it low-pressure — 'no commitment, just a conversation' removes the friction. You tend to be warmer with first-time contacts who show vulnerability.",
         agentRead:'Wants a call · Needs your input' },
     ],
   },
@@ -128,22 +133,25 @@ const IMPORTANT_GROUPS = [
     desc: 'They need info I don\'t have yet — help me answer.',
     items: [
       { user:'@mike.coach', name:'Mike Chen', avatar:'https://i.pravatar.cc/88?u=mikecoach', msg:"What's included in the premium program?", source:'DM', time:'3h', unread:1, intent:'FAQ', mode:'ask',
+        context:"Following 4 months, engaged with content regularly. Direct question — not casual browsing.",
         agentQuestion:"Mike is asking what's included in your premium program. What are the main features?",
         askPlaceholder:"e.g., Weekly calls, meal plan, community, 60+ videos",
         draftTemplate:"Great question! The program includes {answer}. Want me to send the full breakdown?",
-        becauseTemplate:"He asked about 'premium' — I matched that to the program details you shared. He's been following for 4 months, so this isn't casual browsing. Listed the key features and ended with a soft push to see more.",
+        styleReasonTemplate:"Listed the key features you shared and ended with a soft push. You usually keep FAQ replies short and end with a next step — I followed that pattern.",
         agentRead:'Product question · Needs your input' },
       { user:'@alex.j', name:'Alex Jordan', avatar:'https://i.pravatar.cc/88?u=alexj', msg:"Is there a refund policy?", source:'DM', time:'5h', unread:1, intent:'FAQ', mode:'ask',
+        context:"New contact, 1 week following. Refund questions usually mean they're close to buying but need safety.",
         agentQuestion:"Alex is asking about your refund policy. What should I tell them?",
         askPlaceholder:"e.g., 7-day money-back guarantee, no questions asked",
         draftTemplate:"Yes — {answer}. Most people know within the first week if it's the right fit. Want to take a look at what's included before deciding?",
-        becauseTemplate:"Refund questions usually mean they're close to buying but need safety. I used the guarantee you shared and framed it as confidence, not a safety net. He's only been following a week — still building trust.",
+        styleReasonTemplate:"Framed the guarantee as confidence, not a safety net. Added a soft redirect to what's included — you did something similar with @emma.k when she was hesitant.",
         agentRead:'Refund question · Needs your input' },
       { user:'@carlos.m', name:'Carlos Mendez', avatar:'https://i.pravatar.cc/88?u=carlosm', msg:"Do you offer group sessions or is it only 1-on-1?", source:'DM', time:'2h', unread:1, intent:'FAQ', mode:'ask',
+        context:"Following 2 months. Commented on your group workout post last week — the interest is specific.",
         agentQuestion:"Carlos wants to know if you offer group sessions. Do you?",
         askPlaceholder:"e.g., 1-on-1 only right now, group program launching in January",
         draftTemplate:"Right now it's {answer}. I'd love to find the right fit for you — want to chat about what you're looking for?",
-        becauseTemplate:"He commented on your group workout post last week, so the interest is specific. I used your answer and kept the door open for a conversation.",
+        styleReasonTemplate:"Kept the door open with a conversation invite. When you don't have what they're looking for, you tend to redirect to a call — I followed that.",
         agentRead:'Group sessions question · Needs your input' },
     ],
   },
@@ -513,25 +521,20 @@ function MsgRow({ user, name, avatar, msg, time, badge, badgeColor, onClick, has
 /* ─── Agent Sheet — conversational bottom panel with streaming text ─── */
 function AgentSheet({ item, onSend, onEdit, onSkip }) {
   const [phase, setPhase] = useState('skeleton');
-  const [expanded, setExpanded] = useState(false);
+  const [showStyleReason, setShowStyleReason] = useState(false);
 
   const questions = ['Want me to send this?','Ready to send?','Should I go ahead?','Does this work?','Good to send?','Send this one?'];
   const [question] = useState(() => questions[Math.floor(Math.random() * questions.length)]);
 
   const t = { fontSize:15, fontWeight:400, color:'#fff', lineHeight:1.55, letterSpacing:'-0.01em' };
 
-  // Split "because" into first sentence (preview) and rest (expanded)
-  const becauseSentences = (item.because || '').match(/[^.!?]+[.!?]?\s*/g) || [item.because || ''];
-  const becausePreview = becauseSentences[0] || '';
-  const becauseRest = becauseSentences.slice(1).join('');
-
-  // Phase: skeleton → reason → draft → ask → buttons
+  // Phase: skeleton → context → draft → styleReason → ask → buttons
   useEffect(() => {
-    const t1 = setTimeout(() => setPhase('reason'), 500);
+    const t1 = setTimeout(() => setPhase('context'), 500);
     return () => clearTimeout(t1);
   }, []);
   useEffect(() => {
-    if (phase !== 'reason') return;
+    if (phase !== 'context') return;
     const t1 = setTimeout(() => setPhase('draft'), 500);
     return () => clearTimeout(t1);
   }, [phase]);
@@ -546,7 +549,7 @@ function AgentSheet({ item, onSend, onEdit, onSkip }) {
     return () => clearTimeout(t1);
   }, [phase]);
 
-  const phaseOrder = ['skeleton','reason','draft','ask','buttons'];
+  const phaseOrder = ['skeleton','context','draft','ask','buttons'];
   const p = phaseOrder.indexOf(phase);
 
   return (
@@ -569,35 +572,41 @@ function AgentSheet({ item, onSend, onEdit, onSkip }) {
           </div>
         )}
 
-        {/* Reason — short, with show more */}
+        {/* Context — about the contact/situation, always visible */}
         {p >= 1 && (
           <div className="fade-in" style={{ marginBottom:14 }}>
             <div style={{ ...t, color:'rgba(255,255,255,0.6)' }}>
-              {becausePreview}
+              {item.context || ''}
             </div>
-            {becauseRest && !expanded && (
-              <div onClick={() => setExpanded(true)}
-                style={{ fontSize:12, color:'rgba(255,255,255,0.25)', marginTop:6, cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
-                Why this reply <span style={{ fontSize:10 }}>↓</span>
-              </div>
-            )}
-            {expanded && (
-              <div className="fade-in" style={{ ...t, color:'rgba(255,255,255,0.4)', marginTop:6, fontSize:13 }}>
-                {becauseRest}
-              </div>
-            )}
           </div>
         )}
 
         {/* Draft — prominent white card */}
         {p >= 2 && (
           <div className="fade-in" style={{
-            marginBottom:16, padding:'14px 16px',
+            marginBottom:12, padding:'14px 16px',
             background:'rgba(255,255,255,0.95)', borderRadius:14,
           }}>
             <div style={{ fontSize:15, fontWeight:400, color:'#0F0F0F', lineHeight:1.55, letterSpacing:'-0.01em' }}>
               {item.draft}
             </div>
+          </div>
+        )}
+
+        {/* Style reason — why this tone/approach, expandable */}
+        {p >= 2 && item.styleReason && (
+          <div style={{ marginBottom:14 }}>
+            {!showStyleReason && (
+              <div onClick={() => setShowStyleReason(true)}
+                style={{ fontSize:12, color:'rgba(255,255,255,0.25)', cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
+                Why this reply <span style={{ fontSize:10 }}>↓</span>
+              </div>
+            )}
+            {showStyleReason && (
+              <div className="fade-in" style={{ ...t, color:'rgba(255,255,255,0.4)', fontSize:13 }}>
+                {item.styleReason}
+              </div>
+            )}
           </div>
         )}
 
@@ -690,6 +699,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
   const [customFeedback, setCustomFeedback] = useState(null); // null | 'asking' | 'done'
   const [askVal, setAskVal] = useState(''); // user's answer in ask mode
   const [askPhase, setAskPhase] = useState('input'); // 'input' | 'generating' | 'ready'
+  const [showAskStyleReason, setShowAskStyleReason] = useState(false);
   const [generatedDraft, setGeneratedDraft] = useState('');
   const [generatedBecause, setGeneratedBecause] = useState('');
   const [showSendCelebration, setShowSendCelebration] = useState(false);
@@ -776,9 +786,9 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
     // Simulate draft generation
     setTimeout(() => {
       const draft = (item.draftTemplate || '').replace('{answer}', askVal.trim());
-      const because = item.becauseTemplate || '';
+      const styleR = item.styleReasonTemplate || '';
       setGeneratedDraft(draft);
-      setGeneratedBecause(because);
+      setGeneratedBecause(styleR);
       setAskPhase('ready');
     }, 1500);
   };
@@ -1024,30 +1034,48 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
 
           {askPhase === 'ready' && (
             <>
-              <div style={{ marginBottom:14 }}>
-                <div style={{ fontSize:11, color:'rgba(255,255,255,0.5)', marginBottom:6, fontWeight:500 }}>Inbox Agent</div>
-                <div style={{ fontSize:14, color:'#fff', lineHeight:1.55, letterSpacing:'-0.01em', marginBottom:8 }}>
-                  Here's what I'd send:
+              {/* Context — about the contact */}
+              {item.context && (
+                <div className="fade-in" style={{ marginBottom:14 }}>
+                  <div style={{ fontSize:14, color:T.gray, lineHeight:1.55, letterSpacing:'-0.01em' }}>
+                    {item.context}
+                  </div>
                 </div>
+              )}
+
+              <div style={{ fontSize:11, color:T.gray, marginBottom:6, fontWeight:500 }}>Inbox Agent</div>
+              <div style={{ fontSize:14, color:T.ink, lineHeight:1.55, letterSpacing:'-0.01em', marginBottom:8 }}>
+                Here's what I'd send:
               </div>
 
-              <div style={{ padding:'13px 16px', borderRadius:14, border:'1.5px dashed rgba(255,255,255,0.12)', background:'rgba(255,255,255,0.06)', marginBottom:8 }}>
-                <div style={{ fontSize:14, lineHeight:1.5, color:'#fff', letterSpacing:'-0.01em' }}>{generatedDraft}</div>
+              {/* Draft card */}
+              <div style={{ padding:'13px 16px', borderRadius:14, border:`1.5px dashed ${T.lightGray}`, background:T.warmGray, marginBottom:8 }}>
+                <div style={{ fontSize:14, lineHeight:1.5, color:T.ink, letterSpacing:'-0.01em' }}>{generatedDraft}</div>
               </div>
 
+              {/* Style reason — expandable */}
               {generatedBecause && (
-                <div style={{ fontSize:12, color:'rgba(255,255,255,0.5)', lineHeight:1.5, marginBottom:14, letterSpacing:'-0.01em' }}>
-                  {generatedBecause}
+                <div style={{ marginBottom:14 }}>
+                  {!showAskStyleReason ? (
+                    <div onClick={() => setShowAskStyleReason(true)}
+                      style={{ fontSize:12, color:T.gray, cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
+                      Why this reply <span style={{ fontSize:10 }}>↓</span>
+                    </div>
+                  ) : (
+                    <div className="fade-in" style={{ fontSize:12, color:T.gray, lineHeight:1.5, letterSpacing:'-0.01em' }}>
+                      {generatedBecause}
+                    </div>
+                  )}
                 </div>
               )}
 
               <div style={{ display:'flex', gap:8 }}>
                 <button onClick={handleAskSend}
-                  style={{ flex:1, padding:'12px 0', background:'#fff', color:'#0F0F0F', border:'none', borderRadius:12, fontSize:14, fontWeight:600, cursor:'pointer' }}>
+                  style={{ flex:1, padding:'12px 0', background:T.ink, color:'#fff', border:'none', borderRadius:12, fontSize:14, fontWeight:600, cursor:'pointer' }}>
                   Approve & Send
                 </button>
                 <button onClick={() => { setMode('editing'); setEditVal(generatedDraft); }}
-                  style={{ padding:'12px 16px', background:'transparent', border:'1px solid rgba(255,255,255,0.12)', borderRadius:12, fontSize:13, fontWeight:500, cursor:'pointer', color:'#fff' }}>
+                  style={{ padding:'12px 16px', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:12, fontSize:13, fontWeight:500, cursor:'pointer', color:T.ink }}>
                   Edit
                 </button>
               </div>
@@ -1172,10 +1200,10 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
 
       {/* ═══ Bottom: Undo toast after sending ═══ */}
       {mode === 'sent' && undoCount > 0 && (
-        <div style={{ position:'absolute', bottom:100, left:'50%', transform:'translateX(-50%)', background:'#0F0F0F', color:'#fff', padding:'10px 20px', borderRadius:50, fontSize:13, fontWeight:500, zIndex:20, boxShadow:'0 4px 16px rgba(0,0,0,0.15)', display:'flex', alignItems:'center', gap:12, whiteSpace:'nowrap' }}>
-          <span>✓ Sent to {item.user}</span>
-          <button onClick={handleUndo} style={{ fontSize:13, color:'#fff', background:'none', border:'none', cursor:'pointer', fontWeight:600, padding:0 }}>Undo</button>
-          <span style={{ color:'rgba(255,255,255,0.4)', fontSize:12 }}>({undoCount})</span>
+        <div style={{ position:'absolute', top:70, left:'50%', transform:'translateX(-50%)', background:'#E8E8E8', color:'#333', padding:'10px 20px', borderRadius:50, fontSize:13, fontWeight:500, zIndex:20, boxShadow:'0 2px 12px rgba(0,0,0,0.08)', display:'flex', alignItems:'center', gap:12, whiteSpace:'nowrap' }}>
+          <span style={{ color:'#666' }}>✓ Sent to {item.user}</span>
+          <button onClick={handleUndo} style={{ fontSize:13, color:'#333', background:'none', border:'none', cursor:'pointer', fontWeight:700, padding:0 }}>Undo</button>
+          <span style={{ color:'rgba(0,0,0,0.3)', fontSize:12 }}>({undoCount})</span>
         </div>
       )}
 
