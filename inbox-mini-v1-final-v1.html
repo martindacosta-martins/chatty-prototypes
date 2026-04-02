@@ -563,7 +563,7 @@ function AgentSheet({ item, onSend, onEdit, onSkip }) {
       background:'#000', borderRadius:24,
       padding:'16px 24px 54px',
       boxShadow:'0 0 20px rgba(0,0,0,0.25)',
-      height:'55%', display:'flex', flexDirection:'column', gap:16,
+      maxHeight:'80%', display:'flex', flexDirection:'column', gap:16, transition:'height .3s ease',
     }}>
 
       {/* Thinking state */}
@@ -576,7 +576,7 @@ function AgentSheet({ item, onSend, onEdit, onSkip }) {
       {/* Ready */}
       {phase === 'ready' && (
         <>
-          <div className="fade-in" style={{ flex:1, overflowY:'auto', display:'flex', flexDirection:'column', gap:16 }}>
+          <div className="fade-in" style={{ display:'flex', flexDirection:'column', gap:16 }}>
             {/* Reason — white, 16px */}
             <div style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.5 }}>
               {item.context || ''}
@@ -1348,7 +1348,7 @@ function ImportantTab({ onOpenChat, answeredChats, priorityFeedbackDone, onFeedb
 
       {/* Recently answered — grey bg extending to bottom edge */}
       {allAnswered.length > 0 && (
-        <div style={{ margin:'0 -20px', padding:'24px 16px 120px', background:'#F5F5F5', minHeight:'40vh' }}>
+        <div style={{ margin:'0 -20px', padding:'24px 16px 32px', background:'#F5F5F5' }}>
           <div style={{ marginBottom:16 }}>
             <span style={{ fontSize:20, fontWeight:700, color:'#292929', lineHeight:'32px' }}>Recently answered</span>
           </div>
@@ -1543,7 +1543,7 @@ function InboxV2({ onOverlayChange, openChatOnLoad }) {
 
       {/* Scrollable content */}
       <div ref={scrollRef} onScroll={handleScroll}
-        style={{ flex:1, overflowY:'auto', overflowX:'hidden', padding:'0 20px 100px 20px' }}>
+        style={{ flex:1, overflowY:'auto', overflowX:'hidden', padding:'0 20px 0 20px' }}>
         {showModeChangeNotif && (
           <div className="fade-up" style={{ marginBottom:16, padding:'14px 16px', background:'#F5F5F5', borderRadius:14, display:'flex', gap:12, alignItems:'flex-start' }}>
             <div style={{ flex:1 }}>

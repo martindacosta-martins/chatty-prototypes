@@ -933,7 +933,7 @@ function AgentSheet({ item, onSend, onEdit, onSkip }) {
       background:'#000', borderRadius:24,
       padding:'16px 24px 54px',
       boxShadow:'0 0 20px rgba(0,0,0,0.25)',
-      height:'55%', display:'flex', flexDirection:'column', gap:16,
+      maxHeight:'80%', display:'flex', flexDirection:'column', gap:16, transition:'height .3s ease',
     }}>
 
       {/* Thinking state */}
@@ -946,7 +946,7 @@ function AgentSheet({ item, onSend, onEdit, onSkip }) {
       {/* Ready */}
       {phase === 'ready' && (
         <>
-          <div className="fade-in" style={{ flex:1, overflowY:'auto', display:'flex', flexDirection:'column', gap:16 }}>
+          <div className="fade-in" style={{ display:'flex', flexDirection:'column', gap:16 }}>
             {/* Reason — white, 16px */}
             <div style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.5 }}>
               {item.context || ''}
@@ -1389,7 +1389,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
               <div style={{ display:'flex', gap:8, marginTop:12 }}>
                 <button onClick={handleAskSubmit} disabled={!askVal.trim()}
                   style={{ flex:1, padding:'12px 0', background: askVal.trim() ? '#fff' : 'rgba(255,255,255,0.1)', color: askVal.trim() ? '#0F0F0F' : 'rgba(255,255,255,0.35)', border:'none', borderRadius:12, fontSize:14, fontWeight:600, cursor: askVal.trim() ? 'pointer' : 'default', transition:'all .2s ease' }}>
-                  Create draft
+                  Save
                 </button>
                 <button onClick={() => { setMode('custom'); setCustomVal(''); }}
                   style={{ padding:'12px 20px', background:'transparent', border:'none', fontSize:13, fontWeight:500, cursor:'pointer', color:'rgba(255,255,255,0.35)' }}>
@@ -1550,7 +1550,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
                 style={{ border:'none', outline:'none', fontSize:14, color:T.ink, width:'100%', background:'transparent', fontFamily:'Inter, system-ui, sans-serif' }} />
             </div>
             <div onClick={() => { if (customVal.trim()) handleSendCustom(); }}
-              style={{ width:36, height:36, borderRadius:18, background: customVal.trim() ? T.ink : T.lightGray, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'background .2s', flexShrink:0 }}>
+              style={{ width:36, height:36, borderRadius:18, background: customVal.trim() ? '#2E86FD' : T.lightGray, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'background .2s', flexShrink:0 }}>
               <span style={{ color:'#fff', fontSize:13 }}>↑</span>
             </div>
           </div>
@@ -1617,7 +1617,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
                 style={{ border:'none', outline:'none', fontSize:14, color:T.ink, width:'100%', background:'transparent', fontFamily:'Inter, system-ui, sans-serif' }} />
             </div>
             <div onClick={() => { if (customVal.trim()) handleSendCustom(); }}
-              style={{ width:36, height:36, borderRadius:18, background: customVal.trim() ? T.ink : T.lightGray, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'background .2s', flexShrink:0 }}>
+              style={{ width:36, height:36, borderRadius:18, background: customVal.trim() ? '#2E86FD' : T.lightGray, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'background .2s', flexShrink:0 }}>
               <span style={{ color:'#fff', fontSize:13 }}>↑</span>
             </div>
           </div>
@@ -1740,7 +1740,7 @@ function ImportantTab({ onOpenChat, answeredChats, priorityFeedbackDone, onFeedb
 
       {/* Recently answered — grey bg extending to bottom edge */}
       {allAnswered.length > 0 && (
-        <div style={{ margin:'0 -20px', padding:'24px 16px 120px', background:'#F5F5F5', minHeight:'40vh' }}>
+        <div style={{ margin:'0 -20px', padding:'24px 16px 32px', background:'#F5F5F5' }}>
           <div style={{ marginBottom:16 }}>
             <span style={{ fontSize:20, fontWeight:700, color:'#292929', lineHeight:'32px' }}>Recently answered</span>
           </div>
@@ -1935,7 +1935,7 @@ function InboxV2({ onOverlayChange, openChatOnLoad }) {
 
       {/* Scrollable content */}
       <div ref={scrollRef} onScroll={handleScroll}
-        style={{ flex:1, overflowY:'auto', overflowX:'hidden', padding:'0 16px 100px 16px' }}>
+        style={{ flex:1, overflowY:'auto', overflowX:'hidden', padding:'0 16px 0 16px' }}>
         {/* Page header */}
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', paddingBottom:16 }}>
           <span style={{ fontSize:20, fontWeight:700, color:T.ink, lineHeight:'32px' }}>Important</span>
