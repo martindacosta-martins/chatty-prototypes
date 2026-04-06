@@ -1111,6 +1111,9 @@ function AgentSheet({ item, onSend, onEdit, onSkip }) {
       maxHeight:'60%', display:'flex', flexDirection:'column', gap:16,
     }}>
 
+      {/* Handle bar */}
+      <div style={{ width:36, height:4, background:'rgba(255,255,255,0.14)', borderRadius:2, margin:'0 auto 4px', flexShrink:0 }} />
+
       {/* Thinking state */}
       {phase === 'thinking' && (
         <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center' }}>
@@ -1130,9 +1133,9 @@ function AgentSheet({ item, onSend, onEdit, onSkip }) {
             {/* Draft — dark card with border */}
             <div style={{
               padding:16, borderRadius:12,
-              background:'#151515', border:'1px solid #292929',
+              background:'transparent', border:'1px solid rgba(255,255,255,0.15)',
             }}>
-              <div style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.5 }}>
+              <div style={{ fontSize:16, fontWeight:400, color:'rgba(255,255,255,0.85)', lineHeight:1.5 }}>
                 {item.draft}
               </div>
             </div>
@@ -1167,11 +1170,11 @@ function AgentSheet({ item, onSend, onEdit, onSkip }) {
               Yes, send
             </button>
             <button onClick={onEdit}
-              style={{ flex:1, padding:'13px 0', background:'transparent', border:'1.5px solid rgba(255,255,255,0.18)', borderRadius:50, fontSize:14, fontWeight:500, cursor:'pointer', color:'rgba(255,255,255,0.8)', letterSpacing:'-0.01em' }}>
-              Let me edit
+              style={{ flex:1, padding:'13px 0', background:'transparent', border:'1px solid rgba(255,255,255,0.2)', borderRadius:50, fontSize:14, fontWeight:500, cursor:'pointer', color:'rgba(255,255,255,0.7)', letterSpacing:'-0.01em' }}>
+              Edit
             </button>
             <button onClick={onSkip}
-              style={{ padding:'13px 10px', background:'transparent', border:'none', fontSize:13, fontWeight:500, cursor:'pointer', color:'rgba(255,255,255,0.35)', flexShrink:0, whiteSpace:'nowrap' }}>
+              style={{ flex:1, padding:'13px 0', background:'transparent', border:'1px solid rgba(255,255,255,0.2)', borderRadius:50, fontSize:14, fontWeight:500, cursor:'pointer', color:'rgba(255,255,255,0.7)', letterSpacing:'-0.01em' }}>
               I'll write
             </button>
           </div>
