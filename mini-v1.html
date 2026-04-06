@@ -46,6 +46,20 @@
     animation: shimmer 1.4s ease infinite;
   }
 
+  /* ── Recording pulse rings ── */
+  @keyframes recordPulse {
+    0%   { transform:scale(1); opacity:0.4; }
+    100% { transform:scale(2.2); opacity:0; }
+  }
+  @keyframes recordGlow {
+    0%,100% { box-shadow:0 0 0 0 rgba(255,59,48,0); }
+    50%     { box-shadow:0 0 20px 8px rgba(255,59,48,0.3); }
+  }
+  @keyframes thinkDots {
+    0%,80%,100% { opacity:0.2; }
+    40% { opacity:1; }
+  }
+
   /* ── Agent takeover: gradient wave erupts from button, fills screen ── */
   @keyframes agent-takeover {
     0%   { clip-path: circle(0%   at 50% 94%); opacity: 0.85; }
@@ -79,8 +93,8 @@ const { useState, useEffect, useRef, useCallback } = React;
 /* ═══ DESIGN TOKENS ═══ */
 const T = {
   paper: '#FFFFFF',
-  ink: '#1B1B18',
-  gray: '#7F7E76',
+  ink: '#292929',
+  gray: '#707070',
   lightGray: '#D6D6D6',
   cardBg: '#FFFFFF',
   accent: '#006BE2',
@@ -97,6 +111,7 @@ const IMPORTANT_GROUPS = [
     desc: 'These people want what you offer.',
     items: [
       { user:'@jayrunz', name:'Jay Ruiz', avatar:'https://i.pravatar.cc/88?u=jayrunz', msg:"I've been struggling for 2 years. Is it too late to start?", source:'DM', time:'2h', unread:3, intent:'Interested', mode:'confident',
+        summary:'Ready to sign up', status:'Reply ready',
         chatHistory: [
           { from:'them', text:'Hey!', time:'2h ago' },
           { from:'automation', text:"Hey! Thank you so much for reaching out. Would you like me to keep you informed about my new programs?", time:'2h ago' },
@@ -105,7 +120,6 @@ const IMPORTANT_GROUPS = [
         context:"Following you for 14 months. Saved your transformation reel last week. He's not asking about price — he's asking if it's too late.",
         draft:"It's never too late — 2 years of trying tells me you're serious about change. The 12-Week Reboot is built for people exactly where you are. Want to see what week 1 looks like?",
         styleReason:"I went with validation first, no pitch. Similar to how you replied to @sarah.wellness when she had doubts — you tend to lead with encouragement before sharing details.",
-        summary:'Ready to sign up', status:'Reply ready',
         agentRead:'Ready to sign up · Reply drafted' },
       { user:'@emma.k', name:'Emma Kim', avatar:'https://i.pravatar.cc/88?u=emmak', msg:"How much is the coaching program? I've been thinking about it for weeks", source:'DM', time:'4h', unread:2, intent:'Interested', mode:'ask',
         chatHistory: [
@@ -257,143 +271,494 @@ function InboxMessages({ messages, onAllDone }) {
 }
 
 /* ─── NEW Step 2: "Watch Me Work" — Live Processing Feed ─── */
-function ObSorting({ onNext, onSkip }) {
-  // 142 DMs — first ones slow & readable, then accelerates
-  // 8 important matches screen 3 stats
-  const dmFeed = [
-    // Slow — 5 items, readable
-    { user:'@jayrunz', snippet:'"Is it too late to start?"', important:true, speed:'slow' },
-    { user:'@mike', snippet:'"What\'s in the premium program?"', important:true, speed:'slow' },
-    { user:'@sarah_m', snippet:'"love this!"', important:false, speed:'slow' },
-    { user:'@lena.fit', snippet:'"I\'ve tried everything..."', important:true, speed:'slow' },
-    { user:'@emma_k', snippet:'"Nervous about the cost"', important:true, speed:'slow' },
-    // Medium — 7 items
-    { user:'@spam_1', snippet:'"Free followers! Click here"', important:false, speed:'medium' },
-    { user:'@brand_co', snippet:'"Partnership — 200k followers"', important:true, speed:'medium' },
-    { user:'@user_42', snippet:'"thanks!"', important:false, speed:'medium' },
-    { user:'@fit_mom', snippet:'"Can I reschedule?"', important:false, speed:'medium' },
-    { user:'@ana_r', snippet:'"Going through a hard time..."', important:true, speed:'medium' },
-    { user:'@random_1', snippet:'"hey"', important:false, speed:'medium' },
-    { user:'@carlos_m', snippet:'"Do you ship internationally?"', important:false, speed:'medium' },
-    // Fast — bulk, 130 items to reach 142 total
-    ...Array.from({ length: 130 }, (_, i) => {
-      const names = ['@user_','@fan_','@dm_','@msg_','@follower_','@insta_','@reply_','@ask_','@note_','@ping_'];
-      const snippets = ['"hey"','"thanks!"','"nice post"','"love it"','"cool"','"hi there"','"great content"','"wow"','"amazing"','"send link"','"when?"','"how much?"','"interested"','"question..."','"."','"hi!"','"sup"','"love this"','"awesome"','"more info?"'];
-      // 2 more important ones scattered in the fast phase
-      const isImportant = (i === 22 || i === 67);
-      const snip = isImportant
-        ? ['"12-week course — sign me up"','"I want to collaborate"'][i === 22 ? 0 : 1]
-        : snippets[i % snippets.length];
-      return {
-        user: names[i % names.length] + (i + 10),
-        snippet: snip,
-        important: isImportant,
-        speed: 'fast',
-      };
-    }),
+/* ─── Quick scan — 3 seconds, just a few status lines ─── */
+function ObSorting({ onNext }) {
+  const [vis, setVis] = useState(0);
+  const lines = [
+    'Reading your DMs...',
+    'Found some interesting conversations',
+    'I have a few questions for you',
   ];
 
-  const [items, setItems] = useState([]); // { ...dm, sorted: false }
-  const [phase, setPhase] = useState('processing');
-  const feedRef = useRef(null);
-  const timers = useRef([]);
-  const speedMap = { slow: 600, medium: 250, fast: 20 };
-
   useEffect(() => {
-    let cum = 500;
-    dmFeed.forEach((dm, i) => {
-      timers.current.push(setTimeout(() => {
-        setItems(prev => [...prev, { ...dm, sorted: false }]);
-        if (feedRef.current) setTimeout(() => { feedRef.current.scrollTop = feedRef.current.scrollHeight; }, 20);
-      }, cum));
-      const sortDelay = dm.speed === 'slow' ? 350 : dm.speed === 'medium' ? 150 : 15;
-      timers.current.push(setTimeout(() => {
-        setItems(prev => prev.map((it, idx) => idx === i ? { ...it, sorted: true } : it));
-      }, cum + sortDelay));
-      cum += speedMap[dm.speed];
+    const timers = [];
+    lines.forEach((_, i) => {
+      timers.push(setTimeout(() => setVis(i + 1), i * 900 + 400));
     });
-
-    timers.current.push(setTimeout(() => setPhase('summary'), cum + 300));
-    timers.current.push(setTimeout(onNext, cum + 1200));
-    return () => timers.current.forEach(t => clearTimeout(t));
+    timers.push(setTimeout(onNext, lines.length * 900 + 800));
+    return () => timers.forEach(t => clearTimeout(t));
   }, []);
 
-  const importantCount = items.filter(d => d.important && d.sorted).length;
-  const otherCount = items.filter(d => !d.important && d.sorted).length;
-
   return (
-    <div style={{ background:'#0F0F0F', height:'100%', display:'flex', flexDirection:'column', position:'relative' }}>
-      {/* Header */}
-      <div style={{ padding:'56px 24px 0', flexShrink:0 }}>
-        <div style={{ fontSize:10, fontWeight:700, color:'rgba(255,255,255,0.3)', letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:16 }}>
-          Processing your inbox
+    <div style={{ background:'#151515', height:'100%', display:'flex', flexDirection:'column', justifyContent:'center', padding:'0 28px' }}>
+      {lines.map((line, i) => (
+        <div key={i} style={{
+          fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:12,
+          opacity: vis > i ? 1 : 0,
+          transform: vis > i ? 'translateY(0)' : 'translateY(8px)',
+          transition:'opacity .45s ease, transform .45s ease',
+        }}>
+          {line}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ─── Business question — voice/type → recording → processing → confirmation ─── */
+function ObQuestion({ onNext }) {
+  // Phases: ask | recording | processing | confirm | fantastic
+  const [phase, setPhase] = useState('ask');
+  const [inputMode, setInputMode] = useState('voice'); // voice | typing
+  const [inputVal, setInputVal] = useState('');
+  const [vis, setVis] = useState(0);
+  const [confirmVis, setConfirmVis] = useState(0);
+  const [confirmBottom, setConfirmBottom] = useState('buttons'); // buttons | voice | typing
+  const [revision, setRevision] = useState(0);
+
+  // Each revision shows a different title + summary — the agent is learning
+  const revisions = [
+    {
+      title: "Did I get it right?",
+      subtitle: "Let me know if this is correct",
+      summary: "I run a fitness coaching business called Sofia Reyes Coaching. My main offer is a 12-Week Reboot program with weekly 1-on-1 calls, custom meal plans, and a private community. I also have a 4-Week Kickstart for beginners. Most of my leads come from Instagram DMs and post comments.",
+    },
+    {
+      title: "Okay, let me try again.",
+      subtitle: "Here's what I understand now",
+      summary: "Sofia Reyes Coaching offers two programs: the 12-Week Reboot ($597 or 3x $197/mo) with weekly 1-on-1 coaching, custom meal plans, and a private community — and the 4-Week Kickstart ($197) for beginners. Your main audience is women 25-40 interested in fitness transformations. Leads mostly come through Instagram DMs and comments on transformation posts.",
+    },
+    {
+      title: "Third time's the charm?",
+      subtitle: "I think I've got it now",
+      summary: "Sofia Reyes Coaching helps women 25-40 transform their fitness with two programs: the flagship 12-Week Reboot (1-on-1 coaching, custom nutrition, private community) and the entry-level 4-Week Kickstart. Most clients discover you through Instagram — especially your before/after posts and Reels. Your biggest conversion driver is DM conversations where you address hesitation around cost and commitment. You also get collab requests from fitness brands weekly.",
+    },
+  ];
+
+  const current = revisions[Math.min(revision, revisions.length - 1)];
+
+  // Intro animation
+  useEffect(() => {
+    if (phase !== 'ask') return;
+    const timers = [];
+    for (let i = 1; i <= 3; i++) timers.push(setTimeout(() => setVis(i), i * 500 + 200));
+    return () => timers.forEach(t => clearTimeout(t));
+  }, [phase]);
+
+  // Confirm animation
+  useEffect(() => {
+    if (phase !== 'confirm') return;
+    const timers = [];
+    for (let i = 1; i <= 4; i++) timers.push(setTimeout(() => setConfirmVis(i), i * 400 + 200));
+    return () => timers.forEach(t => clearTimeout(t));
+  }, [phase]);
+
+  // Processing → confirm
+  useEffect(() => {
+    if (phase !== 'processing') return;
+    const t = setTimeout(() => {
+      setConfirmVis(0);
+      setConfirmBottom('buttons');
+      setPhase('confirm');
+    }, 2000);
+    return () => clearTimeout(t);
+  }, [phase]);
+
+  // Fantastic → onNext
+  useEffect(() => {
+    if (phase !== 'fantastic') return;
+    const t = setTimeout(onNext, 1800);
+    return () => clearTimeout(t);
+  }, [phase]);
+
+  const show = (i) => ({
+    opacity: vis >= i ? 1 : 0,
+    transform: vis >= i ? 'translateY(0)' : 'translateY(8px)',
+    transition:'opacity .45s ease, transform .45s ease',
+  });
+
+  const cShow = (i) => ({
+    opacity: confirmVis >= i ? 1 : 0,
+    transform: confirmVis >= i ? 'translateY(0)' : 'translateY(8px)',
+    transition:'opacity .45s ease, transform .45s ease',
+  });
+
+  const handleRelease = () => {
+    setPhase('processing');
+  };
+
+  const handleTypeSend = () => {
+    if (!inputVal.trim()) return;
+    setPhase('processing');
+  };
+
+  const handleEdit = () => {
+    setConfirmBottom('voice');
+  };
+
+  const MicIcon = ({ size=24, color='#151515' }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+      <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+      <line x1="12" y1="19" x2="12" y2="23"/>
+      <line x1="8" y1="23" x2="16" y2="23"/>
+    </svg>
+  );
+
+  /* ── ASK phase ── */
+  if (phase === 'ask') return (
+    <div style={{ background:'#151515', height:'100%', display:'flex', flexDirection:'column' }}>
+      <div style={{ flex:1, display:'flex', flexDirection:'column', padding:'100px 28px 0' }}>
+        <div style={{ marginBottom:16, ...show(1) }}>
+          <h1 style={{ fontSize:34, fontWeight:900, color:'#fff', letterSpacing:'-0.04em', lineHeight:1.12, WebkitTextStroke:'0.5px #fff' }}>
+            Tell me more about your business
+          </h1>
+        </div>
+        <div style={{ ...show(2) }}>
+          <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6 }}>
+            I have found people like Emma Kim interested in your service, but I would like to learn more about your business to find the right messages.
+          </p>
         </div>
       </div>
 
-      {/* Live feed */}
-      <div ref={feedRef} style={{
-        flex:1, overflowY:'auto', padding:'0 24px',
-        maskImage:'linear-gradient(to bottom, transparent 0%, black 6%, black 88%, transparent 100%)',
-        WebkitMaskImage:'linear-gradient(to bottom, transparent 0%, black 6%, black 88%, transparent 100%)',
-      }}>
-        {items.map((dm, i) => {
-          const isFast = dm.speed === 'fast';
-          const slideDir = dm.sorted ? (dm.important ? 1 : -1) : 0;
-          const slideX = slideDir * (isFast ? 60 : 40);
+      {inputMode === 'voice' && (
+        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', padding:'0 28px 40px', ...show(3) }}>
+          <div onMouseDown={() => setPhase('recording')} onTouchStart={() => setPhase('recording')}
+            style={{ width:64, height:64, borderRadius:32, background:'#fff', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', marginBottom:12 }}>
+            <MicIcon />
+          </div>
+          <span style={{ fontSize:14, color:'rgba(255,255,255,0.6)', marginBottom:40 }}>Hold and talk</span>
+          <span onClick={() => setInputMode('typing')} style={{ fontSize:14, color:'rgba(255,255,255,0.4)', cursor:'pointer' }}>Or tap to type</span>
+        </div>
+      )}
 
-          return (
-            <div key={i} style={{
-              display:'flex', alignItems:'center', gap:10,
-              padding: isFast ? '4px 0' : '7px 0',
-              opacity: dm.sorted ? (isFast ? 0.15 : 0.35) : (isFast ? 0.5 : 0.9),
-              transform: `translateX(${slideX}px)`,
-              transition: `transform .4s cubic-bezier(.25,.46,.45,.94), opacity .4s ease`,
-              animation: !dm.sorted ? 'fadeUp .25s ease both' : 'none',
-            }}>
-              {/* Sort indicator */}
-              <div style={{
-                width:16, height:16, borderRadius:8, flexShrink:0,
-                display:'flex', alignItems:'center', justifyContent:'center',
-                opacity: dm.sorted ? 1 : 0, transition:'opacity .3s ease',
-                background: dm.important ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.06)',
-              }}>
-                {dm.sorted && (
-                  dm.important
-                    ? <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                    : <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                )}
-              </div>
+      {inputMode === 'typing' && (
+        <div style={{ padding:'0 28px 40px', ...show(3) }}>
+          <textarea value={inputVal} onChange={e => setInputVal(e.target.value)} autoFocus
+            placeholder="Describe your business or share your website..."
+            style={{ width:'100%', fontSize:16, color:'#fff', lineHeight:1.5, padding:'14px 16px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:16, resize:'none', height:100, fontFamily:'Inter, system-ui, sans-serif', outline:'none', letterSpacing:'-0.01em' }} />
+          <div style={{ display:'flex', gap:10, marginTop:12 }}>
+            <button onClick={handleTypeSend}
+              style={{ flex:1, padding:'14px', background:'#fff', color:'#151515', border:'none', borderRadius:50, fontSize:15, fontWeight:600, cursor:'pointer' }}>
+              Continue
+            </button>
+            <button onClick={() => setInputMode('voice')}
+              style={{ padding:'14px 20px', background:'transparent', border:'1.5px solid rgba(255,255,255,0.12)', borderRadius:50, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
+              <MicIcon size={18} color="rgba(255,255,255,0.5)" />
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 
-              {/* Content */}
-              <div style={{
-                flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
-                fontSize: isFast ? 12 : 14, letterSpacing:'-0.01em',
-                color: dm.sorted
-                  ? (dm.important ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.25)')
-                  : 'rgba(255,255,255,0.75)',
-                transition:'color .3s ease',
-              }}>
-                <span style={{ fontWeight:600, color: dm.sorted && dm.important ? '#fff' : 'inherit' }}>{dm.user}</span>
-                <span style={{ fontWeight:400 }}> — {dm.snippet}</span>
-              </div>
-            </div>
-          );
-        })}
+  /* ── RECORDING phase ── */
+  if (phase === 'recording') return (
+    <div style={{ background:'#151515', height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}
+      onMouseUp={handleRelease} onTouchEnd={handleRelease}>
+      {/* Pulsing rings */}
+      <div style={{ position:'relative', width:100, height:100, display:'flex', alignItems:'center', justifyContent:'center' }}>
+        <div style={{ position:'absolute', inset:0, borderRadius:'50%', border:'2px solid rgba(255,59,48,0.3)', animation:'recordPulse 1.2s ease-out infinite' }} />
+        <div style={{ position:'absolute', inset:0, borderRadius:'50%', border:'2px solid rgba(255,59,48,0.2)', animation:'recordPulse 1.2s ease-out 0.4s infinite' }} />
+        <div style={{
+          width:72, height:72, borderRadius:36, background:'#FF3B30',
+          display:'flex', alignItems:'center', justifyContent:'center',
+          animation:'recordGlow 1.5s ease infinite',
+        }}>
+          <MicIcon size={28} color="#fff" />
+        </div>
+      </div>
+      <p style={{ fontSize:16, color:'#fff', marginTop:24 }}>Listening...</p>
+      <p style={{ fontSize:13, color:'rgba(255,255,255,0.35)', marginTop:8 }}>Release to stop</p>
+    </div>
+  );
+
+  /* ── PROCESSING phase ── */
+  if (phase === 'processing') return (
+    <div style={{ background:'#151515', height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
+      <div style={{ display:'flex', gap:8, marginBottom:16 }}>
+        {[0,1,2].map(i => (
+          <div key={i} style={{ width:8, height:8, borderRadius:4, background:'#fff', animation:`thinkDots 1.2s ease infinite ${i * 0.2}s` }} />
+        ))}
+      </div>
+      <p style={{ fontSize:16, color:'rgba(255,255,255,0.5)' }}>Processing...</p>
+    </div>
+  );
+
+  /* ── CONFIRM phase ── */
+  if (phase === 'confirm') return (
+    <div style={{ background:'#151515', height:'100%', display:'flex', flexDirection:'column' }}>
+      <div style={{ flex:1, display:'flex', flexDirection:'column', padding:'100px 28px 0' }}>
+        <div style={{ marginBottom:12, ...cShow(1) }}>
+          <h1 style={{ fontSize:34, fontWeight:900, color:'#fff', letterSpacing:'-0.04em', lineHeight:1.12, WebkitTextStroke:'0.5px #fff' }}>
+            {current.title}
+          </h1>
+        </div>
+        <div style={{ ...cShow(2) }}>
+          <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:20 }}>
+            {current.subtitle}
+          </p>
+        </div>
+        <div style={{ ...cShow(3) }}>
+          <div style={{ padding:'18px 18px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:16 }}>
+            <p style={{ fontSize:15, fontWeight:400, color:'rgba(255,255,255,0.5)', lineHeight:1.6 }}>{current.summary}</p>
+          </div>
+        </div>
       </div>
 
-      {/* Bottom */}
-      <div style={{ flexShrink:0, padding:'16px 24px 50px', borderTop:'1px solid rgba(255,255,255,0.06)' }}>
-        {phase === 'processing' && (
-          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-            <div style={{ width:6, height:6, borderRadius:3, background:'#0095F6', animation:'pulse 1s ease-in-out infinite' }} />
-            <span style={{ fontSize:13, color:'rgba(255,255,255,0.4)', fontWeight:500 }}>{items.length} messages processed</span>
+      <div style={{ padding:'0 28px 40px', ...cShow(4) }}>
+        {/* Buttons mode */}
+        {confirmBottom === 'buttons' && (
+          <div className="fade-in">
+            <button onClick={() => setPhase('fantastic')}
+              style={{ width:'100%', padding:'16px', background:'#fff', color:'#151515', border:'none', borderRadius:50, fontSize:16, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em', marginBottom:10 }}>
+              It's good
+            </button>
+            <button onClick={handleEdit}
+              style={{ width:'100%', padding:'16px', background:'transparent', color:'rgba(255,255,255,0.5)', border:'1.5px solid rgba(255,255,255,0.12)', borderRadius:50, fontSize:15, fontWeight:500, cursor:'pointer', letterSpacing:'-0.01em' }}>
+              Edit
+            </button>
           </div>
         )}
-        {phase === 'summary' && (
-          <div className="fade-up" style={{ fontSize:14, fontWeight:600, color:'#fff', letterSpacing:'-0.01em' }}>
-            142 reviewed · 8 need you · 12 replies drafted
+
+        {/* Voice edit mode */}
+        {confirmBottom === 'voice' && (
+          <div className="fade-in" style={{ display:'flex', flexDirection:'column', alignItems:'center' }}>
+            <div onMouseDown={() => { setRevision(r => r + 1); setPhase('recording'); }} onTouchStart={() => { setRevision(r => r + 1); setPhase('recording'); }}
+              style={{ width:56, height:56, borderRadius:28, background:'#fff', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', marginBottom:8 }}>
+              <MicIcon size={20} />
+            </div>
+            <span style={{ fontSize:13, color:'rgba(255,255,255,0.4)', marginBottom:24 }}>Talk to make changes</span>
+            <span onClick={() => setConfirmBottom('typing')} style={{ fontSize:14, color:'rgba(255,255,255,0.3)', cursor:'pointer' }}>Or tap to type</span>
           </div>
         )}
+
+        {/* Typing edit mode */}
+        {confirmBottom === 'typing' && (
+          <div className="fade-in">
+            <textarea value={inputVal} onChange={e => setInputVal(e.target.value)} autoFocus
+              placeholder="Tell me what to change..."
+              style={{ width:'100%', fontSize:16, color:'#fff', lineHeight:1.5, padding:'14px 16px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:16, resize:'none', height:80, fontFamily:'Inter, system-ui, sans-serif', outline:'none', letterSpacing:'-0.01em' }} />
+            <div style={{ display:'flex', gap:10, marginTop:12 }}>
+              <button onClick={() => { setRevision(r => r + 1); setPhase('processing'); setConfirmBottom('buttons'); }}
+                style={{ flex:1, padding:'14px', background:'#fff', color:'#151515', border:'none', borderRadius:50, fontSize:15, fontWeight:600, cursor:'pointer' }}>
+                Update
+              </button>
+              <button onClick={() => setConfirmBottom('voice')}
+                style={{ padding:'14px 20px', background:'transparent', border:'1.5px solid rgba(255,255,255,0.12)', borderRadius:50, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                <MicIcon size={18} color="rgba(255,255,255,0.5)" />
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  /* ── FANTASTIC phase ── */
+  return (
+    <div style={{ background:'#151515', height:'100%', display:'flex', flexDirection:'column', justifyContent:'center', padding:'0 28px' }}>
+      <div className="fade-up">
+        <h1 style={{ fontSize:34, fontWeight:900, color:'#fff', letterSpacing:'-0.04em', lineHeight:1.12, WebkitTextStroke:'0.5px #fff', marginBottom:16 }}>
+          Fantastic.
+        </h1>
+        <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6 }}>
+          Let me continue analyzing your messages with this in mind.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Quick loading after business question ─── */
+function ObLoading2({ onNext }) {
+  const [vis, setVis] = useState(0);
+  const lines = [
+    'Got it, analyzing your conversations...',
+    'Matching messages to your business...',
+    'Found some patterns',
+  ];
+
+  useEffect(() => {
+    const timers = [];
+    lines.forEach((_, i) => {
+      timers.push(setTimeout(() => setVis(i + 1), i * 800 + 300));
+    });
+    timers.push(setTimeout(onNext, lines.length * 800 + 700));
+    return () => timers.forEach(t => clearTimeout(t));
+  }, []);
+
+  return (
+    <div style={{ background:'#151515', height:'100%', display:'flex', flexDirection:'column', justifyContent:'center', padding:'0 28px' }}>
+      {lines.map((line, i) => (
+        <div key={i} style={{
+          fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:12,
+          opacity: vis > i ? 1 : 0,
+          transform: vis > i ? 'translateY(0)' : 'translateY(8px)',
+          transition:'opacity .45s ease, transform .45s ease',
+        }}>
+          {line}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ─── Categorization screen — toggle categories + add custom ─── */
+function ObCategories({ onNext }) {
+  const [vis, setVis] = useState(0);
+  const [phase, setPhase] = useState('list'); // list | analyzing | done
+  const [categories, setCategories] = useState([
+    { id:'coaching', label:'Interested in your coaching programs', on:true },
+    { id:'booking', label:'Want to book a session or call', on:true },
+    { id:'pricing', label:'Questions about pricing', on:true },
+    { id:'collab', label:'Collaboration and partnership requests', on:true },
+    { id:'support', label:'Existing clients needing support', on:false },
+    { id:'personal', label:'Personal or emotional messages', on:true },
+  ]);
+  const [customVal, setCustomVal] = useState('');
+  const [showCustom, setShowCustom] = useState(false);
+  const [analyzeLabel, setAnalyzeLabel] = useState('');
+  const [analyzeVis, setAnalyzeVis] = useState(0);
+
+  useEffect(() => {
+    const timers = [];
+    for (let i = 1; i <= 4; i++) timers.push(setTimeout(() => setVis(i), i * 400 + 200));
+    return () => timers.forEach(t => clearTimeout(t));
+  }, []);
+
+  // Analyzing phase → back to list
+  useEffect(() => {
+    if (phase !== 'analyzing') return;
+    setAnalyzeVis(0);
+    const lines = 3;
+    const timers = [];
+    for (let i = 1; i <= lines; i++) timers.push(setTimeout(() => setAnalyzeVis(i), i * 700 + 200));
+    timers.push(setTimeout(() => setPhase('list'), lines * 700 + 800));
+    return () => timers.forEach(t => clearTimeout(t));
+  }, [phase]);
+
+  const show = (i) => ({
+    opacity: vis >= i ? 1 : 0,
+    transform: vis >= i ? 'translateY(0)' : 'translateY(8px)',
+    transition:'opacity .45s ease, transform .45s ease',
+  });
+
+  const toggle = (id) => {
+    setCategories(cats => cats.map(c => c.id === id ? { ...c, on: !c.on } : c));
+  };
+
+  const addCustom = () => {
+    if (!customVal.trim()) return;
+    const label = customVal.trim();
+    setCategories(cats => [...cats, { id:'custom-' + Date.now(), label, on:true }]);
+    setAnalyzeLabel(label);
+    setCustomVal('');
+    setShowCustom(false);
+    setPhase('analyzing');
+  };
+
+  // Analyzing screen
+  if (phase === 'analyzing') {
+    const aShow = (i) => ({
+      opacity: analyzeVis >= i ? 1 : 0,
+      transform: analyzeVis >= i ? 'translateY(0)' : 'translateY(8px)',
+      transition:'opacity .45s ease, transform .45s ease',
+    });
+    return (
+      <div style={{ background:'#151515', height:'100%', display:'flex', flexDirection:'column', justifyContent:'center', padding:'0 28px' }}>
+        <div style={{ ...aShow(1) }}>
+          <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:12 }}>
+            Analyzing "{analyzeLabel}"...
+          </p>
+        </div>
+        <div style={{ ...aShow(2) }}>
+          <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:12 }}>
+            Matching it with your DMs
+          </p>
+        </div>
+        <div style={{ ...aShow(3) }}>
+          <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6 }}>
+            Found some matches
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // List screen
+  return (
+    <div style={{ background:'#151515', height:'100%', display:'flex', flexDirection:'column' }}>
+      <div style={{ flex:1, overflowY:'auto', padding:'100px 28px 0' }}>
+        <div style={{ marginBottom:12, ...show(1) }}>
+          <h1 style={{ fontSize:34, fontWeight:900, color:'#fff', letterSpacing:'-0.04em', lineHeight:1.12, WebkitTextStroke:'0.5px #fff' }}>
+            Here's what I found.
+          </h1>
+        </div>
+        <div style={{ ...show(2) }}>
+          <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:24 }}>
+            I grouped your conversations into these categories. Turn off any that don't matter to you.
+          </p>
+        </div>
+
+        {/* Category toggles */}
+        <div style={{ display:'flex', flexDirection:'column', gap:8, ...show(3) }}>
+          {categories.map(cat => (
+            <div key={cat.id} onClick={() => toggle(cat.id)}
+              style={{
+                display:'flex', alignItems:'center', justifyContent:'space-between',
+                padding:'16px 16px', borderRadius:14,
+                background: cat.on ? 'rgba(255,255,255,0.06)' : 'transparent',
+                border: cat.on ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(255,255,255,0.06)',
+                cursor:'pointer', transition:'all .2s ease',
+              }}>
+              <span style={{ fontSize:15, fontWeight:400, color: cat.on ? '#fff' : 'rgba(255,255,255,0.3)', letterSpacing:'-0.01em', flex:1, transition:'color .2s ease' }}>
+                {cat.label}
+              </span>
+              <div style={{
+                width:40, height:24, borderRadius:12, flexShrink:0, marginLeft:12,
+                background: cat.on ? '#fff' : 'rgba(255,255,255,0.12)',
+                padding:2, transition:'background .2s ease',
+              }}>
+                <div style={{
+                  width:20, height:20, borderRadius:10,
+                  background: cat.on ? '#151515' : 'rgba(255,255,255,0.3)',
+                  transform: cat.on ? 'translateX(16px)' : 'translateX(0)',
+                  transition:'all .2s ease',
+                }} />
+              </div>
+            </div>
+          ))}
+
+          {/* Add custom */}
+          {!showCustom ? (
+            <div onClick={() => setShowCustom(true)}
+              style={{ display:'flex', alignItems:'center', gap:10, padding:'16px', borderRadius:14, border:'1.5px dashed rgba(255,255,255,0.1)', cursor:'pointer' }}>
+              <span style={{ fontSize:16, color:'rgba(255,255,255,0.2)', fontWeight:300 }}>+</span>
+              <span style={{ fontSize:15, color:'rgba(255,255,255,0.3)' }}>Add a category</span>
+            </div>
+          ) : (
+            <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+              <input value={customVal} onChange={e => setCustomVal(e.target.value)} autoFocus
+                placeholder="Type a category..."
+                onKeyDown={e => { if (e.key === 'Enter') addCustom(); }}
+                style={{ flex:1, padding:'14px 16px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:14, fontSize:15, color:'#fff', fontFamily:'Inter, system-ui, sans-serif', outline:'none', letterSpacing:'-0.01em' }} />
+              {customVal.trim() && (
+                <div onClick={addCustom}
+                  style={{ width:40, height:40, borderRadius:20, background:'#fff', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0 }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#151515" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div style={{ padding:'0 28px 40px', ...show(4) }}>
+        <button onClick={onNext}
+          style={{ width:'100%', padding:'16px', background:'#fff', color:'#151515', border:'none', borderRadius:50, fontSize:16, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em' }}>
+          Looks good
+        </button>
       </div>
     </div>
   );
@@ -462,7 +827,7 @@ function AgentExpandedScreen({ onDismiss }) {
   return (
     <div className="pill-expand" style={{
       position:'absolute', inset:0, zIndex:90,
-      background:'#0F0F0F',
+      background:'#151515',
       display:'flex', flexDirection:'column',
       padding:'60px 22px 40px',
       overflow:'hidden',
@@ -474,7 +839,7 @@ function AgentExpandedScreen({ onDismiss }) {
 
       {/* TOP: Status + Stats */}
       <div style={{ display:'flex', alignItems:'center', gap:7, marginBottom:24 }}>
-        <div style={{ width:7, height:7, borderRadius:4, background:'#0095F6', flexShrink:0, animation:'pulse 1.4s ease-in-out infinite' }} />
+        <div style={{ width:7, height:7, borderRadius:4, background:'#2E86FD', flexShrink:0, animation:'pulse 1.4s ease-in-out infinite' }} />
         <div style={{ fontSize:15, fontWeight:600, color:'#fff', letterSpacing:'-0.02em' }}>Analyzing your DMs</div>
       </div>
 
@@ -518,7 +883,7 @@ function AgentExpandedScreen({ onDismiss }) {
         )}
 
         <button onClick={onDismiss}
-          style={{ width:'100%', padding:'14px 0', background:'#fff', color:'#0F0F0F', border:'none', borderRadius:12, fontSize:14, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em' }}>
+          style={{ width:'100%', padding:'14px 0', background:'#fff', color:'#151515', border:'none', borderRadius:12, fontSize:14, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em' }}>
           Got it
         </button>
       </div>
@@ -529,22 +894,147 @@ function AgentExpandedScreen({ onDismiss }) {
 /* ─── Message row (IG DM style) ─── */
 function MsgRow({ user, name, avatar, time, onClick, isLast, isAsk, summary, status }) {
   return (
-    <div onClick={onClick} style={{ display:'flex', alignItems:'flex-start', gap:12, padding:'14px 0', cursor:'pointer', borderBottom: isLast ? 'none' : `1px solid ${T.lightGray}` }}>
-      <img src={avatar} alt="" style={{ width:36, height:36, borderRadius:18, objectFit:'cover', flexShrink:0, background:T.lightGray, marginTop:2 }} />
-      <div style={{ flex:1, minWidth:0 }}>
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:2 }}>
-          <span style={{ fontSize:15, fontWeight:500, color:T.ink, letterSpacing:'-0.01em' }}>{name || user}</span>
-          <span style={{ fontSize:12, color:T.gray, fontWeight:400, flexShrink:0 }}>{time}</span>
-        </div>
-        {summary && (
-          <div style={{ fontSize:14, color:T.ink, fontWeight:400, lineHeight:1.45, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{summary}</div>
-        )}
-        {status && (
-          <div style={{ fontSize:12, color:T.gray, fontWeight:400, marginTop:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-            {status}
+    <div>
+      <div onClick={onClick} style={{ display:'flex', alignItems:'flex-start', gap:12, padding:'16px 0 8px', cursor:'pointer' }}>
+        <img src={avatar} alt="" style={{ width:32, height:32, borderRadius:400, objectFit:'cover', flexShrink:0, border:'0.5px solid rgba(44,50,58,0.12)', marginTop:2 }} />
+        <div style={{ flex:1, minWidth:0 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:4 }}>
+            <span style={{ fontSize:14, fontWeight:500, color:T.ink, letterSpacing:'-0.01em', lineHeight:'20px' }}>{name || user}</span>
+            <span style={{ fontSize:12, color:T.gray, fontWeight:400, flexShrink:0, lineHeight:'16px' }}>{time}</span>
           </div>
-        )}
+          {summary && (
+            <div style={{ fontSize:14, color:T.ink, fontWeight:400, lineHeight:'20px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', marginBottom:4 }}>{summary}</div>
+          )}
+          {status && (
+            <div style={{ fontSize:12, color:T.gray, fontWeight:400, lineHeight:'16px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+              {status}
+            </div>
+          )}
+        </div>
       </div>
+      {!isLast && (
+        <div style={{ marginLeft:44, height:1, background:T.lightGray }} />
+      )}
+    </div>
+  );
+}
+
+/* ═══ AGENT DARK MODE TOKENS (from Figma) ═══ */
+const A = {
+  bg: '#151515',        // color.neutral.900 — sheet background
+  surface: '#292929',   // color.neutral.800 — draft card bg
+  border: '#878787',    // color.border.hovered — draft card border
+  text: '#ffffff',      // color.text.inverse — primary text
+  subtle: '#707070',    // color.text.subtle — secondary text
+  btnText: '#292929',   // color.text.default — button text on white
+  btnBorder: '#292929', // border for secondary/tertiary buttons
+};
+
+/* ─── Agent Sheet Shell — single source of truth for agent bottom sheet ─── */
+function AgentSheetShell({ children, onDismiss }) {
+  const [dragY, setDragY] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const startY = useRef(0);
+
+  const handleTouchStart = (e) => { startY.current = e.touches[0].clientY; setDragging(true); };
+  const handleMouseDown = (e) => { startY.current = e.clientY; setDragging(true); };
+
+  const handleMove = (clientY) => {
+    if (!dragging) return;
+    const delta = clientY - startY.current;
+    setDragY(Math.max(0, delta));
+  };
+
+  const handleEnd = () => {
+    setDragging(false);
+    if (dragY > 100 && onDismiss) { onDismiss(); }
+    else { setDragY(0); }
+  };
+
+  return (
+    <div className="sheet-up" style={{
+      flexShrink:0, zIndex:10,
+      background:A.bg, borderRadius:24,
+      padding:'16px 24px 54px',
+      boxShadow:'0 0 20px rgba(0,0,0,0.25)',
+      maxHeight:'80%', display:'flex', flexDirection:'column', gap:16,
+      transform:`translateY(${dragY}px)`,
+      transition: dragging ? 'none' : 'transform .3s ease',
+      opacity: dragging ? Math.max(0.5, 1 - dragY / 300) : 1,
+    }}
+      onTouchMove={e => handleMove(e.touches[0].clientY)}
+      onMouseMove={e => { if (dragging) handleMove(e.clientY); }}
+      onTouchEnd={handleEnd}
+      onMouseUp={handleEnd}
+      onMouseLeave={() => { if (dragging) handleEnd(); }}
+    >
+      {/* Grab handle — drag zone */}
+      <div
+        onTouchStart={handleTouchStart}
+        onMouseDown={handleMouseDown}
+        style={{ padding:'4px 0 8px', cursor:'grab', flexShrink:0 }}>
+        <div style={{ width:36, height:4, background:'rgba(255,255,255,0.14)', borderRadius:2, margin:'0 auto' }} />
+      </div>
+      {children}
+    </div>
+  );
+}
+
+/* ─── Shared: Agent thinking indicator ─── */
+function AgentThinking() {
+  return (
+    <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center' }}>
+      <div style={{ animation:'pulse 1.2s ease infinite', fontSize:16, color:'rgba(255,255,255,0.45)' }}>Thinking...</div>
+    </div>
+  );
+}
+
+/* ─── Shared: Agent action buttons (Yes send / Edit / I'll write) ─── */
+function AgentButtons({ onSend, onEdit, onSkip }) {
+  return (
+    <div style={{ display:'flex', gap:16, alignItems:'center', flexShrink:0 }}>
+      <button onClick={onSend}
+        style={{ flex:1, padding:'8px 16px', background:A.text, color:A.btnText, border:'none', borderRadius:12, fontSize:15, fontWeight:500, cursor:'pointer', lineHeight:'22px', letterSpacing:'-0.195px' }}>
+        Yes, send
+      </button>
+      <button onClick={onEdit}
+        style={{ flex:1, padding:'8px 16px', background:'transparent', border:`1px solid ${A.btnBorder}`, borderRadius:12, fontSize:15, fontWeight:500, cursor:'pointer', color:A.text, lineHeight:'22px', letterSpacing:'-0.195px' }}>
+        Edit
+      </button>
+      <button onClick={onSkip}
+        style={{ flex:1, padding:'8px 16px', background:'transparent', border:`1px solid ${A.btnBorder}`, borderRadius:12, fontSize:15, fontWeight:500, cursor:'pointer', color:A.text, lineHeight:'22px', letterSpacing:'-0.195px' }}>
+        I'll write
+      </button>
+    </div>
+  );
+}
+
+/* ─── Shared: Draft card (dark card with border) ─── */
+function AgentDraftCard({ text }) {
+  return (
+    <div style={{ padding:16, borderRadius:12, background:A.surface, border:`1px solid ${A.border}` }}>
+      <div style={{ fontSize:16, fontWeight:400, color:A.text, lineHeight:'24px' }}>{text}</div>
+    </div>
+  );
+}
+
+/* ─── Shared: "Why this reply" toggle ─── */
+function AgentWhyReply({ reason }) {
+  const [show, setShow] = useState(false);
+  if (!reason) return null;
+  return (
+    <div>
+      {!show && (
+        <div onClick={() => setShow(true)}
+          style={{ fontSize:12, color:A.subtle, cursor:'pointer', display:'flex', alignItems:'center', gap:4, lineHeight:'16px' }}>
+          Why this reply <span style={{ fontSize:10 }}>&#8964;</span>
+        </div>
+      )}
+      {show && (
+        <div className="fade-in" style={{ fontSize:12, color:A.subtle, lineHeight:'16px' }}>
+          {reason}
+        </div>
+      )}
     </div>
   );
 }
@@ -610,15 +1100,15 @@ function AgentSheet({ item, onSend, onEdit, onSkip }) {
     <div className="sheet-up"
       onTouchStart={handleTouchStart} onMouseDown={handleMouseDown}
       style={{
-      position:'absolute', bottom:0, left:0, right:0, zIndex:10,
-      background:'#000', borderRadius:24,
+      flexShrink:0, zIndex:10,
+      background:'#151515', borderRadius:'24px 24px 0 0',
       transform: `translateY(${dismissed ? '100%' : dragY + 'px'})`,
       transition: dragging ? 'none' : 'transform .3s cubic-bezier(.32,.72,.35,1)',
       opacity: dismissed ? 0 : 1,
       padding:'16px 24px 54px',
       boxShadow:'0 0 20px rgba(0,0,0,0.25)',
       cursor: dragging ? 'grabbing' : 'grab',
-      maxHeight:'80%', display:'flex', flexDirection:'column', gap:16, transition:'height .3s ease',
+      maxHeight:'60%', display:'flex', flexDirection:'column', gap:16,
     }}>
 
       {/* Thinking state */}
@@ -673,7 +1163,7 @@ function AgentSheet({ item, onSend, onEdit, onSkip }) {
           {/* Buttons */}
           <div style={{ display:'flex', gap:8, alignItems:'center', flexShrink:0 }}>
             <button onClick={onSend}
-              style={{ flex:1, padding:'13px 0', background:'#fff', color:'#0F0F0F', border:'none', borderRadius:50, fontSize:14, fontWeight:700, cursor:'pointer', letterSpacing:'-0.01em' }}>
+              style={{ flex:1, padding:'13px 0', background:'#fff', color:'#151515', border:'none', borderRadius:50, fontSize:14, fontWeight:700, cursor:'pointer', letterSpacing:'-0.01em' }}>
               Yes, send
             </button>
             <button onClick={onEdit}
@@ -750,7 +1240,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
   const [editFeedback, setEditFeedback] = useState(null); // null | 'asking' | 'done'
   const [customFeedback, setCustomFeedback] = useState(null); // null | 'asking' | 'done'
   const [askVal, setAskVal] = useState('');
-  const [askPhase, setAskPhase] = useState('input'); // 'input' | 'generating' | 'ready'
+  const [askPhase, setAskPhase] = useState('input');
   const [showAskStyleReason, setShowAskStyleReason] = useState(false);
   const [generatedDraft, setGeneratedDraft] = useState('');
   const [generatedBecause, setGeneratedBecause] = useState('');
@@ -865,12 +1355,10 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
     setUndoCount(0);
   };
 
-  // Scroll chat to bottom on mode change — smooth, timed with sheet animation
+  // Scroll chat to bottom on mode change
   useEffect(() => {
     if (chatBodyRef.current) {
-      setTimeout(() => {
-        chatBodyRef.current.scrollTo({ top: chatBodyRef.current.scrollHeight, behavior: 'smooth' });
-      }, mode === 'suggest' ? 300 : 50);
+      setTimeout(() => { chatBodyRef.current.scrollTo({ top: chatBodyRef.current.scrollHeight, behavior: 'smooth' }); }, mode === 'suggest' ? 300 : 50);
     }
   }, [mode]);
 
@@ -916,7 +1404,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
 
             {/* Context menu */}
             {intentMenu === 'main' && (
-              <div className="fade-in" onClick={e => e.stopPropagation()} style={{ position:'absolute', right:0, top:'100%', marginTop:6, background:'#0F0F0F', borderRadius:14, boxShadow:'0 8px 32px rgba(0,0,0,0.25)', zIndex:20, minWidth:200, overflow:'hidden' }}>
+              <div className="fade-in" onClick={e => e.stopPropagation()} style={{ position:'absolute', right:0, top:'100%', marginTop:6, background:'#151515', borderRadius:14, boxShadow:'0 8px 32px rgba(0,0,0,0.25)', zIndex:20, minWidth:200, overflow:'hidden' }}>
                 <div onClick={() => setIntentMenu('why')}
                   style={{ padding:'13px 16px', fontSize:13, color:'#ff6b6b', cursor:'pointer', borderBottom:'1px solid rgba(255,255,255,0.06)', fontWeight:500 }}>
                   It's not {intentLabel.toLowerCase()}
@@ -934,7 +1422,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
 
             {/* Why it's wrong */}
             {intentMenu === 'why' && (
-              <div className="fade-in" onClick={e => e.stopPropagation()} style={{ position:'absolute', right:0, top:'100%', marginTop:6, background:'#0F0F0F', borderRadius:14, boxShadow:'0 8px 32px rgba(0,0,0,0.25)', zIndex:20, minWidth:210, overflow:'hidden' }}>
+              <div className="fade-in" onClick={e => e.stopPropagation()} style={{ position:'absolute', right:0, top:'100%', marginTop:6, background:'#151515', borderRadius:14, boxShadow:'0 8px 32px rgba(0,0,0,0.25)', zIndex:20, minWidth:210, overflow:'hidden' }}>
                 <div style={{ padding:'12px 16px', fontSize:11, color:'rgba(255,255,255,0.35)', fontWeight:500, borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
                   Why isn't this {intentLabel.toLowerCase()}?
                 </div>
@@ -949,7 +1437,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
 
             {/* Change intent */}
             {intentMenu === 'change' && (
-              <div className="fade-in" onClick={e => e.stopPropagation()} style={{ position:'absolute', right:0, top:'100%', marginTop:6, background:'#0F0F0F', borderRadius:14, boxShadow:'0 8px 32px rgba(0,0,0,0.25)', zIndex:20, minWidth:180, overflow:'hidden' }}>
+              <div className="fade-in" onClick={e => e.stopPropagation()} style={{ position:'absolute', right:0, top:'100%', marginTop:6, background:'#151515', borderRadius:14, boxShadow:'0 8px 32px rgba(0,0,0,0.25)', zIndex:20, minWidth:180, overflow:'hidden' }}>
                 <div style={{ padding:'12px 16px', fontSize:11, color:'rgba(255,255,255,0.35)', fontWeight:500, borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
                   Change to:
                 </div>
@@ -967,7 +1455,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
       </div>
 
       {/* Chat body */}
-      <div ref={chatBodyRef} style={{ flex:1, overflowY:'auto', padding:'20px 16px 12px', paddingBottom: mode === 'suggest' ? '60%' : '12px' }}>
+      <div ref={chatBodyRef} style={{ flex:1, overflowY:'auto', padding:'20px 16px 12px', paddingBottom: '12px' }}>
         {/* Timestamp marker */}
         <div style={{ textAlign:'center', marginBottom:16 }}>
           <span style={{ fontSize:12, color:'#707070' }}>Today {item.time || '8:10 AM'}</span>
@@ -1038,7 +1526,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
         {/* Gap 2: Edit feedback — appears after sent when draft was heavily rewritten */}
         {editFeedback === 'asking' && mode === 'sent' && (
           <div className="fade-up" style={{ marginBottom:12 }}>
-            <div style={{ background:'rgba(255,255,255,0.06)', borderRadius:14, padding:'14px 16px', maxWidth:'90%' }}>
+            <div style={{ background:'#151515', borderRadius:14, padding:'14px 16px', maxWidth:'90%' }}>
               <div style={{ fontSize:13, color:'#fff', lineHeight:1.5, marginBottom:12 }}>
                 I noticed you changed my reply a lot. Was it off?
               </div>
@@ -1069,102 +1557,55 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
 
       {/* ═══ Bottom: Ask mode — agent needs info from user ═══ */}
       {mode === 'ask' && (
-        <div className="fade-up" style={{ flexShrink:0, background:'#0F0F0F', padding:'0 20px 40px' }}>
-          <div style={{ height:1, background:'rgba(255,255,255,0.06)', marginBottom:16 }} />
-
+        <AgentSheetShell onDismiss={() => { setMode('custom'); setCustomVal(''); }}>
           {askPhase === 'input' && (
             <>
-              <div style={{ marginBottom:14 }}>
-                <div style={{ fontSize:14, color:'#fff', lineHeight:1.55, letterSpacing:'-0.01em' }}>
+              <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+                <div style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.5 }}>
                   {item.agentQuestion}
                 </div>
-              </div>
-
-              <div style={{ display:'flex', gap:8, alignItems:'flex-end' }}>
                 <textarea value={askVal} onChange={e => setAskVal(e.target.value)} autoFocus
                   placeholder={item.askPlaceholder || 'Type your answer...'}
-                  style={{ flex:1, fontSize:14, color:'#fff', lineHeight:1.5, padding:'13px 16px', border:'1px solid rgba(255,255,255,0.12)', borderRadius:14, resize:'none', height:60, fontFamily:'Inter, system-ui, sans-serif', background:'rgba(255,255,255,0.06)', outline:'none', letterSpacing:'-0.01em', boxSizing:'border-box' }} />
+                  style={{ width:'100%', fontSize:14, color:'#fff', lineHeight:1.5, padding:'13px 16px', border:'1px solid rgba(255,255,255,0.12)', borderRadius:14, resize:'none', height:60, fontFamily:'Inter, system-ui, sans-serif', background:'rgba(255,255,255,0.06)', outline:'none', letterSpacing:'-0.01em', boxSizing:'border-box' }} />
               </div>
-
-              <div style={{ display:'flex', gap:8, marginTop:12 }}>
+              <div style={{ display:'flex', gap:16, alignItems:'center', flexShrink:0 }}>
                 <button onClick={handleAskSubmit} disabled={!askVal.trim()}
-                  style={{ flex:1, padding:'12px 0', background: askVal.trim() ? '#fff' : 'rgba(255,255,255,0.1)', color: askVal.trim() ? '#0F0F0F' : 'rgba(255,255,255,0.35)', border:'none', borderRadius:12, fontSize:14, fontWeight:600, cursor: askVal.trim() ? 'pointer' : 'default', transition:'all .2s ease' }}>
-                  Create draft
+                  style={{ flex:1, padding:'8px 16px', background: askVal.trim() ? A.text : 'rgba(255,255,255,0.1)', color: askVal.trim() ? A.btnText : 'rgba(255,255,255,0.35)', border:'none', borderRadius:12, fontSize:15, fontWeight:500, cursor: askVal.trim() ? 'pointer' : 'default', transition:'all .2s ease', lineHeight:'22px', letterSpacing:'-0.195px' }}>
+                  Save
                 </button>
                 <button onClick={() => { setMode('custom'); setCustomVal(''); }}
-                  style={{ padding:'12px 20px', background:'transparent', border:'none', fontSize:13, fontWeight:500, cursor:'pointer', color:'rgba(255,255,255,0.35)' }}>
+                  style={{ flex:1, padding:'8px 16px', background:'transparent', border:`1px solid ${A.btnBorder}`, borderRadius:12, fontSize:15, fontWeight:500, cursor:'pointer', color:A.text, lineHeight:'22px', letterSpacing:'-0.195px' }}>
                   I'll reply
                 </button>
               </div>
             </>
           )}
 
-          {askPhase === 'generating' && (
-            <div style={{ padding:'20px 0', textAlign:'center' }}>
-              <div style={{ fontSize:13, color:'rgba(255,255,255,0.35)', marginBottom:8 }}>Creating your draft...</div>
-              <div style={{ display:'flex', justifyContent:'center', gap:4 }}>
-                {[0,1,2].map(i => (
-                  <div key={i} style={{ width:6, height:6, borderRadius:3, background:'rgba(255,255,255,0.12)', animation:`pulse 1s ease-in-out ${i * 0.2}s infinite` }} />
-                ))}
-              </div>
-            </div>
-          )}
+          {askPhase === 'generating' && <AgentThinking />}
 
           {askPhase === 'ready' && (
             <>
-              {/* Reason first sentence — above draft */}
-              {generatedBecause && (
-                <div className="fade-in" style={{ marginBottom:14 }}>
-                  <div style={{ fontSize:15, fontWeight:400, color:'rgba(255,255,255,0.6)', lineHeight:1.55, letterSpacing:'-0.01em' }}>
+              <div className="fade-in" style={{ display:'flex', flexDirection:'column', gap:16 }}>
+                {generatedBecause && (
+                  <div style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.5 }}>
                     {(generatedBecause.match(/[^.!?]+[.!?]?\s*/g) || [generatedBecause])[0]}
                   </div>
+                )}
+                <AgentDraftCard text={generatedDraft} />
+                <AgentWhyReply reason={generatedBecause && (generatedBecause.match(/[^.!?]+[.!?]?\s*/g) || []).length > 1
+                  ? (generatedBecause.match(/[^.!?]+[.!?]?\s*/g) || []).slice(1).join('')
+                  : null} />
+                <div style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.5 }}>
+                  Send this one?
                 </div>
-              )}
-
-              {/* Draft — prominent white card */}
-              <div className="fade-in" style={{ marginBottom:14, padding:'14px 16px', background:'rgba(255,255,255,0.95)', borderRadius:14 }}>
-                <div style={{ fontSize:15, fontWeight:400, color:'#0F0F0F', lineHeight:1.55, letterSpacing:'-0.01em' }}>{generatedDraft}</div>
               </div>
-
-              {/* Why this reply — below draft */}
-              {generatedBecause && (generatedBecause.match(/[^.!?]+[.!?]?\s*/g) || []).length > 1 && (
-                <div className="fade-in" style={{ marginBottom:14 }}>
-                  {!showAskStyleReason && (
-                    <div onClick={() => setShowAskStyleReason(true)} style={{ fontSize:12, color:'rgba(255,255,255,0.25)', cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
-                      Why this reply <span style={{ fontSize:10 }}>↓</span>
-                    </div>
-                  )}
-                  {showAskStyleReason && (
-                    <div className="fade-in" style={{ fontSize:13, color:'rgba(255,255,255,0.4)', lineHeight:1.55 }}>
-                      {(generatedBecause.match(/[^.!?]+[.!?]?\s*/g) || []).slice(1).join('')}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Question */}
-              <div className="fade-in" style={{ fontSize:15, fontWeight:400, color:'#fff', lineHeight:1.55, letterSpacing:'-0.01em', marginBottom:16 }}>
-                Send this one?
-              </div>
-
-              {/* Buttons — matching AgentSheet */}
-              <div className="fade-in" style={{ display:'flex', gap:8, alignItems:'center' }}>
-                <button onClick={handleAskSend}
-                  style={{ flex:1, padding:'13px 0', background:'#fff', color:'#0F0F0F', border:'none', borderRadius:50, fontSize:14, fontWeight:700, cursor:'pointer', letterSpacing:'-0.01em' }}>
-                  Yes, send
-                </button>
-                <button onClick={() => { setMode('editing'); setEditVal(generatedDraft); }}
-                  style={{ flex:1, padding:'13px 0', background:'transparent', border:'1.5px solid rgba(255,255,255,0.18)', borderRadius:50, fontSize:14, fontWeight:500, cursor:'pointer', color:'rgba(255,255,255,0.8)', letterSpacing:'-0.01em' }}>
-                  Let me edit
-                </button>
-                <button onClick={() => { setMode('custom'); setCustomVal(''); }}
-                  style={{ padding:'13px 10px', background:'transparent', border:'none', fontSize:13, fontWeight:500, cursor:'pointer', color:'rgba(255,255,255,0.35)', flexShrink:0, whiteSpace:'nowrap' }}>
-                  I'll write
-                </button>
-              </div>
+              <AgentButtons
+                onSend={handleAskSend}
+                onEdit={() => { setMode('editing'); setEditVal(generatedDraft); }}
+                onSkip={() => { setMode('custom'); setCustomVal(''); }} />
             </>
           )}
-        </div>
+        </AgentSheetShell>
       )}
 
       {/* ═══ Bottom: Edit mode ═══ */}
@@ -1212,8 +1653,8 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
       {/* ═══ Bottom: Feedback — AI asks why user skips drafts (black sheet) ═══ */}
       {mode === 'feedback' && (
         <div className="sheet-up" style={{
-          position:'absolute', bottom:0, left:0, right:0, zIndex:10,
-          background:'#0F0F0F', borderRadius:'22px 22px 0 0',
+          flexShrink:0, zIndex:10,
+          background:'#151515', borderRadius:'22px 22px 0 0',
           padding:'10px 22px 40px', boxShadow:'0 -8px 30px rgba(0,0,0,0.2)',
         }}>
           <div style={{ width:36, height:4, background:'rgba(255,255,255,0.14)', borderRadius:2, margin:'0 auto 18px' }} />
@@ -1250,35 +1691,29 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
                 style={{ border:'none', outline:'none', fontSize:14, color:T.ink, width:'100%', background:'transparent', fontFamily:'Inter, system-ui, sans-serif' }} />
             </div>
             <div onClick={() => { if (customVal.trim()) handleSendCustom(); }}
-              style={{ width:36, height:36, borderRadius:18, background: customVal.trim() ? T.ink : T.lightGray, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'background .2s', flexShrink:0 }}>
+              style={{ width:36, height:36, borderRadius:18, background: customVal.trim() ? '#2E86FD' : T.lightGray, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'background .2s', flexShrink:0 }}>
               <span style={{ color:'#fff', fontSize:13 }}>↑</span>
             </div>
           </div>
         </div>
       )}
 
-      {/* ═══ Bottom: Sensitive message — black agent sheet ═══ */}
+      {/* ═══ Bottom: Sensitive message — agent sheet ═══ */}
       {mode === 'summary' && (
-        <div className="sheet-up" style={{
-          position:'absolute', bottom:0, left:0, right:0, zIndex:10,
-          background:'#0F0F0F', borderRadius:'22px 22px 0 0',
-          padding:'10px 22px 40px', boxShadow:'0 -8px 30px rgba(0,0,0,0.2)',
-          minHeight:200,
-        }}>
-          <div style={{ width:36, height:4, background:'rgba(255,255,255,0.14)', borderRadius:2, margin:'0 auto 18px' }} />
-
-          <div style={{ fontSize:15, fontWeight:400, color:'#fff', lineHeight:1.55, letterSpacing:'-0.01em', marginBottom:12 }}>
-            I read this and decided not to write anything.
+        <AgentSheetShell onDismiss={() => { setMode('custom'); setCustomVal(''); }}>
+          <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+            <div style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.5 }}>
+              I read this and decided not to write anything.
+            </div>
+            <div style={{ fontSize:16, fontWeight:400, color:'rgba(255,255,255,0.5)', lineHeight:1.5 }}>
+              {item.summary}
+            </div>
           </div>
-          <div style={{ fontSize:15, fontWeight:400, color:'rgba(255,255,255,0.5)', lineHeight:1.55, letterSpacing:'-0.01em', marginBottom:16 }}>
-            {item.summary}
-          </div>
-
           <button onClick={() => { setMode('custom'); setCustomVal(''); }}
-            style={{ width:'100%', padding:'14px', background:'#fff', color:'#0F0F0F', border:'none', borderRadius:50, fontSize:14, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em' }}>
+            style={{ width:'100%', padding:'8px 16px', background:A.text, color:A.btnText, border:'none', borderRadius:12, fontSize:15, fontWeight:500, cursor:'pointer', lineHeight:'22px', letterSpacing:'-0.195px' }}>
             Reply personally
           </button>
-        </div>
+        </AgentSheetShell>
       )}
 
       {/* ═══ Bottom: Undo toast after sending ═══ */}
@@ -1317,7 +1752,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
                 style={{ border:'none', outline:'none', fontSize:14, color:T.ink, width:'100%', background:'transparent', fontFamily:'Inter, system-ui, sans-serif' }} />
             </div>
             <div onClick={() => { if (customVal.trim()) handleSendCustom(); }}
-              style={{ width:36, height:36, borderRadius:18, background: customVal.trim() ? T.ink : T.lightGray, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'background .2s', flexShrink:0 }}>
+              style={{ width:36, height:36, borderRadius:18, background: customVal.trim() ? '#2E86FD' : T.lightGray, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'background .2s', flexShrink:0 }}>
               <span style={{ color:'#fff', fontSize:13 }}>↑</span>
             </div>
           </div>
@@ -1334,27 +1769,48 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
   );
 }
 
-/* ─── Intention group header ─── */
-function IntentionHeader({ label, count, desc }) {
+/* ─── Chevron icon ─── */
+function ChevronIcon({ collapsed }) {
   return (
-    <div style={{ padding:'24px 0 4px' }}>
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-        <span style={{ fontSize:16, fontWeight:600, color:T.ink, letterSpacing:'-0.02em' }}>{label}</span>
-        <span style={{ fontSize:12, fontWeight:500, color:'#999', background:'#F2F2F2', padding:'3px 10px', borderRadius:12, letterSpacing:'-0.01em' }}>{count}</span>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={T.gray} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+      style={{ transition:'transform .25s ease', transform: collapsed ? 'rotate(-90deg)' : 'rotate(0deg)' }}>
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  );
+}
+
+/* ─── Intention group header ─── */
+function IntentionHeader({ label, count, collapsed, onToggle }) {
+  return (
+    <div onClick={onToggle} style={{ height:56, display:'flex', alignItems:'center', justifyContent:'space-between', cursor:'pointer' }}>
+      <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+        <div style={{ width:32, height:32, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+          <ChevronIcon collapsed={collapsed} />
+        </div>
+        <span style={{ fontSize:16, fontWeight:500, color:T.ink, letterSpacing:'-0.02em' }}>{label}</span>
       </div>
-      {desc && <div style={{ fontSize:12, color:'#999', lineHeight:1.4, marginTop:4, letterSpacing:'-0.01em' }}>{desc}</div>}
+      <span style={{ fontSize:12, fontWeight:500, color:T.ink, background:'#F5F5F5', padding:'4px 8px', borderRadius:16, letterSpacing:'-0.01em' }}>{count}</span>
     </div>
   );
 }
 
 /* ─── Important Tab ─── */
 function ImportantTab({ onOpenChat, answeredChats, priorityFeedbackDone, onFeedbackGood, onFeedbackBad }) {
+  const [collapsedGroups, setCollapsedGroups] = useState(new Set());
   // Collect all answered items across all groups into one flat list
   const allAnswered = IMPORTANT_GROUPS.flatMap(g =>
     g.items.filter(item => answeredChats.has(item.user)).map(item => ({ ...item, _sensitive: !!item._sensitive }))
   );
 
   const totalPending = IMPORTANT_GROUPS.reduce((sum, g) => sum + g.items.filter(item => !answeredChats.has(item.user)).length, 0);
+
+  const toggleGroup = (gi) => {
+    setCollapsedGroups(prev => {
+      const next = new Set(prev);
+      next.has(gi) ? next.delete(gi) : next.add(gi);
+      return next;
+    });
+  };
 
   return (
     <div>
@@ -1371,12 +1827,13 @@ function ImportantTab({ onOpenChat, answeredChats, priorityFeedbackDone, onFeedb
       {IMPORTANT_GROUPS.map((group, gi) => {
         const pending = group.items.filter(item => !answeredChats.has(item.user));
         if (pending.length === 0) return null;
+        const isCollapsed = collapsedGroups.has(gi);
 
         return (
           <div key={gi}>
-            <IntentionHeader label={group.intention} count={pending.length} desc={group.desc} />
+            <IntentionHeader label={group.intention} count={pending.length} collapsed={isCollapsed} onToggle={() => toggleGroup(gi)} />
             <div style={{ height:1, background:T.lightGray }} />
-            {pending.map((item, i) => (
+            {!isCollapsed && pending.map((item, i) => (
               <MsgRow key={item.user} user={item.user} name={item.name} avatar={item.avatar} time={item.time}
                 isAsk={item.mode === 'ask'}
                 isLast={i === pending.length - 1}
@@ -1490,11 +1947,11 @@ function PrioritiesOverlay({ onDismiss }) {
             return (
               <div key={p.id} onClick={() => toggle(p.id)}
                 style={{ display:'flex', alignItems:'center', gap:14, padding:'18px', borderRadius:14,
-                  border: on ? '1.5px solid #0095F6' : `1.5px solid ${T.lightGray}`,
+                  border: on ? '1.5px solid #2E86FD' : `1.5px solid ${T.lightGray}`,
                   background: on ? '#F0F7FF' : T.cardBg, cursor:'pointer', transition:'all .2s ease' }}>
                 <div style={{ width:32, height:32, borderRadius:16,
                   border: on ? 'none' : `1.5px solid ${T.lightGray}`,
-                  background: on ? '#0095F6' : 'transparent',
+                  background: on ? '#2E86FD' : 'transparent',
                   display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, transition:'all .2s ease' }}>
                   {on && <span style={{ color:'#fff', fontSize:14 }}>✓</span>}
                 </div>
@@ -1613,7 +2070,11 @@ function InboxV2({ onOverlayChange, openChatOnLoad }) {
 
       {/* Scrollable content */}
       <div ref={scrollRef} onScroll={handleScroll}
-        style={{ flex:1, overflowY:'auto', overflowX:'hidden', padding:'0 20px 0 20px' }}>
+        style={{ flex:1, overflowY:'auto', overflowX:'hidden', padding:'0 16px 0 16px' }}>
+        {/* Page header */}
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', paddingBottom:16 }}>
+          <span style={{ fontSize:20, fontWeight:700, color:T.ink, lineHeight:'32px' }}>Important</span>
+        </div>
         {showModeChangeNotif && (
           <div className="fade-up" style={{ marginBottom:16, padding:'14px 16px', background:'#F5F5F5', borderRadius:14, display:'flex', gap:12, alignItems:'flex-start' }}>
             <div style={{ flex:1 }}>
@@ -1634,14 +2095,14 @@ function InboxV2({ onOverlayChange, openChatOnLoad }) {
         <div onClick={() => setSummaryOpen(true)}
           style={{
             position:'absolute', bottom:90, right:20, zIndex:20,
-            background:'#0F0F0F', borderRadius:50,
+            background:'#151515', borderRadius:50,
             padding:'9px 16px', width:190,
             display:'flex', alignItems:'center', gap:7,
             cursor:'pointer',
             boxShadow:'0 4px 20px rgba(0,0,0,0.18)',
             animation:'fadeUp .4s ease both',
           }}>
-          <div style={{ width:6, height:6, borderRadius:3, background:'#0095F6', flexShrink:0, animation:'pulse 1.4s ease-in-out infinite' }} />
+          <div style={{ width:6, height:6, borderRadius:3, background:'#2E86FD', flexShrink:0, animation:'pulse 1.4s ease-in-out infinite' }} />
           <AgentPillText />
         </div>
       )}
@@ -1657,7 +2118,7 @@ function InboxV2({ onOverlayChange, openChatOnLoad }) {
           {/* Sheet */}
           <div className="sheet-up" style={{
             position:'absolute', bottom:0, left:0, right:0,
-            background:'#0F0F0F', borderRadius:'22px 22px 0 0',
+            background:'#151515', borderRadius:'22px 22px 0 0',
             padding:'10px 22px 48px',
           }}>
             <div style={{ width:36, height:4, background:'rgba(255,255,255,0.14)', borderRadius:2, margin:'0 auto 20px' }} />
@@ -1686,7 +2147,7 @@ function InboxV2({ onOverlayChange, openChatOnLoad }) {
               {feedbackCustomText.trim() && (
                 <div onClick={handleFeedbackCustom}
                   style={{ width:36, height:36, borderRadius:18, background:'#fff', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0 }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0F0F0F" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#151515" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                 </div>
               )}
             </div>
@@ -1751,7 +2212,7 @@ const OB_STATS = [
 /* ─── Onboarding screens: Welcome + Results ─── */
 function ObWelcomeV2b({ onNext }) {
   const [vis, setVis] = useState(0); // how many elements are visible
-  const total = 4; // title, body1, body2, button
+  const total = 5; // title, body1, body2, body3, button
 
   useEffect(() => {
     const timers = [];
@@ -1768,29 +2229,35 @@ function ObWelcomeV2b({ onNext }) {
   });
 
   return (
-    <div style={{ background:'#0F0F0F', height:'100%', display:'flex', flexDirection:'column', position:'relative', overflow:'hidden' }}>
+    <div style={{ background:'#151515', height:'100%', display:'flex', flexDirection:'column', position:'relative', overflow:'hidden' }}>
 
       <div style={{ flex:1, display:'flex', flexDirection:'column', padding:'100px 28px 0' }}>
         <div style={{ marginBottom:20, ...show(1) }}>
           <h1 style={{ fontSize:34, fontWeight:900, color:'#fff', letterSpacing:'-0.04em', lineHeight:1.12, WebkitTextStroke:'0.5px #fff' }}>
-            Sofia, you receive around 140 DMs a week and that's a lot.
+            Hi Sofia.
           </h1>
         </div>
 
         <div style={{ ...show(2) }}>
           <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:12 }}>
-            Between real leads and quick replies, knowing where to start takes too much time.
+            Managing DMs shouldn't be a part-time job.
           </p>
         </div>
 
         <div style={{ ...show(3) }}>
+          <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:12 }}>
+            Between real leads and noise, knowing where to start takes more time than it should.
+          </p>
+        </div>
+
+        <div style={{ ...show(4) }}>
           <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6 }}>
-            No worries, because that's my job.
+            That's what I'm here for.
           </p>
         </div>
       </div>
 
-      <div style={{ padding:'0 28px 90px', ...show(4) }}>
+      <div style={{ padding:'0 28px 90px', ...show(5) }}>
         <button onClick={onNext}
           style={{ width:'100%', padding:'16px', background:'transparent', color:'rgba(255,255,255,0.8)', border:'1.5px solid rgba(255,255,255,0.18)', borderRadius:50, fontSize:16, fontWeight:500, cursor:'pointer', letterSpacing:'-0.01em' }}>
           Show me
@@ -1819,7 +2286,7 @@ function ObResultsV2b({ onReplyNow, onOpenInbox }) {
   });
 
   return (
-    <div style={{ background:'#0F0F0F', height:'100%', display:'flex', flexDirection:'column', position:'relative', overflow:'hidden' }}>
+    <div style={{ background:'#151515', height:'100%', display:'flex', flexDirection:'column', position:'relative', overflow:'hidden' }}>
 
       <div style={{ flex:1, display:'flex', flexDirection:'column', padding:'100px 28px 0' }}>
         <div style={{ marginBottom:16, ...show(1) }}>
@@ -1866,7 +2333,7 @@ function ObResultsV2b({ onReplyNow, onOpenInbox }) {
         </div>
 
         <div style={{ ...show(8) }}>
-          <button onClick={onReplyNow} style={{ width:'100%', padding:'16px', background:'#fff', color:'#0F0F0F', border:'none', borderRadius:50, fontSize:16, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em', marginBottom:10 }}>
+          <button onClick={onReplyNow} style={{ width:'100%', padding:'16px', background:'#fff', color:'#151515', border:'none', borderRadius:50, fontSize:16, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em', marginBottom:10 }}>
             Reply now
           </button>
         </div>
@@ -1895,7 +2362,9 @@ function App() {
 
       {/* ─── Onboarding (3-screen flow: welcome → loading → results) ─── */}
       {screen === 'ob-welcome' && <ObWelcomeV2b onNext={() => setScreen('ob-loading')} />}
-      {screen === 'ob-loading' && <ObSorting onNext={() => setScreen('ob-results')} />}
+      {screen === 'ob-loading' && <ObSorting onNext={() => setScreen('ob-question')} />}
+      {screen === 'ob-question' && <ObQuestion onNext={() => setScreen('ob-loading2')} />}
+      {screen === 'ob-loading2' && <ObLoading2 onNext={() => setScreen('ob-results')} />}
       {screen === 'ob-results' && <ObResultsV2b
         onReplyNow={() => { setOpenChatOnLoad(jayrunzItem); setScreen('main'); }}
         onOpenInbox={() => setScreen('main')}
@@ -1915,9 +2384,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 
 <!-- Version toggle -->
 <div style="position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;background:#fff;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,0.12);overflow:hidden;font-family:Inter,sans-serif;font-size:12px;">
-  <a href="inbox-mini-v1-final-v1.html" style="padding:8px 16px;text-decoration:none;color:#fff;background:#1C1A16;font-weight:600;">V1</a>
-  <a href="inbox-mini-v1-final-v2.html" style="padding:8px 16px;text-decoration:none;color:#888;font-weight:500;">V2</a>
-  <a href="inbox-mini-v1-final-v3.html" style="padding:8px 16px;text-decoration:none;color:#888;font-weight:500;">V3</a>
+  <a href="wip-v1.html" style="padding:8px 16px;text-decoration:none;color:#888;font-weight:500;">wip-v1</a>
+  <a href="mini-v1.html" style="padding:8px 16px;text-decoration:none;color:#fff;background:#1C1A16;font-weight:600;">mini-v1</a>
 </div>
 </body>
 </html>
