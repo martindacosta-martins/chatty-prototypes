@@ -2099,10 +2099,6 @@ function InboxV2({ onOverlayChange, openChatOnLoad }) {
       {/* Scrollable content */}
       <div ref={scrollRef} onScroll={handleScroll}
         style={{ flex:1, overflowY:'auto', overflowX:'hidden', padding:'0 16px 0 16px' }}>
-        {/* Page header */}
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', paddingBottom:16 }}>
-          <span style={{ fontSize:20, fontWeight:700, color:T.ink, lineHeight:'32px' }}>Important</span>
-        </div>
         {showModeChangeNotif && (
           <div className="fade-up" style={{ marginBottom:16, padding:'14px 16px', background:'#F5F5F5', borderRadius:14, display:'flex', gap:12, alignItems:'flex-start' }}>
             <div style={{ flex:1 }}>
