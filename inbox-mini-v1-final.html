@@ -92,16 +92,16 @@ const { useState, useEffect, useRef, useCallback } = React;
 
 /* ═══ DESIGN TOKENS ═══ */
 const T = {
-  paper: '#FFFFFF',
-  ink: '#292929',
-  gray: '#707070',
-  lightGray: '#D6D6D6',
-  cardBg: '#FFFFFF',
-  accent: '#006BE2',
+  ink: '#303336',        // Cool Gray 900 — primary text
+  gray: '#6F757E',       // Cool Gray 500 — secondary text
+  lightGray: '#E0E2E5',  // Cool Gray 200 — borders, dividers
+  accent: '#2952CC',     // Blue 500 — primary action
+  paper: '#FFFFFF',      // page background
+  cardBg: '#FFFFFF',     // card background
+  warmGray: '#F5F5F7',   // Cool Gray 50 — secondary bg, hover
   darkBg: '#1B1B18',
   darkSurface: '#28271F',
   darkBorder: '#3D3C34',
-  warmGray: '#F5F5F5',
 };
 
 /* ═══ DATA ═══ */
@@ -215,7 +215,7 @@ const IMPORTANT_GROUPS = [
 function BlackBtn({ label, onClick, disabled }) {
   return (
     <button onClick={onClick} disabled={disabled}
-      style={{ width:'100%', padding:'14px 0', background: disabled ? T.lightGray : T.ink, color: disabled ? T.gray : '#FFFFFF',
+      style={{ width:'100%', padding:'14px 0', background: disabled ? T.lightGray : '#2952CC', color: disabled ? T.gray : '#FFFFFF',
         border:'none', borderRadius:12, fontSize:15, fontWeight:600, cursor: disabled ? 'default' : 'pointer',
         transition:'all .2s ease', letterSpacing:'-0.01em' }}>
       {label}
@@ -1269,8 +1269,8 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
   const allIntents = ['Interested', 'FAQ', 'Collab', 'Emotional', 'Spam', 'Other'];
 
   const intentColors = {
-    'Interested':'#E85D04', 'FAQ':'#0369A1', 'Collab':'#7C3AED',
-    'Emotional':'#DC2626', 'Spam':'#999', 'Other':'#666',
+    'Interested':'#E8710A', 'FAQ':'#2952CC', 'Collab':'#7627BB',
+    'Emotional':'#D93025', 'Spam':'#6F757E', 'Other':'#525960',
   };
 
   const triggerToast = (msg) => {
@@ -1401,7 +1401,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
         {intentLabel && (
           <div style={{ position:'relative' }}>
             <div onClick={(e) => { e.stopPropagation(); setIntentMenu(intentMenu ? false : 'main'); }}
-              style={{ fontSize:11, fontWeight:500, color: intentColors[intentLabel] || '#666', background:(intentColors[intentLabel] || '#666') + '14', padding:'5px 12px', borderRadius:8, cursor:'pointer', userSelect:'none', letterSpacing:'-0.01em' }}>
+              style={{ fontSize:11, fontWeight:500, color: intentColors[intentLabel] || '#525960', background:(intentColors[intentLabel] || '#525960') + '14', padding:'5px 12px', borderRadius:8, cursor:'pointer', userSelect:'none', letterSpacing:'-0.01em' }}>
               {intentLabel}
             </div>
 
@@ -1447,7 +1447,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
                 {allIntents.filter(i => i !== intentLabel).map(intent => (
                   <div key={intent} onClick={() => { setIntentLabel(intent); setIntentMenu(false); triggerToast('Updated to ' + intent); }}
                     style={{ padding:'13px 16px', fontSize:13, color:'rgba(255,255,255,0.7)', cursor:'pointer', borderBottom:'1px solid rgba(255,255,255,0.06)', display:'flex', alignItems:'center', gap:8 }}>
-                    <span style={{ width:8, height:8, borderRadius:4, background: intentColors[intent] || '#666', flexShrink:0 }} />
+                    <span style={{ width:8, height:8, borderRadius:4, background: intentColors[intent] || '#525960', flexShrink:0 }} />
                     {intent}
                   </div>
                 ))}
@@ -1461,7 +1461,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
       <div ref={chatBodyRef} style={{ flex:1, overflowY:'auto', padding:'20px 16px 12px', paddingBottom: '12px' }}>
         {/* Timestamp marker */}
         <div style={{ textAlign:'center', marginBottom:16 }}>
-          <span style={{ fontSize:12, color:'#707070' }}>Today {item.time || '8:10 AM'}</span>
+          <span style={{ fontSize:12, color:'#6F757E' }}>Today {item.time || '8:10 AM'}</span>
         </div>
 
         {chatHistory.map((m, i) => {
@@ -1475,20 +1475,20 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
               animation: `${isOutgoing ? 'slideFromRight' : 'slideFromLeft'} .4s cubic-bezier(.25,.46,.45,.94) ${i * 0.12}s forwards`,
             }}>
               {m.from === 'them' && (
-                <div style={{ maxWidth:'75%', padding:'8px 12px', borderRadius:12, background:'#F5F5F5' }}>
-                  <div style={{ fontSize:16, lineHeight:1.5, color:'#292929' }}>{m.text}</div>
+                <div style={{ maxWidth:'75%', padding:'8px 12px', borderRadius:12, background:'#F5F5F7' }}>
+                  <div style={{ fontSize:16, lineHeight:1.5, color:'#303336' }}>{m.text}</div>
                 </div>
               )}
               {isAutomation && (
                 <>
-                  <div style={{ maxWidth:'75%', padding:'8px 12px', borderRadius:12, background:'#D6D6D6' }}>
-                    <div style={{ fontSize:16, lineHeight:1.5, color:'#292929' }}>{m.text}</div>
+                  <div style={{ maxWidth:'75%', padding:'8px 12px', borderRadius:12, background:'#E0E2E5' }}>
+                    <div style={{ fontSize:16, lineHeight:1.5, color:'#303336' }}>{m.text}</div>
                   </div>
-                  <span style={{ fontSize:12, color:'#707070', marginTop:4 }}>Automation</span>
+                  <span style={{ fontSize:12, color:'#6F757E', marginTop:4 }}>Automation</span>
                 </>
               )}
               {m.from === 'you' && (
-                <div style={{ maxWidth:'75%', padding:'8px 12px', borderRadius:12, background:'#006BE2' }}>
+                <div style={{ maxWidth:'75%', padding:'8px 12px', borderRadius:12, background:'#2952CC' }}>
                   <div style={{ fontSize:16, lineHeight:1.5, color:'#fff' }}>{m.text}</div>
                 </div>
               )}
@@ -1508,7 +1508,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
                   <div style={{ fontSize:14, lineHeight:1.5, color:T.ink, letterSpacing:'-0.01em' }}>{item.draft}</div>
                 </div>
                 <div style={{ display:'flex', gap:6, marginTop:8 }}>
-                  <button onClick={handleSend} style={{ padding:'7px 16px', background:T.ink, color:'#fff', border:'none', borderRadius:20, fontSize:12, fontWeight:600, cursor:'pointer' }}>Send</button>
+                  <button onClick={handleSend} style={{ padding:'7px 16px', background:'#2952CC', color:'#fff', border:'none', borderRadius:20, fontSize:12, fontWeight:600, cursor:'pointer' }}>Send</button>
                   <button onClick={() => { setMode('editing'); setEditVal(item.draft); }} style={{ padding:'7px 14px', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:20, fontSize:12, fontWeight:500, cursor:'pointer', color:T.ink }}>Edit</button>
                 </div>
               </div>
@@ -1617,7 +1617,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
           <div style={{ height:1, background:T.lightGray, marginBottom:16 }} />
 
           <textarea value={editVal} onChange={e => setEditVal(e.target.value)} autoFocus
-            style={{ width:'100%', fontSize:14, color:T.ink, lineHeight:1.5, padding:'13px 16px', border:`1.5px solid ${T.ink}`, borderRadius:14, resize:'none', height:80, fontFamily:'Inter, system-ui, sans-serif', background:'#fff', outline:'none', letterSpacing:'-0.01em', boxSizing:'border-box' }} />
+            style={{ width:'100%', fontSize:14, color:T.ink, lineHeight:1.5, padding:'13px 16px', border:'1px solid #E0E2E5', borderRadius:14, resize:'none', height:80, fontFamily:'Inter, system-ui, sans-serif', background:'#fff', outline:'none', letterSpacing:'-0.01em', boxSizing:'border-box' }} />
 
           {/* Tone chips */}
           <div style={{ display:'flex', gap:6, marginTop:10, flexWrap:'wrap' }}>
@@ -1636,13 +1636,13 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
                   const sentences = base.split(/(?<=[.!?])\s+/);
                   setEditVal(sentences.filter(s => s.length > 20).join(' ') || base);
                 }
-              }} style={{ fontSize:12, padding:'6px 14px', borderRadius:20, border: activeTone === tone ? `1.5px solid ${T.ink}` : `1px solid ${T.lightGray}`, cursor:'pointer', color: activeTone === tone ? '#fff' : T.ink, fontWeight:500, background: activeTone === tone ? T.ink : '#fff', transition:'all .15s ease' }}>{tone}</span>
+              }} style={{ fontSize:12, padding:'6px 14px', borderRadius:20, border: activeTone === tone ? '1.5px solid #2952CC' : `1px solid ${T.lightGray}`, cursor:'pointer', color: activeTone === tone ? '#fff' : T.ink, fontWeight:500, background: activeTone === tone ? '#2952CC' : '#fff', transition:'all .15s ease' }}>{tone}</span>
             ))}
           </div>
 
           <div style={{ display:'flex', gap:8, marginTop:12 }}>
             <button onClick={handleSend}
-              style={{ flex:1, padding:'12px 0', background:T.ink, color:'#fff', border:'none', borderRadius:12, fontSize:14, fontWeight:600, cursor:'pointer' }}>
+              style={{ flex:1, padding:'12px 0', background:'#2952CC', color:'#fff', border:'none', borderRadius:12, fontSize:14, fontWeight:600, cursor:'pointer' }}>
               Send
             </button>
             <button onClick={() => { setMode('suggest'); setActiveTone(null); setEditVal(item.draft); }}
@@ -1694,7 +1694,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
                 style={{ border:'none', outline:'none', fontSize:14, color:T.ink, width:'100%', background:'transparent', fontFamily:'Inter, system-ui, sans-serif' }} />
             </div>
             <div onClick={() => { if (customVal.trim()) handleSendCustom(); }}
-              style={{ width:36, height:36, borderRadius:18, background: customVal.trim() ? '#2E86FD' : T.lightGray, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'background .2s', flexShrink:0 }}>
+              style={{ width:36, height:36, borderRadius:18, background: customVal.trim() ? '#2952CC' : T.lightGray, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'background .2s', flexShrink:0 }}>
               <span style={{ color:'#fff', fontSize:13 }}>↑</span>
             </div>
           </div>
@@ -1721,9 +1721,9 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
 
       {/* ═══ Bottom: Undo toast after sending ═══ */}
       {mode === 'sent' && undoCount > 0 && (
-        <div style={{ position:'absolute', bottom:140, left:'50%', transform:'translateX(-50%)', background:'#E8E8E8', color:'#333', padding:'10px 20px', borderRadius:50, fontSize:13, fontWeight:500, zIndex:20, boxShadow:'0 2px 12px rgba(0,0,0,0.08)', display:'flex', alignItems:'center', gap:12, whiteSpace:'nowrap' }}>
-          <span style={{ color:'#666' }}>✓ Sent to {item.user}</span>
-          <button onClick={handleUndo} style={{ fontSize:13, color:'#333', background:'none', border:'none', cursor:'pointer', fontWeight:700, padding:0 }}>Undo</button>
+        <div style={{ position:'absolute', bottom:140, left:'50%', transform:'translateX(-50%)', background:'#E0E2E5', color:'#303336', padding:'10px 20px', borderRadius:6, fontSize:13, fontWeight:500, zIndex:20, boxShadow:'0 4px 12px rgba(0,0,0,0.15)', display:'flex', alignItems:'center', gap:12, whiteSpace:'nowrap' }}>
+          <span style={{ color:'#525960' }}>✓ Sent to {item.user}</span>
+          <button onClick={handleUndo} style={{ fontSize:13, color:'#303336', background:'none', border:'none', cursor:'pointer', fontWeight:700, padding:0 }}>Undo</button>
           <span style={{ color:'rgba(0,0,0,0.3)', fontSize:12 }}>({undoCount})</span>
         </div>
       )}
@@ -1755,7 +1755,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
                 style={{ border:'none', outline:'none', fontSize:14, color:T.ink, width:'100%', background:'transparent', fontFamily:'Inter, system-ui, sans-serif' }} />
             </div>
             <div onClick={() => { if (customVal.trim()) handleSendCustom(); }}
-              style={{ width:36, height:36, borderRadius:18, background: customVal.trim() ? '#2E86FD' : T.lightGray, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'background .2s', flexShrink:0 }}>
+              style={{ width:36, height:36, borderRadius:18, background: customVal.trim() ? '#2952CC' : T.lightGray, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'background .2s', flexShrink:0 }}>
               <span style={{ color:'#fff', fontSize:13 }}>↑</span>
             </div>
           </div>
@@ -1764,7 +1764,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
 
       {/* Toast */}
       {showToast && (
-        <div style={{ position:'absolute', bottom:100, left:'50%', transform:'translateX(-50%)', background:T.ink, color:'#fff', padding:'10px 20px', borderRadius:10, fontSize:13, fontWeight:500, animation:'fadeUp .3s ease-out', whiteSpace:'nowrap', zIndex:110, boxShadow:'0 4px 16px rgba(28,26,22,.15)', letterSpacing:'-0.01em' }}>
+        <div style={{ position:'absolute', bottom:100, left:'50%', transform:'translateX(-50%)', background:T.ink, color:'#fff', padding:'10px 20px', borderRadius:6, fontSize:13, fontWeight:500, animation:'fadeUp .3s ease-out', whiteSpace:'nowrap', zIndex:110, boxShadow:'0 4px 12px rgba(0,0,0,0.15)', letterSpacing:'-0.01em' }}>
           {toastMsg}
         </div>
       )}
@@ -1792,7 +1792,7 @@ function IntentionHeader({ label, count, collapsed, onToggle }) {
         </div>
         <span style={{ fontSize:16, fontWeight:500, color:T.ink, letterSpacing:'-0.02em' }}>{label}</span>
       </div>
-      <span style={{ fontSize:12, fontWeight:500, color:T.ink, background:'#F5F5F5', padding:'4px 8px', borderRadius:16, letterSpacing:'-0.01em' }}>{count}</span>
+      <span style={{ fontSize:12, fontWeight:500, color:'#6F757E', background:'#F5F5F7', padding:'4px 8px', borderRadius:16, letterSpacing:'-0.01em' }}>{count}</span>
     </div>
   );
 }
@@ -1833,7 +1833,7 @@ function ImportantTab({ onOpenChat, answeredChats, priorityFeedbackDone, onFeedb
       {showInfoModal && (
         <div style={{ position:'fixed', inset:0, zIndex:200, display:'flex', alignItems:'center', justifyContent:'center' }}>
           <div onClick={() => setShowInfoModal(false)} style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.3)' }} />
-          <div className="fade-up" style={{ position:'relative', zIndex:201, background:'#fff', borderRadius:20, padding:'28px 24px', maxWidth:340, width:'90%', boxShadow:'0 12px 40px rgba(0,0,0,0.15)' }}>
+          <div className="fade-up" style={{ position:'relative', zIndex:201, background:'#fff', borderRadius:10, padding:'28px 24px', maxWidth:340, width:'90%', boxShadow:'0 8px 32px rgba(0,0,0,0.2)' }}>
             <div style={{ fontSize:18, fontWeight:700, color:T.ink, letterSpacing:'-0.02em', marginBottom:12 }}>How I prioritize</div>
             <div style={{ fontSize:14, color:T.gray, lineHeight:1.55, marginBottom:8 }}>
               I look at your conversations and sort them based on:
@@ -1846,7 +1846,7 @@ function ImportantTab({ onOpenChat, answeredChats, priorityFeedbackDone, onFeedb
                 'Messages that feel personal or sensitive',
               ].map((item, i) => (
                 <div key={i} style={{ display:'flex', alignItems:'flex-start', gap:8 }}>
-                  <div style={{ width:4, height:4, borderRadius:2, background:T.lightGray, flexShrink:0, marginTop:8 }} />
+                  <div style={{ width:4, height:4, borderRadius:2, background:'#E0E2E5', flexShrink:0, marginTop:8 }} />
                   <span style={{ fontSize:14, color:T.ink, lineHeight:1.5 }}>{item}</span>
                 </div>
               ))}
@@ -1855,11 +1855,11 @@ function ImportantTab({ onOpenChat, answeredChats, priorityFeedbackDone, onFeedb
             <div style={{ display:'flex', gap:8 }}>
               <div onClick={() => { onFeedbackGood(); setShowInfoModal(false); }}
                 style={{ width:36, height:36, borderRadius:18, border:`1px solid ${T.lightGray}`, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6F757E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
               </div>
               <div onClick={() => { onFeedbackBad(); setShowInfoModal(false); }}
                 style={{ width:36, height:36, borderRadius:18, border:`1px solid ${T.lightGray}`, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/><path d="M17 2h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"/></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6F757E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/><path d="M17 2h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"/></svg>
               </div>
             </div>
             <div onClick={() => setShowInfoModal(false)} style={{ marginTop:20, textAlign:'center', fontSize:13, color:T.gray, cursor:'pointer' }}>Close</div>
@@ -1906,9 +1906,9 @@ function ImportantTab({ onOpenChat, answeredChats, priorityFeedbackDone, onFeedb
 
       {/* Recently answered — grey bg extending to bottom edge */}
       {allAnswered.length > 0 && (
-        <div style={{ margin:'0 -20px', padding:'24px 16px 32px', background:'#F5F5F5' }}>
+        <div style={{ margin:'0 -20px', padding:'24px 16px 32px', background:'#F5F5F7' }}>
           <div style={{ marginBottom:16 }}>
-            <span style={{ fontSize:20, fontWeight:700, color:'#292929', lineHeight:'32px' }}>Recently answered</span>
+            <span style={{ fontSize:20, fontWeight:700, color:'#303336', lineHeight:'32px' }}>Recently answered</span>
           </div>
           <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
             {allAnswered.map((item, i) => (
@@ -1918,20 +1918,20 @@ function ImportantTab({ onOpenChat, answeredChats, priorityFeedbackDone, onFeedb
                   <img src={item.avatar} alt="" style={{ width:32, height:32, borderRadius:400, objectFit:'cover', flexShrink:0, border:'0.5px solid rgba(44,50,58,0.12)' }} />
                   <div style={{ flex:1, minWidth:0 }}>
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                      <span style={{ fontSize:14, fontWeight:400, color:'#707070', lineHeight:'20px' }}>{item.name || item.user}</span>
-                      <span style={{ fontSize:12, fontWeight:400, color:'#707070', lineHeight:'16px', flexShrink:0 }}>{item.time}</span>
+                      <span style={{ fontSize:14, fontWeight:400, color:'#6F757E', lineHeight:'20px' }}>{item.name || item.user}</span>
+                      <span style={{ fontSize:12, fontWeight:400, color:'#6F757E', lineHeight:'16px', flexShrink:0 }}>{item.time}</span>
                     </div>
                   </div>
                 </div>
                 <div style={{ paddingLeft:44 }}>
                   <div style={{ fontSize:12, lineHeight:'16px', display:'flex', alignItems:'center', gap:4 }}>
-                    <span style={{ color:'#0C8143' }}>Answered</span>
-                    <span style={{ color:'#707070' }}>·</span>
-                    <span style={{ color:'#707070' }}>Waiting for contact's reply</span>
+                    <span style={{ color:'#188038' }}>Answered</span>
+                    <span style={{ color:'#6F757E' }}>·</span>
+                    <span style={{ color:'#6F757E' }}>Waiting for contact's reply</span>
                   </div>
                 </div>
                 {i < allAnswered.length - 1 && (
-                  <div style={{ marginLeft:44, marginTop:8, height:1, background:'rgba(0,0,0,0.06)' }} />
+                  <div style={{ marginLeft:44, marginTop:8, height:1, background:'#E0E2E5' }} />
                 )}
               </div>
             ))}
@@ -1978,11 +1978,11 @@ function PrioritiesOverlay({ onDismiss }) {
             return (
               <div key={p.id} onClick={() => toggle(p.id)}
                 style={{ display:'flex', alignItems:'center', gap:14, padding:'18px', borderRadius:14,
-                  border: on ? '1.5px solid #2E86FD' : `1.5px solid ${T.lightGray}`,
-                  background: on ? '#F0F7FF' : T.cardBg, cursor:'pointer', transition:'all .2s ease' }}>
+                  border: on ? '1.5px solid #2952CC' : `1.5px solid ${T.lightGray}`,
+                  background: on ? '#E8F0FE' : T.cardBg, cursor:'pointer', transition:'all .2s ease' }}>
                 <div style={{ width:32, height:32, borderRadius:16,
                   border: on ? 'none' : `1.5px solid ${T.lightGray}`,
-                  background: on ? '#2E86FD' : 'transparent',
+                  background: on ? '#2952CC' : 'transparent',
                   display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, transition:'all .2s ease' }}>
                   {on && <span style={{ color:'#fff', fontSize:14 }}>✓</span>}
                 </div>
@@ -2007,7 +2007,7 @@ function PrioritiesOverlay({ onDismiss }) {
       </div>
 
       {showToast && (
-        <div className="fade-up" style={{ position:'absolute', top:60, left:'50%', transform:'translateX(-50%)', background:T.ink, color:'#fff', padding:'10px 24px', borderRadius:50, fontSize:13, fontWeight:500, zIndex:170, whiteSpace:'nowrap' }}>
+        <div className="fade-up" style={{ position:'absolute', top:60, left:'50%', transform:'translateX(-50%)', background:T.ink, color:'#fff', padding:'10px 24px', borderRadius:6, fontSize:13, fontWeight:500, zIndex:170, whiteSpace:'nowrap' }}>
           Updating your priorities...
         </div>
       )}
@@ -2103,7 +2103,7 @@ function InboxV2({ onOverlayChange, openChatOnLoad }) {
       <div ref={scrollRef} onScroll={handleScroll}
         style={{ flex:1, overflowY:'auto', overflowX:'hidden', padding:'0 16px 0 16px' }}>
         {showModeChangeNotif && (
-          <div className="fade-up" style={{ marginBottom:16, padding:'14px 16px', background:'#F5F5F5', borderRadius:14, display:'flex', gap:12, alignItems:'flex-start' }}>
+          <div className="fade-up" style={{ marginBottom:16, padding:'14px 16px', background:'#F5F5F7', borderRadius:14, display:'flex', gap:12, alignItems:'flex-start' }}>
             <div style={{ flex:1 }}>
               <div style={{ fontSize:11, color:T.gray, marginBottom:4, fontWeight:500 }}>Inbox Agent</div>
               <div style={{ fontSize:13, color:T.ink, lineHeight:1.5, letterSpacing:'-0.01em' }}>I noticed you've been writing your own replies. I'll put my drafts in the conversation from now on — easier to compare.</div>
@@ -2219,7 +2219,7 @@ function BottomNav() {
         { icon: '☺', label: 'Contacts', active: false },
         { icon: '⚙', label: 'Automations', active: false },
       ].map((item, i) => (
-        <div key={i} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:2, cursor:'pointer', padding:'4px 16px', borderRadius:12, background: item.active ? T.warmGray : 'transparent' }}>
+        <div key={i} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:2, cursor:'pointer', padding:'4px 16px', borderRadius:12, background: item.active ? '#E8F0FE' : 'transparent' }}>
           <span style={{ fontSize:18, color: item.active ? T.accent : T.gray, lineHeight:1 }}>{item.icon}</span>
           <span style={{ fontSize:10, color: item.active ? T.accent : T.gray, fontWeight: item.active ? 600 : 400 }}>{item.label}</span>
         </div>
