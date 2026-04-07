@@ -1,0 +1,2418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Inbox — AI Native Inbox</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  /* ═══ STYLES ═══ */
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { font-family:'Inter',-apple-system,system-ui,sans-serif; background:#E0E0E0; display:flex; justify-content:center; align-items:center; min-height:100vh; overflow:hidden; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+  #root { width:393px; height:852px; position:relative; overflow:hidden; border-radius:44px; box-shadow:0 20px 60px rgba(28,26,22,.16), 0 1px 3px rgba(28,26,22,.06); }
+
+  /* Animations */
+  @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes slideFromLeft { from { opacity:0; transform:translateX(-16px); } to { opacity:1; transform:translateX(0); } }
+  @keyframes slideFromRight { from { opacity:0; transform:translateX(16px); } to { opacity:1; transform:translateX(0); } }
+  @keyframes screenSlideIn { from { transform:translateX(100%); } to { transform:translateX(0); } }
+  @keyframes screenSlideOut { from { transform:translateX(0); } to { transform:translateX(100%); } }
+  .screen-slide-in { animation: screenSlideIn .35s cubic-bezier(.32,.72,.35,1) both; }
+  @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+  @keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.3; } }
+  @keyframes sheetUp { from { opacity:0; transform:translateY(100%); } to { opacity:1; transform:translateY(0); } }
+  @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0; } }
+  .fade-up { animation: fadeUp .4s cubic-bezier(.25,.46,.45,.94) both; }
+  .fade-in { animation: fadeIn .3s ease both; }
+  .sheet-up { animation: sheetUp .45s cubic-bezier(.32,.72,.35,1.01) both; }
+  @keyframes pillExpandIn {
+    0%   { opacity:0; transform:translateY(40px) scale(0.92); }
+    100% { opacity:1; transform:translateY(0) scale(1); }
+  }
+  .pill-expand { animation: pillExpandIn .4s cubic-bezier(.16,1,.3,1) both; }
+  .cursor-blink { display:inline-block; width:2px; height:14px; background:rgba(255,255,255,0.6); margin-left:2px; vertical-align:text-bottom; animation: blink .8s step-end infinite; }
+  @keyframes shimmer {
+    0%   { background-position: -200px 0; }
+    100% { background-position: 200px 0; }
+  }
+  .skeleton-line {
+    height:12px; border-radius:6px; margin-bottom:8px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+    background-size: 400px 100%;
+    animation: shimmer 1.4s ease infinite;
+  }
+
+  /* ── Recording pulse rings ── */
+  @keyframes recordPulse {
+    0%   { transform:scale(1); opacity:0.4; }
+    100% { transform:scale(2.2); opacity:0; }
+  }
+  @keyframes recordGlow {
+    0%,100% { box-shadow:0 0 0 0 rgba(255,59,48,0); }
+    50%     { box-shadow:0 0 20px 8px rgba(255,59,48,0.3); }
+  }
+  @keyframes thinkDots {
+    0%,80%,100% { opacity:0.2; }
+    40% { opacity:1; }
+  }
+
+  /* ── Agent takeover: gradient wave erupts from button, fills screen ── */
+  @keyframes agent-takeover {
+    0%   { clip-path: circle(0%   at 50% 94%); opacity: 0.85; }
+    60%  { clip-path: circle(80%  at 50% 94%); opacity: 1;    }
+    100% { clip-path: circle(160% at 50% 94%); opacity: 1;    }
+  }
+  /* ── Text wave: each line floats up as the gradient passes through ── */
+  @keyframes text-wave {
+    0%   { transform: translateY(0)    scaleX(1);    filter: blur(0px);   opacity: 1;   }
+    25%  { transform: translateY(-14px) scaleX(1.015); filter: blur(2px);  opacity: 0.7; }
+    55%  { transform: translateY(6px)  scaleX(0.99); filter: blur(0.5px); opacity: 0.9; }
+    80%  { transform: translateY(-2px) scaleX(1);    filter: blur(0px);   opacity: 1;   }
+    100% { transform: translateY(0)    scaleX(1);    filter: blur(0px);   opacity: 1;   }
+  }
+
+  /* Scrollbar hide */
+  ::-webkit-scrollbar { display:none; }
+
+  /* Mobile responsive */
+  @media (max-width:420px) {
+    body { background:#FFFFFF; align-items:flex-start; }
+    #root { width:100vw; height:100vh; height:100dvh; border-radius:0; box-shadow:none; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+/* ═══ DESIGN TOKENS ═══ */
+const T = {
+  paper: '#FFFFFF',
+  ink: '#292929',
+  gray: '#707070',
+  lightGray: '#D6D6D6',
+  cardBg: '#FFFFFF',
+  accent: '#006BE2',
+  darkBg: '#1B1B18',
+  darkSurface: '#28271F',
+  darkBorder: '#3D3C34',
+  warmGray: '#F5F5F5',
+};
+
+/* ═══ DATA ═══ */
+const IMPORTANT_GROUPS = [
+  {
+    intention: 'Interested in your services',
+    desc: 'These people want what you offer.',
+    items: [
+      { user:'@jayrunz', name:'Jay Ruiz', avatar:'https://i.pravatar.cc/88?u=jayrunz', msg:"I've been struggling for 2 years. Is it too late to start?", source:'DM', time:'2h', unread:3, intent:'Interested', mode:'confident',
+        summary:'Ready to sign up', status:'Reply ready',
+        chatHistory: [
+          { from:'them', text:'Hey!', time:'2h ago' },
+          { from:'automation', text:"Hey! Thank you so much for reaching out. Would you like me to keep you informed about my new programs?", time:'2h ago' },
+          { from:'them', text:"Yes please! I've been struggling for 2 years. Is it too late to start?", time:'2h ago' },
+        ],
+        context:"Following you for 14 months. Saved your transformation reel last week. He's not asking about price — he's asking if it's too late.",
+        draft:"It's never too late — 2 years of trying tells me you're serious about change. The 12-Week Reboot is built for people exactly where you are. Want to see what week 1 looks like?",
+        styleReason:"I went with validation first, no pitch. Similar to how you replied to @sarah.wellness when she had doubts — you tend to lead with encouragement before sharing details.",
+        agentRead:'Ready to sign up · Reply drafted' },
+      { user:'@emma.k', name:'Emma Kim', avatar:'https://i.pravatar.cc/88?u=emmak', msg:"How much is the coaching program? I've been thinking about it for weeks", source:'DM', time:'4h', unread:2, intent:'Interested', mode:'ask',
+        chatHistory: [
+          { from:'them', text:"Hi! I saw your reel about the coaching program", time:'4h ago' },
+          { from:'automation', text:"Hey! Thanks for reaching out. I'd love to tell you more — what are you most interested in?", time:'4h ago' },
+          { from:'them', text:"How much is the coaching program? I've been thinking about it for weeks", time:'4h ago' },
+        ],
+        context:"Engaged for weeks — commented on 5 posts, saved your course breakdown. Warm lead asking about pricing.",
+        agentQuestion:"Emma wants to know your coaching program price. She's been engaging with your content for weeks — this feels like a warm lead. What's the pricing?",
+        askPlaceholder:"e.g., $597 or 3 payments of $197/mo",
+        draftTemplate:"Great news — the 12-Week Reboot is {answer}. It includes weekly 1-on-1 coaching, custom meal plans, and access to the private community. I also have a flexible payment plan if that helps. Want me to send the full details?",
+        styleReasonTemplate:"Used the pricing you shared + mentioned the payment plan. Cost hesitation is her main blocker — you tend to remove friction, not discount. Similar to how you handled @marcus.fit's first message.",
+        summary:'Asking about pricing', status:'Needs your input',
+        agentRead:'Asking about pricing · Needs your input' },
+      { user:'@marcus.fit', name:'Marcus Rivera', avatar:'https://i.pravatar.cc/88?u=marcusfit', msg:"I saw your client Ana's results. That's exactly what I need. How do I start?", source:'DM', time:'1h', unread:1, intent:'Interested', mode:'confident',
+        context:"First DM, but high intent — referenced Ana's results. Followed 3 months, liked Ana's transformation post.",
+        draft:"Love that Ana's journey resonated with you! The first step is a quick chat to see which program fits — I have a 12-week deep dive and a 4-week kickstart. What's your main goal right now?",
+        styleReason:"Went conversational and qualifying. You usually ask 'what's your main goal' with new leads — keeps it open without overwhelming. 89% of your first replies to new leads are under 3 sentences.",
+        summary:'High intent', status:'Reply ready',
+        agentRead:'High intent · Reply drafted' },
+    ],
+  },
+  {
+    intention: 'Want to book a call',
+    desc: 'Ready to talk — just need scheduling.',
+    items: [
+      { user:'@sarah.wellness', name:'Sarah Cho', avatar:'https://i.pravatar.cc/88?u=sarahcho', msg:"I'd love to book a discovery call. When are you available?", source:'DM', time:'3h', unread:1, intent:'Interested', mode:'confident',
+        context:"Came back after 2 weeks — DM'd before about the program. Following 6 months. People who return are usually ready.",
+        draft:"Great to hear from you again, Sarah! I have openings Tuesday and Thursday afternoons this week. Which works better for you? I'll send a link to grab a spot.",
+        styleReason:"Warm and specific — offered real times, not a generic link. When @jayrunz came back after going quiet, you also gave specific next steps. Returning leads get your personal touch.",
+        summary:'Returning lead', status:'Reply ready',
+        agentRead:'Returning lead · Reply drafted' },
+      { user:'@daniela.r', name:'Daniela Ruiz', avatar:'https://i.pravatar.cc/88?u=danielar', msg:"Do you do free consultations? I'd love to talk before committing", source:'DM', time:'5h', unread:1, intent:'Interested', mode:'ask',
+        context:"New follower (2 weeks), first DM. Wants to talk before buying — normal for high-ticket services.",
+        agentQuestion:"Daniela wants to talk before committing — do you offer free consultations? If yes, how should she book?",
+        askPlaceholder:"e.g., Yes, 15-min call at calendly.com/sofia",
+        draftTemplate:"Absolutely! I offer a free {answer}. It's a casual conversation — no commitment, just a chance to see if we're a good fit. Here's the link to grab a spot.",
+        styleReasonTemplate:"Kept it low-pressure — 'no commitment, just a conversation' removes the friction. You tend to be warmer with first-time contacts who show vulnerability.",
+        summary:'Wants a call', status:'Needs your input',
+        agentRead:'Wants a call · Needs your input' },
+    ],
+  },
+  {
+    intention: 'Questions about your services',
+    desc: 'They need info I don\'t have yet — help me answer.',
+    items: [
+      { user:'@mike.coach', name:'Mike Chen', avatar:'https://i.pravatar.cc/88?u=mikecoach', msg:"What's included in the premium program?", source:'DM', time:'3h', unread:1, intent:'FAQ', mode:'ask',
+        chatHistory: [
+          { from:'them', text:"Hey, quick question", time:'3h ago' },
+          { from:'automation', text:"Hi! Thanks for your message. I'll get back to you shortly — in the meantime, feel free to share what you're looking for!", time:'3h ago' },
+          { from:'them', text:"What's included in the premium program?", time:'3h ago' },
+        ],
+        context:"Following 4 months, engaged with content regularly. Direct question — not casual browsing.",
+        agentQuestion:"Mike is asking what's included in your premium program. What are the main features?",
+        askPlaceholder:"e.g., Weekly calls, meal plan, community, 60+ videos",
+        draftTemplate:"Great question! The program includes {answer}. Want me to send the full breakdown?",
+        styleReasonTemplate:"Listed the key features you shared and ended with a soft push. You usually keep FAQ replies short and end with a next step — I followed that pattern.",
+        summary:'Product question', status:'Needs your input',
+        agentRead:'Product question · Needs your input' },
+      { user:'@alex.j', name:'Alex Jordan', avatar:'https://i.pravatar.cc/88?u=alexj', msg:"Is there a refund policy?", source:'DM', time:'5h', unread:1, intent:'FAQ', mode:'ask',
+        context:"New contact, 1 week following. Refund questions usually mean they're close to buying but need safety.",
+        agentQuestion:"Alex is asking about your refund policy. What should I tell them?",
+        askPlaceholder:"e.g., 7-day money-back guarantee, no questions asked",
+        draftTemplate:"Yes — {answer}. Most people know within the first week if it's the right fit. Want to take a look at what's included before deciding?",
+        styleReasonTemplate:"Framed the guarantee as confidence, not a safety net. Added a soft redirect to what's included — you did something similar with @emma.k when she was hesitant.",
+        summary:'Refund question', status:'Needs your input',
+        agentRead:'Refund question · Needs your input' },
+      { user:'@carlos.m', name:'Carlos Mendez', avatar:'https://i.pravatar.cc/88?u=carlosm', msg:"Do you offer group sessions or is it only 1-on-1?", source:'DM', time:'2h', unread:1, intent:'FAQ', mode:'ask',
+        context:"Following 2 months. Commented on your group workout post last week — the interest is specific.",
+        agentQuestion:"Carlos wants to know if you offer group sessions. Do you?",
+        askPlaceholder:"e.g., 1-on-1 only right now, group program launching in January",
+        draftTemplate:"Right now it's {answer}. I'd love to find the right fit for you — want to chat about what you're looking for?",
+        styleReasonTemplate:"Kept the door open with a conversation invite. When you don't have what they're looking for, you tend to redirect to a call — I followed that.",
+        summary:'Group sessions question', status:'Needs your input',
+        agentRead:'Group sessions question · Needs your input' },
+    ],
+  },
+  {
+    intention: 'Shared something personal',
+    desc: 'These need your personal touch — no draft created.',
+    items: [
+      { user:'@lena.fit', name:'Lena Muller', avatar:'https://i.pravatar.cc/88?u=lenafit', msg:"You seem real. I've tried everything. I'm scared to spend more money.", source:'DM', time:'1h', unread:1, _sensitive:true,
+        summary:"Tried everything, scared to invest",
+        context:"She's been burned before. Emotionally invested but afraid. This isn't a sales moment — it needs your voice." },
+      { user:'@ana.healing', name:'Ana Reyes', avatar:'https://i.pravatar.cc/88?u=anahealing', msg:"I'm going through a really hard time and need something to focus on", source:'DM', time:'5h', _sensitive:true,
+        summary:"Going through a hard time",
+        context:"Personal difficulty. Looking for structure and support — acknowledge her situation before suggesting anything." },
+    ],
+  },
+];
+
+/* ═══ SHARED COMPONENTS ═══ */
+function BlackBtn({ label, onClick, disabled }) {
+  return (
+    <button onClick={onClick} disabled={disabled}
+      style={{ width:'100%', padding:'14px 0', background: disabled ? T.lightGray : T.ink, color: disabled ? T.gray : '#FFFFFF',
+        border:'none', borderRadius:12, fontSize:15, fontWeight:600, cursor: disabled ? 'default' : 'pointer',
+        transition:'all .2s ease', letterSpacing:'-0.01em' }}>
+      {label}
+    </button>
+  );
+}
+
+/* ─── Shared: Blue CTA Button ─── */
+function BlueBtn({ label, onClick, disabled }) {
+  return (
+    <button onClick={onClick} disabled={disabled}
+      style={{ width:'100%', padding:'16px 0', background: disabled ? T.lightGray : T.accent, color: disabled ? T.gray : '#FFFFFF',
+        border:'none', borderRadius:14, fontSize:16, fontWeight:600, cursor: disabled ? 'default' : 'pointer',
+        transition:'all .2s ease', letterSpacing:'-0.01em' }}>
+      {label}
+    </button>
+  );
+}
+
+/* ═══ ONBOARDING ═══ */
+
+/* Staggered fade-in messages (replaces TypeWriter — 2s instead of 25s) */
+function InboxMessages({ messages, onAllDone }) {
+  const [visibleCount, setVisibleCount] = useState(0);
+
+  useEffect(() => {
+    messages.forEach((_, i) => {
+      setTimeout(() => {
+        setVisibleCount(i + 1);
+        if (i === messages.length - 1 && onAllDone) {
+          setTimeout(onAllDone, 400);
+        }
+      }, 300 + i * 500);
+    });
+  }, [messages.length]);
+
+  return (
+    <div>
+      {messages.map((msg, i) => (
+        <div key={i} style={{ marginBottom: 10, opacity: i < visibleCount ? 1 : 0, transform: i < visibleCount ? 'translateY(0)' : 'translateY(12px)', transition: 'all .35s ease-out' }}>
+          {i === 0 && (
+            <div style={{ fontSize: 12, color: T.gray, marginBottom: 6, fontWeight: 500, letterSpacing: '0em' }}>
+              Inbox Agent
+            </div>
+          )}
+          <div style={{ background: T.warmGray, borderRadius: 18, borderTopLeftRadius: i === 0 ? 18 : 6, padding: '14px 18px', maxWidth: '88%', display: 'inline-block' }}>
+            <div style={{ fontSize: 15, color: T.ink, lineHeight: 1.55, letterSpacing: '-0.01em' }}>{msg}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ─── NEW Step 2: "Watch Me Work" — Live Processing Feed ─── */
+/* ─── Quick scan — 3 seconds, just a few status lines ─── */
+function ObSorting({ onNext }) {
+  const [vis, setVis] = useState(0);
+  const lines = [
+    'Reading your DMs...',
+    'Found some interesting conversations',
+    'I have a few questions for you',
+  ];
+
+  useEffect(() => {
+    const timers = [];
+    lines.forEach((_, i) => {
+      timers.push(setTimeout(() => setVis(i + 1), i * 900 + 400));
+    });
+    timers.push(setTimeout(onNext, lines.length * 900 + 800));
+    return () => timers.forEach(t => clearTimeout(t));
+  }, []);
+
+  return (
+    <div style={{ background:'#151515', height:'100%', display:'flex', flexDirection:'column', justifyContent:'center', padding:'0 28px' }}>
+      {lines.map((line, i) => (
+        <div key={i} style={{
+          fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:12,
+          opacity: vis > i ? 1 : 0,
+          transform: vis > i ? 'translateY(0)' : 'translateY(8px)',
+          transition:'opacity .45s ease, transform .45s ease',
+        }}>
+          {line}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ─── Business question — voice/type → recording → processing → confirmation ─── */
+function ObQuestion({ onNext }) {
+  // Phases: ask | recording | processing | confirm | fantastic
+  const [phase, setPhase] = useState('ask');
+  const [inputMode, setInputMode] = useState('voice'); // voice | typing
+  const [inputVal, setInputVal] = useState('');
+  const [vis, setVis] = useState(0);
+  const [confirmVis, setConfirmVis] = useState(0);
+  const [confirmBottom, setConfirmBottom] = useState('buttons'); // buttons | voice | typing
+  const [revision, setRevision] = useState(0);
+
+  // Each revision shows a different title + summary — the agent is learning
+  const revisions = [
+    {
+      title: "Did I get it right?",
+      subtitle: "Let me know if this is correct",
+      summary: "I run a fitness coaching business called Sofia Reyes Coaching. My main offer is a 12-Week Reboot program with weekly 1-on-1 calls, custom meal plans, and a private community. I also have a 4-Week Kickstart for beginners. Most of my leads come from Instagram DMs and post comments.",
+    },
+    {
+      title: "Okay, let me try again.",
+      subtitle: "Here's what I understand now",
+      summary: "Sofia Reyes Coaching offers two programs: the 12-Week Reboot ($597 or 3x $197/mo) with weekly 1-on-1 coaching, custom meal plans, and a private community — and the 4-Week Kickstart ($197) for beginners. Your main audience is women 25-40 interested in fitness transformations. Leads mostly come through Instagram DMs and comments on transformation posts.",
+    },
+    {
+      title: "Third time's the charm?",
+      subtitle: "I think I've got it now",
+      summary: "Sofia Reyes Coaching helps women 25-40 transform their fitness with two programs: the flagship 12-Week Reboot (1-on-1 coaching, custom nutrition, private community) and the entry-level 4-Week Kickstart. Most clients discover you through Instagram — especially your before/after posts and Reels. Your biggest conversion driver is DM conversations where you address hesitation around cost and commitment. You also get collab requests from fitness brands weekly.",
+    },
+  ];
+
+  const current = revisions[Math.min(revision, revisions.length - 1)];
+
+  // Intro animation
+  useEffect(() => {
+    if (phase !== 'ask') return;
+    const timers = [];
+    for (let i = 1; i <= 3; i++) timers.push(setTimeout(() => setVis(i), i * 500 + 200));
+    return () => timers.forEach(t => clearTimeout(t));
+  }, [phase]);
+
+  // Confirm animation
+  useEffect(() => {
+    if (phase !== 'confirm') return;
+    const timers = [];
+    for (let i = 1; i <= 4; i++) timers.push(setTimeout(() => setConfirmVis(i), i * 400 + 200));
+    return () => timers.forEach(t => clearTimeout(t));
+  }, [phase]);
+
+  // Processing → confirm
+  useEffect(() => {
+    if (phase !== 'processing') return;
+    const t = setTimeout(() => {
+      setConfirmVis(0);
+      setConfirmBottom('buttons');
+      setPhase('confirm');
+    }, 2000);
+    return () => clearTimeout(t);
+  }, [phase]);
+
+  // Fantastic → onNext
+  useEffect(() => {
+    if (phase !== 'fantastic') return;
+    const t = setTimeout(onNext, 1800);
+    return () => clearTimeout(t);
+  }, [phase]);
+
+  const show = (i) => ({
+    opacity: vis >= i ? 1 : 0,
+    transform: vis >= i ? 'translateY(0)' : 'translateY(8px)',
+    transition:'opacity .45s ease, transform .45s ease',
+  });
+
+  const cShow = (i) => ({
+    opacity: confirmVis >= i ? 1 : 0,
+    transform: confirmVis >= i ? 'translateY(0)' : 'translateY(8px)',
+    transition:'opacity .45s ease, transform .45s ease',
+  });
+
+  const handleRelease = () => {
+    setPhase('processing');
+  };
+
+  const handleTypeSend = () => {
+    if (!inputVal.trim()) return;
+    setPhase('processing');
+  };
+
+  const handleEdit = () => {
+    setConfirmBottom('voice');
+  };
+
+  const MicIcon = ({ size=24, color='#151515' }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+      <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+      <line x1="12" y1="19" x2="12" y2="23"/>
+      <line x1="8" y1="23" x2="16" y2="23"/>
+    </svg>
+  );
+
+  /* ── ASK phase ── */
+  if (phase === 'ask') return (
+    <div style={{ background:'#151515', height:'100%', display:'flex', flexDirection:'column' }}>
+      <div style={{ flex:1, display:'flex', flexDirection:'column', padding:'100px 28px 0' }}>
+        <div style={{ marginBottom:16, ...show(1) }}>
+          <h1 style={{ fontSize:34, fontWeight:900, color:'#fff', letterSpacing:'-0.04em', lineHeight:1.12, WebkitTextStroke:'0.5px #fff' }}>
+            Tell me more about your business
+          </h1>
+        </div>
+        <div style={{ ...show(2) }}>
+          <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6 }}>
+            I have found people like Emma Kim interested in your service, but I would like to learn more about your business to find the right messages.
+          </p>
+        </div>
+      </div>
+
+      {inputMode === 'voice' && (
+        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', padding:'0 28px 40px', ...show(3) }}>
+          <div onMouseDown={() => setPhase('recording')} onTouchStart={() => setPhase('recording')}
+            style={{ width:64, height:64, borderRadius:32, background:'#fff', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', marginBottom:12 }}>
+            <MicIcon />
+          </div>
+          <span style={{ fontSize:14, color:'rgba(255,255,255,0.6)', marginBottom:40 }}>Hold and talk</span>
+          <span onClick={() => setInputMode('typing')} style={{ fontSize:14, color:'rgba(255,255,255,0.4)', cursor:'pointer' }}>Or tap to type</span>
+        </div>
+      )}
+
+      {inputMode === 'typing' && (
+        <div style={{ padding:'0 28px 40px', ...show(3) }}>
+          <textarea value={inputVal} onChange={e => setInputVal(e.target.value)} autoFocus
+            placeholder="Describe your business or share your website..."
+            style={{ width:'100%', fontSize:16, color:'#fff', lineHeight:1.5, padding:'14px 16px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:16, resize:'none', height:100, fontFamily:'Inter, system-ui, sans-serif', outline:'none', letterSpacing:'-0.01em' }} />
+          <div style={{ display:'flex', gap:10, marginTop:12 }}>
+            <button onClick={handleTypeSend}
+              style={{ flex:1, padding:'14px', background:'#fff', color:'#151515', border:'none', borderRadius:50, fontSize:15, fontWeight:600, cursor:'pointer' }}>
+              Continue
+            </button>
+            <button onClick={() => setInputMode('voice')}
+              style={{ padding:'14px 20px', background:'transparent', border:'1.5px solid rgba(255,255,255,0.12)', borderRadius:50, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
+              <MicIcon size={18} color="rgba(255,255,255,0.5)" />
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  /* ── RECORDING phase ── */
+  if (phase === 'recording') return (
+    <div style={{ background:'#151515', height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}
+      onMouseUp={handleRelease} onTouchEnd={handleRelease}>
+      {/* Pulsing rings */}
+      <div style={{ position:'relative', width:100, height:100, display:'flex', alignItems:'center', justifyContent:'center' }}>
+        <div style={{ position:'absolute', inset:0, borderRadius:'50%', border:'2px solid rgba(255,59,48,0.3)', animation:'recordPulse 1.2s ease-out infinite' }} />
+        <div style={{ position:'absolute', inset:0, borderRadius:'50%', border:'2px solid rgba(255,59,48,0.2)', animation:'recordPulse 1.2s ease-out 0.4s infinite' }} />
+        <div style={{
+          width:72, height:72, borderRadius:36, background:'#FF3B30',
+          display:'flex', alignItems:'center', justifyContent:'center',
+          animation:'recordGlow 1.5s ease infinite',
+        }}>
+          <MicIcon size={28} color="#fff" />
+        </div>
+      </div>
+      <p style={{ fontSize:16, color:'#fff', marginTop:24 }}>Listening...</p>
+      <p style={{ fontSize:13, color:'rgba(255,255,255,0.35)', marginTop:8 }}>Release to stop</p>
+    </div>
+  );
+
+  /* ── PROCESSING phase ── */
+  if (phase === 'processing') return (
+    <div style={{ background:'#151515', height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
+      <div style={{ display:'flex', gap:8, marginBottom:16 }}>
+        {[0,1,2].map(i => (
+          <div key={i} style={{ width:8, height:8, borderRadius:4, background:'#fff', animation:`thinkDots 1.2s ease infinite ${i * 0.2}s` }} />
+        ))}
+      </div>
+      <p style={{ fontSize:16, color:'rgba(255,255,255,0.5)' }}>Processing...</p>
+    </div>
+  );
+
+  /* ── CONFIRM phase ── */
+  if (phase === 'confirm') return (
+    <div style={{ background:'#151515', height:'100%', display:'flex', flexDirection:'column' }}>
+      <div style={{ flex:1, display:'flex', flexDirection:'column', padding:'100px 28px 0' }}>
+        <div style={{ marginBottom:12, ...cShow(1) }}>
+          <h1 style={{ fontSize:34, fontWeight:900, color:'#fff', letterSpacing:'-0.04em', lineHeight:1.12, WebkitTextStroke:'0.5px #fff' }}>
+            {current.title}
+          </h1>
+        </div>
+        <div style={{ ...cShow(2) }}>
+          <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:20 }}>
+            {current.subtitle}
+          </p>
+        </div>
+        <div style={{ ...cShow(3) }}>
+          <div style={{ padding:'18px 18px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:16 }}>
+            <p style={{ fontSize:15, fontWeight:400, color:'rgba(255,255,255,0.5)', lineHeight:1.6 }}>{current.summary}</p>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ padding:'0 28px 40px', ...cShow(4) }}>
+        {/* Buttons mode */}
+        {confirmBottom === 'buttons' && (
+          <div className="fade-in">
+            <button onClick={() => setPhase('fantastic')}
+              style={{ width:'100%', padding:'16px', background:'#fff', color:'#151515', border:'none', borderRadius:50, fontSize:16, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em', marginBottom:10 }}>
+              It's good
+            </button>
+            <button onClick={handleEdit}
+              style={{ width:'100%', padding:'16px', background:'transparent', color:'rgba(255,255,255,0.5)', border:'1.5px solid rgba(255,255,255,0.12)', borderRadius:50, fontSize:15, fontWeight:500, cursor:'pointer', letterSpacing:'-0.01em' }}>
+              Edit
+            </button>
+          </div>
+        )}
+
+        {/* Voice edit mode */}
+        {confirmBottom === 'voice' && (
+          <div className="fade-in" style={{ display:'flex', flexDirection:'column', alignItems:'center' }}>
+            <div onMouseDown={() => { setRevision(r => r + 1); setPhase('recording'); }} onTouchStart={() => { setRevision(r => r + 1); setPhase('recording'); }}
+              style={{ width:56, height:56, borderRadius:28, background:'#fff', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', marginBottom:8 }}>
+              <MicIcon size={20} />
+            </div>
+            <span style={{ fontSize:13, color:'rgba(255,255,255,0.4)', marginBottom:24 }}>Talk to make changes</span>
+            <span onClick={() => setConfirmBottom('typing')} style={{ fontSize:14, color:'rgba(255,255,255,0.3)', cursor:'pointer' }}>Or tap to type</span>
+          </div>
+        )}
+
+        {/* Typing edit mode */}
+        {confirmBottom === 'typing' && (
+          <div className="fade-in">
+            <textarea value={inputVal} onChange={e => setInputVal(e.target.value)} autoFocus
+              placeholder="Tell me what to change..."
+              style={{ width:'100%', fontSize:16, color:'#fff', lineHeight:1.5, padding:'14px 16px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:16, resize:'none', height:80, fontFamily:'Inter, system-ui, sans-serif', outline:'none', letterSpacing:'-0.01em' }} />
+            <div style={{ display:'flex', gap:10, marginTop:12 }}>
+              <button onClick={() => { setRevision(r => r + 1); setPhase('processing'); setConfirmBottom('buttons'); }}
+                style={{ flex:1, padding:'14px', background:'#fff', color:'#151515', border:'none', borderRadius:50, fontSize:15, fontWeight:600, cursor:'pointer' }}>
+                Update
+              </button>
+              <button onClick={() => setConfirmBottom('voice')}
+                style={{ padding:'14px 20px', background:'transparent', border:'1.5px solid rgba(255,255,255,0.12)', borderRadius:50, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                <MicIcon size={18} color="rgba(255,255,255,0.5)" />
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  /* ── FANTASTIC phase ── */
+  return (
+    <div style={{ background:'#151515', height:'100%', display:'flex', flexDirection:'column', justifyContent:'center', padding:'0 28px' }}>
+      <div className="fade-up">
+        <h1 style={{ fontSize:34, fontWeight:900, color:'#fff', letterSpacing:'-0.04em', lineHeight:1.12, WebkitTextStroke:'0.5px #fff', marginBottom:16 }}>
+          Fantastic.
+        </h1>
+        <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6 }}>
+          Let me continue analyzing your messages with this in mind.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Quick loading after business question ─── */
+function ObLoading2({ onNext }) {
+  const [vis, setVis] = useState(0);
+  const lines = [
+    'Got it, analyzing your conversations...',
+    'Matching messages to your business...',
+    'Found some patterns',
+  ];
+
+  useEffect(() => {
+    const timers = [];
+    lines.forEach((_, i) => {
+      timers.push(setTimeout(() => setVis(i + 1), i * 800 + 300));
+    });
+    timers.push(setTimeout(onNext, lines.length * 800 + 700));
+    return () => timers.forEach(t => clearTimeout(t));
+  }, []);
+
+  return (
+    <div style={{ background:'#151515', height:'100%', display:'flex', flexDirection:'column', justifyContent:'center', padding:'0 28px' }}>
+      {lines.map((line, i) => (
+        <div key={i} style={{
+          fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:12,
+          opacity: vis > i ? 1 : 0,
+          transform: vis > i ? 'translateY(0)' : 'translateY(8px)',
+          transition:'opacity .45s ease, transform .45s ease',
+        }}>
+          {line}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ─── Categorization screen — toggle categories + add custom ─── */
+function ObCategories({ onNext }) {
+  const [vis, setVis] = useState(0);
+  const [phase, setPhase] = useState('list'); // list | analyzing | done
+  const [categories, setCategories] = useState([
+    { id:'coaching', label:'Interested in your coaching programs', on:true },
+    { id:'booking', label:'Want to book a session or call', on:true },
+    { id:'pricing', label:'Questions about pricing', on:true },
+    { id:'collab', label:'Collaboration and partnership requests', on:true },
+    { id:'support', label:'Existing clients needing support', on:false },
+    { id:'personal', label:'Personal or emotional messages', on:true },
+  ]);
+  const [customVal, setCustomVal] = useState('');
+  const [showCustom, setShowCustom] = useState(false);
+  const [analyzeLabel, setAnalyzeLabel] = useState('');
+  const [analyzeVis, setAnalyzeVis] = useState(0);
+
+  useEffect(() => {
+    const timers = [];
+    for (let i = 1; i <= 4; i++) timers.push(setTimeout(() => setVis(i), i * 400 + 200));
+    return () => timers.forEach(t => clearTimeout(t));
+  }, []);
+
+  // Analyzing phase → back to list
+  useEffect(() => {
+    if (phase !== 'analyzing') return;
+    setAnalyzeVis(0);
+    const lines = 3;
+    const timers = [];
+    for (let i = 1; i <= lines; i++) timers.push(setTimeout(() => setAnalyzeVis(i), i * 700 + 200));
+    timers.push(setTimeout(() => setPhase('list'), lines * 700 + 800));
+    return () => timers.forEach(t => clearTimeout(t));
+  }, [phase]);
+
+  const show = (i) => ({
+    opacity: vis >= i ? 1 : 0,
+    transform: vis >= i ? 'translateY(0)' : 'translateY(8px)',
+    transition:'opacity .45s ease, transform .45s ease',
+  });
+
+  const toggle = (id) => {
+    setCategories(cats => cats.map(c => c.id === id ? { ...c, on: !c.on } : c));
+  };
+
+  const addCustom = () => {
+    if (!customVal.trim()) return;
+    const label = customVal.trim();
+    setCategories(cats => [...cats, { id:'custom-' + Date.now(), label, on:true }]);
+    setAnalyzeLabel(label);
+    setCustomVal('');
+    setShowCustom(false);
+    setPhase('analyzing');
+  };
+
+  // Analyzing screen
+  if (phase === 'analyzing') {
+    const aShow = (i) => ({
+      opacity: analyzeVis >= i ? 1 : 0,
+      transform: analyzeVis >= i ? 'translateY(0)' : 'translateY(8px)',
+      transition:'opacity .45s ease, transform .45s ease',
+    });
+    return (
+      <div style={{ background:'#151515', height:'100%', display:'flex', flexDirection:'column', justifyContent:'center', padding:'0 28px' }}>
+        <div style={{ ...aShow(1) }}>
+          <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:12 }}>
+            Analyzing "{analyzeLabel}"...
+          </p>
+        </div>
+        <div style={{ ...aShow(2) }}>
+          <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:12 }}>
+            Matching it with your DMs
+          </p>
+        </div>
+        <div style={{ ...aShow(3) }}>
+          <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6 }}>
+            Found some matches
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // List screen
+  return (
+    <div style={{ background:'#151515', height:'100%', display:'flex', flexDirection:'column' }}>
+      <div style={{ flex:1, overflowY:'auto', padding:'100px 28px 0' }}>
+        <div style={{ marginBottom:12, ...show(1) }}>
+          <h1 style={{ fontSize:34, fontWeight:900, color:'#fff', letterSpacing:'-0.04em', lineHeight:1.12, WebkitTextStroke:'0.5px #fff' }}>
+            Here's what I found.
+          </h1>
+        </div>
+        <div style={{ ...show(2) }}>
+          <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:24 }}>
+            I grouped your conversations into these categories. Turn off any that don't matter to you.
+          </p>
+        </div>
+
+        {/* Category toggles */}
+        <div style={{ display:'flex', flexDirection:'column', gap:8, ...show(3) }}>
+          {categories.map(cat => (
+            <div key={cat.id} onClick={() => toggle(cat.id)}
+              style={{
+                display:'flex', alignItems:'center', justifyContent:'space-between',
+                padding:'16px 16px', borderRadius:14,
+                background: cat.on ? 'rgba(255,255,255,0.06)' : 'transparent',
+                border: cat.on ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(255,255,255,0.06)',
+                cursor:'pointer', transition:'all .2s ease',
+              }}>
+              <span style={{ fontSize:15, fontWeight:400, color: cat.on ? '#fff' : 'rgba(255,255,255,0.3)', letterSpacing:'-0.01em', flex:1, transition:'color .2s ease' }}>
+                {cat.label}
+              </span>
+              <div style={{
+                width:40, height:24, borderRadius:12, flexShrink:0, marginLeft:12,
+                background: cat.on ? '#fff' : 'rgba(255,255,255,0.12)',
+                padding:2, transition:'background .2s ease',
+              }}>
+                <div style={{
+                  width:20, height:20, borderRadius:10,
+                  background: cat.on ? '#151515' : 'rgba(255,255,255,0.3)',
+                  transform: cat.on ? 'translateX(16px)' : 'translateX(0)',
+                  transition:'all .2s ease',
+                }} />
+              </div>
+            </div>
+          ))}
+
+          {/* Add custom */}
+          {!showCustom ? (
+            <div onClick={() => setShowCustom(true)}
+              style={{ display:'flex', alignItems:'center', gap:10, padding:'16px', borderRadius:14, border:'1.5px dashed rgba(255,255,255,0.1)', cursor:'pointer' }}>
+              <span style={{ fontSize:16, color:'rgba(255,255,255,0.2)', fontWeight:300 }}>+</span>
+              <span style={{ fontSize:15, color:'rgba(255,255,255,0.3)' }}>Add a category</span>
+            </div>
+          ) : (
+            <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+              <input value={customVal} onChange={e => setCustomVal(e.target.value)} autoFocus
+                placeholder="Type a category..."
+                onKeyDown={e => { if (e.key === 'Enter') addCustom(); }}
+                style={{ flex:1, padding:'14px 16px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:14, fontSize:15, color:'#fff', fontFamily:'Inter, system-ui, sans-serif', outline:'none', letterSpacing:'-0.01em' }} />
+              {customVal.trim() && (
+                <div onClick={addCustom}
+                  style={{ width:40, height:40, borderRadius:20, background:'#fff', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0 }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#151515" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div style={{ padding:'0 28px 40px', ...show(4) }}>
+        <button onClick={onNext}
+          style={{ width:'100%', padding:'16px', background:'#fff', color:'#151515', border:'none', borderRadius:50, fontSize:16, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em' }}>
+          Looks good
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ═══ INBOX COMPONENTS ═══ */
+function AgentPillText() {
+  const [idx, setIdx] = useState(0);
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setVisible(false);
+      setTimeout(() => {
+        setIdx(i => (i + 1) % AGENT_STATUS.length);
+        setTimeout(() => setVisible(true), 60);
+      }, 400);
+    }, 3500);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <span style={{
+      fontSize:12, fontWeight:400, color:'rgba(255,255,255,0.85)', letterSpacing:'-0.01em',
+      opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(-2px)',
+      transition:'opacity .35s ease, transform .35s ease',
+      whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', display:'block', flex:1, minWidth:0,
+    }}>
+      {AGENT_STATUS[idx]}
+    </span>
+  );
+}
+
+const AGENT_STATUS = [
+  'Watching for new messages',
+  'Reading new DMs as they come in',
+  'Checking if any leads have gone quiet',
+  'Keeping your reply drafts up to date',
+  'Looking for new buying signals',
+  'Making sure nothing slips through',
+  'Noting how your audience writes',
+  'Keeping your voice consistent across replies',
+];
+
+const AGENT_INSIGHTS = [
+  "Your audience is really responding to you. @jayrunz said \"You're the only creator who actually replies\" — that kind of trust is rare.",
+  "People keep coming back to your 12-week course page. 3 repeat visitors this week asked follow-up questions — they're close to signing up.",
+  "Your response time is faster than 90% of creators your size. That's a huge trust signal — people notice when you show up quickly.",
+  "@emma.k told a friend about your coaching. Word of mouth is working — you might see more referrals this week.",
+  "The way you handle pricing questions is really effective. Most creators dodge it, but you lean in — and it's converting.",
+  "6 people saved your last post. When they come to DMs, they already trust you. That makes my job easier.",
+  "Your audience asks thoughtful questions — that means they're engaged, not just browsing. This is a quality community.",
+  "@lena.fit came back after 3 weeks. She's been reading your stories. Sometimes people just need time — and you gave her that space.",
+];
+
+/* ─── Expanded agent screen (fullscreen black overlay) ─── */
+function AgentExpandedScreen({ onDismiss }) {
+  const [showInsight, setShowInsight] = useState(false);
+  const [insight] = useState(() => AGENT_INSIGHTS[Math.floor(Math.random() * AGENT_INSIGHTS.length)]);
+
+  useEffect(() => {
+    const t = setTimeout(() => setShowInsight(true), 600);
+    return () => clearTimeout(t);
+  }, []);
+
+  return (
+    <div className="pill-expand" style={{
+      position:'absolute', inset:0, zIndex:90,
+      background:'#151515',
+      display:'flex', flexDirection:'column',
+      padding:'60px 22px 40px',
+      overflow:'hidden',
+    }}>
+      {/* Close */}
+      <div style={{ flexShrink:0, display:'flex', justifyContent:'flex-end', marginBottom:20 }}>
+        <div onClick={onDismiss} style={{ cursor:'pointer', fontSize:16, color:'rgba(255,255,255,0.5)', padding:'8px 12px', margin:'-8px -12px' }}>✕</div>
+      </div>
+
+      {/* TOP: Status + Stats */}
+      <div style={{ display:'flex', alignItems:'center', gap:7, marginBottom:24 }}>
+        <div style={{ width:7, height:7, borderRadius:4, background:'#2E86FD', flexShrink:0, animation:'pulse 1.4s ease-in-out infinite' }} />
+        <div style={{ fontSize:15, fontWeight:600, color:'#fff', letterSpacing:'-0.02em' }}>Analyzing your DMs</div>
+      </div>
+
+      <div style={{ display:'flex', gap:0, marginBottom:28 }}>
+        {[
+          { n:'18', label:'interested' },
+          { n:'12', label:'replies ready' },
+          { n:'4m', label:'saved per reply' },
+        ].map((s, i) => (
+          <div key={i} style={{ flex:1 }}>
+            <div style={{ fontSize:22, fontWeight:700, color:'#fff', letterSpacing:'-0.03em', lineHeight:1.1 }}>{s.n}</div>
+            <div style={{ fontSize:11, color:'rgba(255,255,255,0.38)', marginTop:4 }}>{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* MIDDLE: Recent activity */}
+      <div style={{ fontSize:10, fontWeight:700, color:'rgba(255,255,255,0.3)', letterSpacing:'0.07em', textTransform:'uppercase', marginBottom:10 }}>
+        Recent activity
+      </div>
+      <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:28 }}>
+        {[
+          'Sorted 142 DMs by priority',
+          'Drafted 12 replies matching your tone',
+          'Found 18 people interested in your course',
+          'Filtered out 96 spam and noise',
+        ].map((line, i) => (
+          <div key={i} className="fade-up" style={{ display:'flex', alignItems:'center', gap:10, animationDelay:`${i * 0.06}s` }}>
+            <div style={{ width:4, height:4, borderRadius:2, background:'rgba(255,255,255,0.2)', flexShrink:0 }} />
+            <div style={{ fontSize:13, color:'rgba(255,255,255,0.55)', letterSpacing:'-0.01em' }}>{line}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* BOTTOM: Conversational insight — streaming */}
+      <div style={{ marginTop:'auto', borderTop:'1px solid rgba(255,255,255,0.06)', paddingTop:20 }}>
+        {showInsight && (
+          <div style={{ fontSize:15, fontWeight:400, color:'#ffffff', lineHeight:1.55, letterSpacing:'-0.01em', marginBottom:20 }}>
+            <StreamText text={insight} speed={18} delay={200} style={{}} />
+          </div>
+        )}
+
+        <button onClick={onDismiss}
+          style={{ width:'100%', padding:'14px 0', background:'#fff', color:'#151515', border:'none', borderRadius:12, fontSize:14, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em' }}>
+          Got it
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Message row (IG DM style) ─── */
+function MsgRow({ user, name, avatar, time, onClick, isLast, isAsk, summary, status }) {
+  return (
+    <div>
+      <div onClick={onClick} style={{ display:'flex', alignItems:'flex-start', gap:12, padding:'16px 0 8px', cursor:'pointer' }}>
+        <img src={avatar} alt="" style={{ width:32, height:32, borderRadius:400, objectFit:'cover', flexShrink:0, border:'0.5px solid rgba(44,50,58,0.12)', marginTop:2 }} />
+        <div style={{ flex:1, minWidth:0 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:4 }}>
+            <span style={{ fontSize:14, fontWeight:500, color:T.ink, letterSpacing:'-0.01em', lineHeight:'20px' }}>{name || user}</span>
+            <span style={{ fontSize:12, color:T.gray, fontWeight:400, flexShrink:0, lineHeight:'16px' }}>{time}</span>
+          </div>
+          {summary && (
+            <div style={{ fontSize:14, color:T.ink, fontWeight:400, lineHeight:'20px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', marginBottom:4 }}>{summary}</div>
+          )}
+          {status && (
+            <div style={{ fontSize:12, color:T.gray, fontWeight:400, lineHeight:'16px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+              {status}
+            </div>
+          )}
+        </div>
+      </div>
+      {!isLast && (
+        <div style={{ marginLeft:44, height:1, background:T.lightGray }} />
+      )}
+    </div>
+  );
+}
+
+/* ═══ AGENT DARK MODE TOKENS (from Figma) ═══ */
+const A = {
+  bg: '#151515',        // color.neutral.900 — sheet background
+  surface: '#292929',   // color.neutral.800 — draft card bg
+  border: '#878787',    // color.border.hovered — draft card border
+  text: '#ffffff',      // color.text.inverse — primary text
+  subtle: '#707070',    // color.text.subtle — secondary text
+  btnText: '#292929',   // color.text.default — button text on white
+  btnBorder: '#292929', // border for secondary/tertiary buttons
+};
+
+/* ─── Agent Sheet Shell — single source of truth for agent bottom sheet ─── */
+function AgentSheetShell({ children, onDismiss }) {
+  const [dragY, setDragY] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const startY = useRef(0);
+
+  const handleTouchStart = (e) => { startY.current = e.touches[0].clientY; setDragging(true); };
+  const handleMouseDown = (e) => { startY.current = e.clientY; setDragging(true); };
+
+  const handleMove = (clientY) => {
+    if (!dragging) return;
+    const delta = clientY - startY.current;
+    setDragY(Math.max(0, delta));
+  };
+
+  const handleEnd = () => {
+    setDragging(false);
+    if (dragY > 100 && onDismiss) { onDismiss(); }
+    else { setDragY(0); }
+  };
+
+  return (
+    <div className="sheet-up" style={{
+      flexShrink:0, zIndex:10,
+      background:A.bg, borderRadius:24,
+      padding:'16px 24px 54px',
+      boxShadow:'0 0 20px rgba(0,0,0,0.25)',
+      maxHeight:'80%', display:'flex', flexDirection:'column', gap:16,
+      transform:`translateY(${dragY}px)`,
+      transition: dragging ? 'none' : 'transform .3s ease',
+      opacity: dragging ? Math.max(0.5, 1 - dragY / 300) : 1,
+    }}
+      onTouchMove={e => handleMove(e.touches[0].clientY)}
+      onMouseMove={e => { if (dragging) handleMove(e.clientY); }}
+      onTouchEnd={handleEnd}
+      onMouseUp={handleEnd}
+      onMouseLeave={() => { if (dragging) handleEnd(); }}
+    >
+      {/* Grab handle — drag zone */}
+      <div
+        onTouchStart={handleTouchStart}
+        onMouseDown={handleMouseDown}
+        style={{ padding:'4px 0 8px', cursor:'grab', flexShrink:0 }}>
+        <div style={{ width:36, height:4, background:'rgba(255,255,255,0.14)', borderRadius:2, margin:'0 auto' }} />
+      </div>
+      {children}
+    </div>
+  );
+}
+
+/* ─── Shared: Agent thinking indicator ─── */
+function AgentThinking() {
+  return (
+    <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center' }}>
+      <div style={{ animation:'pulse 1.2s ease infinite', fontSize:16, color:'rgba(255,255,255,0.45)' }}>Thinking...</div>
+    </div>
+  );
+}
+
+/* ─── Shared: Agent action buttons (Yes send / Edit / I'll write) ─── */
+function AgentButtons({ onSend, onEdit, onSkip }) {
+  return (
+    <div style={{ display:'flex', gap:16, alignItems:'center', flexShrink:0 }}>
+      <button onClick={onSend}
+        style={{ flex:1, padding:'8px 16px', background:A.text, color:A.btnText, border:'none', borderRadius:12, fontSize:15, fontWeight:500, cursor:'pointer', lineHeight:'22px', letterSpacing:'-0.195px' }}>
+        Yes, send
+      </button>
+      <button onClick={onEdit}
+        style={{ flex:1, padding:'8px 16px', background:'transparent', border:`1px solid ${A.btnBorder}`, borderRadius:12, fontSize:15, fontWeight:500, cursor:'pointer', color:A.text, lineHeight:'22px', letterSpacing:'-0.195px' }}>
+        Edit
+      </button>
+      <button onClick={onSkip}
+        style={{ flex:1, padding:'8px 16px', background:'transparent', border:`1px solid ${A.btnBorder}`, borderRadius:12, fontSize:15, fontWeight:500, cursor:'pointer', color:A.text, lineHeight:'22px', letterSpacing:'-0.195px' }}>
+        I'll write
+      </button>
+    </div>
+  );
+}
+
+/* ─── Shared: Draft card (dark card with border) ─── */
+function AgentDraftCard({ text }) {
+  return (
+    <div style={{ padding:16, borderRadius:12, background:A.surface, border:`1px solid ${A.border}` }}>
+      <div style={{ fontSize:16, fontWeight:400, color:A.text, lineHeight:'24px' }}>{text}</div>
+    </div>
+  );
+}
+
+/* ─── Shared: "Why this reply" toggle ─── */
+function AgentWhyReply({ reason }) {
+  const [show, setShow] = useState(false);
+  if (!reason) return null;
+  return (
+    <div>
+      {!show && (
+        <div onClick={() => setShow(true)}
+          style={{ fontSize:12, color:A.subtle, cursor:'pointer', display:'flex', alignItems:'center', gap:4, lineHeight:'16px' }}>
+          Why this reply <span style={{ fontSize:10 }}>&#8964;</span>
+        </div>
+      )}
+      {show && (
+        <div className="fade-in" style={{ fontSize:12, color:A.subtle, lineHeight:'16px' }}>
+          {reason}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Agent Sheet — bottom sheet matching Figma design ─── */
+function AgentSheet({ item, onSend, onEdit, onSkip }) {
+  const [phase, setPhase] = useState('thinking');
+  const [showStyleReason, setShowStyleReason] = useState(false);
+  const [dragY, setDragY] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
+  const dragStartY = useRef(0);
+
+  const questions = ['Should I send it?','Want me to send this?','Ready to send?','Should I go ahead?','Does this work?','Good to send?'];
+  const [question] = useState(() => questions[Math.floor(Math.random() * questions.length)]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setPhase('ready'), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleTouchStart = (e) => {
+    dragStartY.current = e.touches[0].clientY;
+    setDragging(true);
+  };
+  const handleMouseDown = (e) => {
+    dragStartY.current = e.clientY;
+    setDragging(true);
+  };
+  const handleMove = (clientY) => {
+    if (!dragging) return;
+    const delta = clientY - dragStartY.current;
+    if (delta > 0) setDragY(delta);
+  };
+  const handleEnd = () => {
+    setDragging(false);
+    if (dragY > 120) {
+      setDismissed(true);
+      setTimeout(onSkip, 300);
+    } else {
+      setDragY(0);
+    }
+  };
+
+  useEffect(() => {
+    if (!dragging) return;
+    const onTouchMove = (e) => handleMove(e.touches[0].clientY);
+    const onMouseMove = (e) => handleMove(e.clientY);
+    const onEnd = () => handleEnd();
+    window.addEventListener('touchmove', onTouchMove, { passive:true });
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('touchend', onEnd);
+    window.addEventListener('mouseup', onEnd);
+    return () => {
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('touchend', onEnd);
+      window.removeEventListener('mouseup', onEnd);
+    };
+  }, [dragging, dragY]);
+
+  return (
+    <div className="sheet-up"
+      onTouchStart={handleTouchStart} onMouseDown={handleMouseDown}
+      style={{
+      flexShrink:0, zIndex:10,
+      background:'#151515', borderRadius:'24px 24px 0 0',
+      transform: `translateY(${dismissed ? '100%' : dragY + 'px'})`,
+      transition: dragging ? 'none' : 'transform .3s cubic-bezier(.32,.72,.35,1)',
+      opacity: dismissed ? 0 : 1,
+      padding:'16px 24px 54px',
+      boxShadow:'0 0 20px rgba(0,0,0,0.25)',
+      cursor: dragging ? 'grabbing' : 'grab',
+      maxHeight:'60%', display:'flex', flexDirection:'column', gap:16,
+    }}>
+
+      {/* Handle bar */}
+      <div style={{ width:36, height:4, background:'rgba(255,255,255,0.14)', borderRadius:2, margin:'0 auto 4px', flexShrink:0 }} />
+
+      {/* Thinking state */}
+      {phase === 'thinking' && (
+        <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <div style={{ animation:'pulse 1.2s ease infinite', fontSize:16, color:'rgba(255,255,255,0.45)' }}>Thinking...</div>
+        </div>
+      )}
+
+      {/* Ready */}
+      {phase === 'ready' && (
+        <>
+          <div className="fade-in" style={{ display:'flex', flexDirection:'column', gap:16 }}>
+            {/* Reason — white, 16px */}
+            <div style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.5 }}>
+              {item.context || ''}
+            </div>
+
+            {/* Draft — dark card with border */}
+            <div style={{
+              padding:16, borderRadius:12,
+              background:'#1E1E1E', border:'1px solid rgba(255,255,255,0.12)',
+            }}>
+              <div style={{ fontSize:16, fontWeight:400, color:'rgba(255,255,255,0.85)', lineHeight:1.5 }}>
+                {item.draft}
+              </div>
+            </div>
+
+            {/* Why this reply */}
+            {item.styleReason && (
+              <div>
+                {!showStyleReason && (
+                  <div onClick={() => setShowStyleReason(true)}
+                    style={{ fontSize:12, color:'#707070', cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
+                    Why this reply <span style={{ fontSize:10 }}>&#8964;</span>
+                  </div>
+                )}
+                {showStyleReason && (
+                  <div className="fade-in" style={{ fontSize:14, color:'#707070', lineHeight:1.5 }}>
+                    {item.styleReason}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Question */}
+            <div style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.5 }}>
+              {question}
+            </div>
+          </div>
+
+          {/* Buttons */}
+          <div style={{ display:'flex', gap:8, alignItems:'center', flexShrink:0 }}>
+            <button onClick={onSend}
+              style={{ flex:1, padding:'13px 0', background:'#fff', color:'#151515', border:'none', borderRadius:50, fontSize:14, fontWeight:700, cursor:'pointer', letterSpacing:'-0.01em' }}>
+              Yes, send
+            </button>
+            <button onClick={onEdit}
+              style={{ flex:1, padding:'13px 0', background:'transparent', border:'1px solid rgba(255,255,255,0.2)', borderRadius:50, fontSize:14, fontWeight:500, cursor:'pointer', color:'rgba(255,255,255,0.7)', letterSpacing:'-0.01em' }}>
+              Edit
+            </button>
+            <button onClick={onSkip}
+              style={{ flex:1, padding:'13px 0', background:'transparent', border:'1px solid rgba(255,255,255,0.2)', borderRadius:50, fontSize:14, fontWeight:500, cursor:'pointer', color:'rgba(255,255,255,0.7)', letterSpacing:'-0.01em' }}>
+              I'll write
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/* ─── Streaming text — character-by-character like ChatGPT/Claude ─── */
+function StreamText({ text, speed = 22, delay = 0, onDone, style }) {
+  const [displayed, setDisplayed] = useState('');
+  const [done, setDone] = useState(false);
+  const idx = useRef(0);
+
+  useEffect(() => {
+    const start = setTimeout(() => {
+      const interval = setInterval(() => {
+        idx.current++;
+        setDisplayed(text.slice(0, idx.current));
+        if (idx.current >= text.length) {
+          clearInterval(interval);
+          setDone(true);
+          if (onDone) onDone();
+        }
+      }, speed);
+      return () => clearInterval(interval);
+    }, delay);
+    return () => clearTimeout(start);
+  }, [text]);
+
+  return (
+    <span style={style}>
+      {displayed}
+      {!done && <span className="cursor-blink" />}
+    </span>
+  );
+}
+
+/* ═══ CHAT DETAIL ═══ */
+function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, draftMode, onSkipDraft, onDraftFeedback, isFirstSend, onFirstSend }) {
+  const useSuggestMode = draftMode === 'suggest' && item.draft && !isSensitive;
+
+  // Modes:
+  // suggest — AI proposes next action at bottom
+  // inline — draft shown in chat body, input at bottom (fallback after feedback)
+  // editing — editing draft (works in both modes)
+  // custom — user writing from scratch
+  // sent — message sent
+  // summary — sensitive message summary
+  // feedback — AI asks why user keeps skipping drafts
+  const getInitialMode = () => {
+    if (isSensitive) return 'summary';
+    if (item.mode === 'ask') return 'ask';
+    if (!item.draft) return 'custom';
+    return useSuggestMode ? 'suggest' : 'inline';
+  };
+
+  const [mode, setMode] = useState(getInitialMode);
+  const [editVal, setEditVal] = useState(item.draft || '');
+  const [customVal, setCustomVal] = useState('');
+  const [showToast, setShowToast] = useState(false);
+  const [toastMsg, setToastMsg] = useState('');
+  const [sentMsg, setSentMsg] = useState('');
+  const [activeTone, setActiveTone] = useState(null);
+  const [editFeedback, setEditFeedback] = useState(null); // null | 'asking' | 'done'
+  const [customFeedback, setCustomFeedback] = useState(null); // null | 'asking' | 'done'
+  const [askVal, setAskVal] = useState('');
+  const [askPhase, setAskPhase] = useState('input');
+  const [showAskStyleReason, setShowAskStyleReason] = useState(false);
+  const [generatedDraft, setGeneratedDraft] = useState('');
+  const [generatedBecause, setGeneratedBecause] = useState('');
+  const [showSendCelebration, setShowSendCelebration] = useState(false);
+  const [undoCount, setUndoCount] = useState(0);
+  const undoTimerRef = useRef(null);
+  const originalDraft = item.draft || '';
+  const chatBodyRef = useRef(null);
+
+  // Simple diff: percentage of words changed
+  const calcEditDistance = (a, b) => {
+    if (!a || !b) return 1;
+    const words1 = a.toLowerCase().split(/\s+/);
+    const words2 = b.toLowerCase().split(/\s+/);
+    let matches = 0;
+    words2.forEach(w => { if (words1.includes(w)) matches++; });
+    return 1 - (matches / Math.max(words1.length, 1));
+  };
+
+  // Intent label + context menu
+  const [intentLabel, setIntentLabel] = useState(item.intent || null);
+  const [intentMenu, setIntentMenu] = useState(false); // false | 'main' | 'change' | 'why'
+  const allIntents = ['Interested', 'FAQ', 'Collab', 'Emotional', 'Spam', 'Other'];
+
+  const intentColors = {
+    'Interested':'#E85D04', 'FAQ':'#0369A1', 'Collab':'#7C3AED',
+    'Emotional':'#DC2626', 'Spam':'#999', 'Other':'#666',
+  };
+
+  const triggerToast = (msg) => {
+    setToastMsg(msg);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 2500);
+  };
+
+  const handleSend = () => {
+    const wasEditing = (mode === 'editing');
+    const msg = wasEditing ? editVal : item.draft;
+    setSentMsg(msg);
+    setMode('sent');
+    if (wasEditing) {
+      const distance = calcEditDistance(originalDraft, editVal);
+      if (distance > 0.5 && !activeTone) {
+        // Major rewrite — ask what was off after a brief pause
+        setTimeout(() => setEditFeedback('asking'), 1200);
+      } else {
+        triggerToast(activeTone
+          ? 'Got it — ' + activeTone.toLowerCase() + ' tone for similar messages.'
+          : 'Noted — I\'ll adjust my style based on your edit.');
+      }
+    }
+    if (onSent) onSent(item.user);
+    if (isFirstSend && onFirstSend) {
+      onFirstSend();
+      setShowSendCelebration(true);
+      setTimeout(() => setShowSendCelebration(false), 1500);
+    }
+  };
+
+  const handleSendCustom = () => {
+    if (!customVal.trim()) return;
+    setSentMsg(customVal);
+    setMode('sent');
+    if (onSent) onSent(item.user);
+    triggerToast('Got it — I\'ll adjust for next time');
+  };
+
+  const handleIllReply = () => {
+    if (onSkipDraft) {
+      const count = onSkipDraft();
+      if (count >= 5) {
+        // 5th skip — trigger feedback
+        setMode('feedback');
+        return;
+      }
+    }
+    setMode('custom');
+    setCustomVal('');
+    if (item.draft) setCustomFeedback('asking');
+  };
+
+  const handleAskSubmit = () => {
+    if (!askVal.trim()) return;
+    setAskPhase('generating');
+    setTimeout(() => {
+      const draft = (item.draftTemplate || '').replace('{answer}', askVal.trim());
+      const styleR = item.styleReasonTemplate || '';
+      setGeneratedDraft(draft);
+      setGeneratedBecause(styleR);
+      setAskPhase('ready');
+    }, 1500);
+  };
+
+  const handleAskSend = () => {
+    setSentMsg(generatedDraft);
+    setMode('sent');
+    triggerToast('Got it — I\'ll use this for similar questions.');
+    if (onSent) onSent(item.user);
+  };
+
+  const handleFeedbackChoice = (reason) => {
+    triggerToast('Got it — ' + reason + '. I\'ll adjust.');
+    if (onDraftFeedback) onDraftFeedback(); // switches parent to inline mode
+    setMode('custom');
+    setCustomVal('');
+  };
+
+  const handleUndo = () => {
+    clearInterval(undoTimerRef.current);
+    setMode(draftMode === 'suggest' ? 'suggest' : 'inline');
+    setSentMsg('');
+    setUndoCount(0);
+  };
+
+  // Scroll chat to bottom on mode change
+  useEffect(() => {
+    if (chatBodyRef.current) {
+      setTimeout(() => { chatBodyRef.current.scrollTo({ top: chatBodyRef.current.scrollHeight, behavior: 'smooth' }); }, mode === 'suggest' ? 300 : 50);
+    }
+  }, [mode]);
+
+  // Undo countdown when mode becomes 'sent'
+  useEffect(() => {
+    if (mode !== 'sent') return;
+    setUndoCount(5);
+    let count = 5;
+    undoTimerRef.current = setInterval(() => {
+      count -= 1;
+      setUndoCount(count);
+      if (count <= 0) clearInterval(undoTimerRef.current);
+    }, 1000);
+    return () => clearInterval(undoTimerRef.current);
+  }, [mode]);
+
+  // Conversation history — use item.chatHistory if provided, otherwise generate default
+  const chatHistory = item.chatHistory || [
+    ...(item.source === 'DM' ? [{ from: 'them', text: 'Hey!', time: '2h ago' }] : []),
+    { from: 'them', text: item.msg, time: item.time || '2h ago' },
+  ];
+
+  return (
+    <div className="screen-slide-in" onClick={(e) => e.stopPropagation()} style={{ position:'absolute', inset:0, zIndex:100, background:T.paper, display:'flex', flexDirection:'column' }}>
+      {/* Header */}
+      <div style={{ padding:'52px 20px 14px', display:'flex', alignItems:'center', justifyContent:'space-between', borderBottom:`1px solid ${T.lightGray}`, flexShrink:0 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+          <div onClick={(e) => { e.stopPropagation(); onClose(); }} style={{ cursor:'pointer', fontSize:20, color:T.ink, fontWeight:300, padding:'8px 12px', margin:'-8px -12px' }}>←</div>
+          {item.avatar && <img src={item.avatar} alt="" style={{ width:36, height:36, borderRadius:18, objectFit:'cover', background:T.lightGray }} />}
+          <div>
+            <div style={{ fontSize:16, fontWeight:600, color:T.ink, letterSpacing:'-0.01em' }}>{item.name || item.user}</div>
+            <div style={{ fontSize:11, color:T.gray }}>{item.user}</div>
+          </div>
+        </div>
+
+        {/* Intent label */}
+        {intentLabel && (
+          <div style={{ position:'relative' }}>
+            <div onClick={(e) => { e.stopPropagation(); setIntentMenu(intentMenu ? false : 'main'); }}
+              style={{ fontSize:11, fontWeight:500, color: intentColors[intentLabel] || '#666', background:(intentColors[intentLabel] || '#666') + '14', padding:'5px 12px', borderRadius:8, cursor:'pointer', userSelect:'none', letterSpacing:'-0.01em' }}>
+              {intentLabel}
+            </div>
+
+            {/* Context menu */}
+            {intentMenu === 'main' && (
+              <div className="fade-in" onClick={e => e.stopPropagation()} style={{ position:'absolute', right:0, top:'100%', marginTop:6, background:'#151515', borderRadius:14, boxShadow:'0 8px 32px rgba(0,0,0,0.25)', zIndex:20, minWidth:200, overflow:'hidden' }}>
+                <div onClick={() => setIntentMenu('why')}
+                  style={{ padding:'13px 16px', fontSize:13, color:'#ff6b6b', cursor:'pointer', borderBottom:'1px solid rgba(255,255,255,0.06)', fontWeight:500 }}>
+                  It's not {intentLabel.toLowerCase()}
+                </div>
+                <div onClick={() => setIntentMenu('change')}
+                  style={{ padding:'13px 16px', fontSize:13, color:'rgba(255,255,255,0.7)', cursor:'pointer', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
+                  Change intent
+                </div>
+                <div onClick={() => setIntentMenu(false)}
+                  style={{ padding:'13px 16px', fontSize:13, color:'rgba(255,255,255,0.35)', cursor:'pointer' }}>
+                  Cancel
+                </div>
+              </div>
+            )}
+
+            {/* Why it's wrong */}
+            {intentMenu === 'why' && (
+              <div className="fade-in" onClick={e => e.stopPropagation()} style={{ position:'absolute', right:0, top:'100%', marginTop:6, background:'#151515', borderRadius:14, boxShadow:'0 8px 32px rgba(0,0,0,0.25)', zIndex:20, minWidth:210, overflow:'hidden' }}>
+                <div style={{ padding:'12px 16px', fontSize:11, color:'rgba(255,255,255,0.35)', fontWeight:500, borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
+                  Why isn't this {intentLabel.toLowerCase()}?
+                </div>
+                {['Just browsing', 'Wrong topic', 'Spam or bot', 'It\'s something else'].map(reason => (
+                  <div key={reason} onClick={() => { triggerToast('Got it — I\'ll learn from this.'); setIntentLabel(null); setIntentMenu(false); }}
+                    style={{ padding:'13px 16px', fontSize:13, color:'rgba(255,255,255,0.7)', cursor:'pointer', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
+                    {reason}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Change intent */}
+            {intentMenu === 'change' && (
+              <div className="fade-in" onClick={e => e.stopPropagation()} style={{ position:'absolute', right:0, top:'100%', marginTop:6, background:'#151515', borderRadius:14, boxShadow:'0 8px 32px rgba(0,0,0,0.25)', zIndex:20, minWidth:180, overflow:'hidden' }}>
+                <div style={{ padding:'12px 16px', fontSize:11, color:'rgba(255,255,255,0.35)', fontWeight:500, borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
+                  Change to:
+                </div>
+                {allIntents.filter(i => i !== intentLabel).map(intent => (
+                  <div key={intent} onClick={() => { setIntentLabel(intent); setIntentMenu(false); triggerToast('Updated to ' + intent); }}
+                    style={{ padding:'13px 16px', fontSize:13, color:'rgba(255,255,255,0.7)', cursor:'pointer', borderBottom:'1px solid rgba(255,255,255,0.06)', display:'flex', alignItems:'center', gap:8 }}>
+                    <span style={{ width:8, height:8, borderRadius:4, background: intentColors[intent] || '#666', flexShrink:0 }} />
+                    {intent}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Chat body */}
+      <div ref={chatBodyRef} style={{ flex:1, overflowY:'auto', padding:'20px 16px 12px', paddingBottom: '12px' }}>
+        {/* Timestamp marker */}
+        <div style={{ textAlign:'center', marginBottom:16 }}>
+          <span style={{ fontSize:12, color:'#707070' }}>Today {item.time || '8:10 AM'}</span>
+        </div>
+
+        {chatHistory.map((m, i) => {
+          const isOutgoing = m.from === 'you' || m.from === 'automation';
+          const isAutomation = m.from === 'automation';
+          return (
+            <div key={i} style={{
+              marginBottom:16, display:'flex', flexDirection:'column',
+              alignItems: isOutgoing ? 'flex-end' : 'flex-start',
+              opacity:0,
+              animation: `${isOutgoing ? 'slideFromRight' : 'slideFromLeft'} .4s cubic-bezier(.25,.46,.45,.94) ${i * 0.12}s forwards`,
+            }}>
+              {m.from === 'them' && (
+                <div style={{ maxWidth:'75%', padding:'8px 12px', borderRadius:12, background:'#F5F5F5' }}>
+                  <div style={{ fontSize:16, lineHeight:1.5, color:'#292929' }}>{m.text}</div>
+                </div>
+              )}
+              {isAutomation && (
+                <>
+                  <div style={{ maxWidth:'75%', padding:'8px 12px', borderRadius:12, background:'#D6D6D6' }}>
+                    <div style={{ fontSize:16, lineHeight:1.5, color:'#292929' }}>{m.text}</div>
+                  </div>
+                  <span style={{ fontSize:12, color:'#707070', marginTop:4 }}>Automation</span>
+                </>
+              )}
+              {m.from === 'you' && (
+                <div style={{ maxWidth:'75%', padding:'8px 12px', borderRadius:12, background:'#006BE2' }}>
+                  <div style={{ fontSize:16, lineHeight:1.5, color:'#fff' }}>{m.text}</div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        {/* Summary removed from chat body — agent explains in bottom sheet */}
+
+        {/* Inline draft (fallback mode — draft shown in chat body) */}
+        {mode === 'inline' && item.draft && (
+          <div className="fade-up" style={{ marginBottom:12 }}>
+            <div style={{ fontSize:11, color:T.gray, marginBottom:4, fontWeight:500 }}>Inbox Agent</div>
+            <div style={{ display:'flex', justifyContent:'flex-end' }}>
+              <div style={{ maxWidth:'85%' }}>
+                <div style={{ padding:'13px 16px', borderRadius:18, borderTopRightRadius:6, border:`1.5px dashed ${T.lightGray}`, background:T.warmGray }}>
+                  <div style={{ fontSize:14, lineHeight:1.5, color:T.ink, letterSpacing:'-0.01em' }}>{item.draft}</div>
+                </div>
+                <div style={{ display:'flex', gap:6, marginTop:8 }}>
+                  <button onClick={handleSend} style={{ padding:'7px 16px', background:T.ink, color:'#fff', border:'none', borderRadius:20, fontSize:12, fontWeight:600, cursor:'pointer' }}>Send</button>
+                  <button onClick={() => { setMode('editing'); setEditVal(item.draft); }} style={{ padding:'7px 14px', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:20, fontSize:12, fontWeight:500, cursor:'pointer', color:T.ink }}>Edit</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Sent message */}
+        {mode === 'sent' && (
+          <div className="fade-up" style={{ marginBottom:12, display:'flex', justifyContent:'flex-end' }}>
+            <div style={{ maxWidth:'80%', padding:'12px 16px', borderRadius:18, borderTopRightRadius:6, background:T.accent, color:'#fff' }}>
+              <div style={{ fontSize:14, lineHeight:1.5, letterSpacing:'-0.01em' }}>{sentMsg}</div>
+              <div style={{ fontSize:10, color:'rgba(255,255,255,0.4)', marginTop:4, textAlign:'right' }}>Just now</div>
+            </div>
+          </div>
+        )}
+
+        {/* Gap 2: Edit feedback — appears after sent when draft was heavily rewritten */}
+        {editFeedback === 'asking' && mode === 'sent' && (
+          <div className="fade-up" style={{ marginBottom:12 }}>
+            <div style={{ background:'#151515', borderRadius:14, padding:'14px 16px', maxWidth:'90%' }}>
+              <div style={{ fontSize:13, color:'#fff', lineHeight:1.5, marginBottom:12 }}>
+                I noticed you changed my reply a lot. Was it off?
+              </div>
+              <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
+                {[
+                  'Not my tone',
+                  'Wrong info',
+                  'I just wanted to personalize',
+                ].map(reason => (
+                  <div key={reason} onClick={() => {
+                    setEditFeedback('done');
+                    triggerToast(reason === 'I just wanted to personalize'
+                      ? 'Got it — draft was fine, you wanted your touch.'
+                      : 'Got it — ' + reason.toLowerCase() + '. I\'ll adjust.');
+                  }}
+                    style={{ padding:'8px 14px', background:'rgba(255,255,255,0.06)', borderRadius:20, cursor:'pointer', fontSize:12, color:'#fff', border:'1px solid rgba(255,255,255,0.12)', fontWeight:500, transition:'all .15s ease' }}>
+                    {reason}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ═══ Inbox Agent bottom sheet — conversational, streaming ═══ */}
+      {mode === 'suggest' && item.draft && <AgentSheet item={item} onSend={handleSend} onEdit={() => { setMode('editing'); setEditVal(item.draft); }} onSkip={handleIllReply} />}
+
+      {/* ═══ Bottom: Ask mode — agent needs info from user ═══ */}
+      {mode === 'ask' && (
+        <AgentSheetShell onDismiss={() => { setMode('custom'); setCustomVal(''); }}>
+          {askPhase === 'input' && (
+            <>
+              <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+                <div style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.5 }}>
+                  {item.agentQuestion}
+                </div>
+                <textarea value={askVal} onChange={e => setAskVal(e.target.value)} autoFocus
+                  placeholder={item.askPlaceholder || 'Type your answer...'}
+                  style={{ width:'100%', fontSize:14, color:'#fff', lineHeight:1.5, padding:'13px 16px', border:'1px solid rgba(255,255,255,0.12)', borderRadius:14, resize:'none', height:60, fontFamily:'Inter, system-ui, sans-serif', background:'rgba(255,255,255,0.06)', outline:'none', letterSpacing:'-0.01em', boxSizing:'border-box' }} />
+              </div>
+              <div style={{ display:'flex', gap:16, alignItems:'center', flexShrink:0 }}>
+                <button onClick={handleAskSubmit} disabled={!askVal.trim()}
+                  style={{ flex:1, padding:'8px 16px', background: askVal.trim() ? A.text : 'rgba(255,255,255,0.1)', color: askVal.trim() ? A.btnText : 'rgba(255,255,255,0.35)', border:'none', borderRadius:12, fontSize:15, fontWeight:500, cursor: askVal.trim() ? 'pointer' : 'default', transition:'all .2s ease', lineHeight:'22px', letterSpacing:'-0.195px' }}>
+                  Save
+                </button>
+                <button onClick={() => { setMode('custom'); setCustomVal(''); }}
+                  style={{ flex:1, padding:'8px 16px', background:'transparent', border:`1px solid ${A.btnBorder}`, borderRadius:12, fontSize:15, fontWeight:500, cursor:'pointer', color:A.text, lineHeight:'22px', letterSpacing:'-0.195px' }}>
+                  I'll reply
+                </button>
+              </div>
+            </>
+          )}
+
+          {askPhase === 'generating' && <AgentThinking />}
+
+          {askPhase === 'ready' && (
+            <>
+              <div className="fade-in" style={{ display:'flex', flexDirection:'column', gap:16 }}>
+                {generatedBecause && (
+                  <div style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.5 }}>
+                    {(generatedBecause.match(/[^.!?]+[.!?]?\s*/g) || [generatedBecause])[0]}
+                  </div>
+                )}
+                <AgentDraftCard text={generatedDraft} />
+                <AgentWhyReply reason={generatedBecause && (generatedBecause.match(/[^.!?]+[.!?]?\s*/g) || []).length > 1
+                  ? (generatedBecause.match(/[^.!?]+[.!?]?\s*/g) || []).slice(1).join('')
+                  : null} />
+                <div style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.5 }}>
+                  Send this one?
+                </div>
+              </div>
+              <AgentButtons
+                onSend={handleAskSend}
+                onEdit={() => { setMode('editing'); setEditVal(generatedDraft); }}
+                onSkip={() => { setMode('custom'); setCustomVal(''); }} />
+            </>
+          )}
+        </AgentSheetShell>
+      )}
+
+      {/* ═══ Bottom: Edit mode ═══ */}
+      {mode === 'editing' && (
+        <div className="fade-up" style={{ flexShrink:0, background:T.paper, padding:'0 20px 40px' }}>
+          <div style={{ height:1, background:T.lightGray, marginBottom:16 }} />
+
+          <textarea value={editVal} onChange={e => setEditVal(e.target.value)} autoFocus
+            style={{ width:'100%', fontSize:14, color:T.ink, lineHeight:1.5, padding:'13px 16px', border:`1.5px solid ${T.ink}`, borderRadius:14, resize:'none', height:80, fontFamily:'Inter, system-ui, sans-serif', background:'#fff', outline:'none', letterSpacing:'-0.01em', boxSizing:'border-box' }} />
+
+          {/* Tone chips */}
+          <div style={{ display:'flex', gap:6, marginTop:10, flexWrap:'wrap' }}>
+            {['Friendly','Formal','Shorter','Direct'].map(tone => (
+              <span key={tone} onClick={() => {
+                setActiveTone(tone);
+                const base = originalDraft;
+                if (tone === 'Shorter') {
+                  const sentences = base.split(/(?<=[.!?])\s+/);
+                  setEditVal(sentences.slice(0, Math.ceil(sentences.length / 2)).join(' '));
+                } else if (tone === 'Friendly') {
+                  setEditVal('Hey! ' + base.charAt(0).toLowerCase() + base.slice(1).replace(/\.$/, '') + ' :)');
+                } else if (tone === 'Formal') {
+                  setEditVal('Thank you for reaching out. ' + base.replace(/!/g, '.').replace(/Hey!?\s*/gi, ''));
+                } else if (tone === 'Direct') {
+                  const sentences = base.split(/(?<=[.!?])\s+/);
+                  setEditVal(sentences.filter(s => s.length > 20).join(' ') || base);
+                }
+              }} style={{ fontSize:12, padding:'6px 14px', borderRadius:20, border: activeTone === tone ? `1.5px solid ${T.ink}` : `1px solid ${T.lightGray}`, cursor:'pointer', color: activeTone === tone ? '#fff' : T.ink, fontWeight:500, background: activeTone === tone ? T.ink : '#fff', transition:'all .15s ease' }}>{tone}</span>
+            ))}
+          </div>
+
+          <div style={{ display:'flex', gap:8, marginTop:12 }}>
+            <button onClick={handleSend}
+              style={{ flex:1, padding:'12px 0', background:T.ink, color:'#fff', border:'none', borderRadius:12, fontSize:14, fontWeight:600, cursor:'pointer' }}>
+              Send
+            </button>
+            <button onClick={() => { setMode('suggest'); setActiveTone(null); setEditVal(item.draft); }}
+              style={{ padding:'12px 20px', background:'transparent', border:'none', fontSize:13, fontWeight:500, cursor:'pointer', color:T.gray }}>
+              Back
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ Bottom: Feedback — AI asks why user skips drafts (black sheet) ═══ */}
+      {mode === 'feedback' && (
+        <div className="sheet-up" style={{
+          flexShrink:0, zIndex:10,
+          background:'#151515', borderRadius:'22px 22px 0 0',
+          padding:'10px 22px 40px', boxShadow:'0 -8px 30px rgba(0,0,0,0.2)',
+        }}>
+          <div style={{ width:36, height:4, background:'rgba(255,255,255,0.14)', borderRadius:2, margin:'0 auto 18px' }} />
+
+          <div style={{ fontSize:15, fontWeight:400, color:'#fff', lineHeight:1.55, letterSpacing:'-0.01em', marginBottom:16 }}>
+            I noticed you prefer writing your own replies. That's fine — but what's off about mine?
+          </div>
+
+          <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+            {[
+              'They don\'t sound like me',
+              'Too generic',
+              'I just prefer writing myself',
+              'They\'re too long',
+              'Wrong tone for this audience',
+            ].map(reason => (
+              <div key={reason} onClick={() => handleFeedbackChoice(reason)}
+                style={{ padding:'13px 16px', background:'rgba(255,255,255,0.06)', borderRadius:12, cursor:'pointer', fontSize:14, color:'rgba(255,255,255,0.8)', letterSpacing:'-0.01em', border:'1px solid rgba(255,255,255,0.06)', transition:'background .15s ease' }}>
+                {reason}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ═══ Bottom: Inline draft mode (draft in chat + input) ═══ */}
+      {mode === 'inline' && item.draft && (
+        <div style={{ flexShrink:0, borderTop:`1px solid ${T.lightGray}`, background:T.paper, padding:'12px 20px 40px' }}>
+          <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+            <div style={{ flex:1, padding:'11px 16px', background:'#fff', border:`1px solid ${T.lightGray}`, borderRadius:24 }}>
+              <input value={customVal} onChange={e => setCustomVal(e.target.value)}
+                placeholder="Type your message..."
+                onKeyDown={e => { if (e.key === 'Enter' && customVal.trim()) handleSendCustom(); }}
+                style={{ border:'none', outline:'none', fontSize:14, color:T.ink, width:'100%', background:'transparent', fontFamily:'Inter, system-ui, sans-serif' }} />
+            </div>
+            <div onClick={() => { if (customVal.trim()) handleSendCustom(); }}
+              style={{ width:36, height:36, borderRadius:18, background: customVal.trim() ? '#2E86FD' : T.lightGray, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'background .2s', flexShrink:0 }}>
+              <span style={{ color:'#fff', fontSize:13 }}>↑</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ Bottom: Sensitive message — agent sheet ═══ */}
+      {mode === 'summary' && (
+        <AgentSheetShell onDismiss={() => { setMode('custom'); setCustomVal(''); }}>
+          <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+            <div style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.5 }}>
+              I read this and decided not to write anything.
+            </div>
+            <div style={{ fontSize:16, fontWeight:400, color:'rgba(255,255,255,0.5)', lineHeight:1.5 }}>
+              {item.summary}
+            </div>
+          </div>
+          <button onClick={() => { setMode('custom'); setCustomVal(''); }}
+            style={{ width:'100%', padding:'8px 16px', background:A.text, color:A.btnText, border:'none', borderRadius:12, fontSize:15, fontWeight:500, cursor:'pointer', lineHeight:'22px', letterSpacing:'-0.195px' }}>
+            Reply personally
+          </button>
+        </AgentSheetShell>
+      )}
+
+      {/* ═══ Bottom: Undo toast after sending ═══ */}
+      {mode === 'sent' && undoCount > 0 && (
+        <div style={{ position:'absolute', bottom:140, left:'50%', transform:'translateX(-50%)', background:'#E8E8E8', color:'#333', padding:'10px 20px', borderRadius:50, fontSize:13, fontWeight:500, zIndex:20, boxShadow:'0 2px 12px rgba(0,0,0,0.08)', display:'flex', alignItems:'center', gap:12, whiteSpace:'nowrap' }}>
+          <span style={{ color:'#666' }}>✓ Sent to {item.user}</span>
+          <button onClick={handleUndo} style={{ fontSize:13, color:'#333', background:'none', border:'none', cursor:'pointer', fontWeight:700, padding:0 }}>Undo</button>
+          <span style={{ color:'rgba(0,0,0,0.3)', fontSize:12 }}>({undoCount})</span>
+        </div>
+      )}
+
+      {/* ═══ Bottom: Free text input (custom / sent) ═══ */}
+      {(mode === 'custom' || mode === 'sent') && (
+        <div style={{ flexShrink:0, borderTop:`1px solid ${T.lightGray}`, background:T.paper, padding:'12px 20px 40px' }}>
+          {/* "I'll write" feedback — simple Yes / No */}
+          {mode === 'custom' && customFeedback === 'asking' && (
+            <div className="fade-up" style={{ marginBottom:10 }}>
+              <div style={{ fontSize:12, color:T.gray, marginBottom:8 }}>Was my reply helpful as a starting point?</div>
+              <div style={{ display:'flex', gap:6 }}>
+                <div onClick={() => { setCustomFeedback('done'); triggerToast('Got it — glad it helped.'); }}
+                  style={{ padding:'8px 14px', background:T.warmGray, borderRadius:20, cursor:'pointer', fontSize:12, color:T.ink, fontWeight:500 }}>
+                  Yes
+                </div>
+                <div onClick={() => { setCustomFeedback('done'); triggerToast('Got it — I\'ll improve.'); }}
+                  style={{ padding:'8px 14px', background:T.warmGray, borderRadius:20, cursor:'pointer', fontSize:12, color:T.ink, fontWeight:500 }}>
+                  No
+                </div>
+              </div>
+            </div>
+          )}
+          <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+            <div style={{ flex:1, padding:'11px 16px', background:'#fff', border:`1px solid ${T.lightGray}`, borderRadius:24 }}>
+              <input value={customVal} onChange={e => setCustomVal(e.target.value)}
+                placeholder="Type your message..."
+                onKeyDown={e => { if (e.key === 'Enter' && customVal.trim()) handleSendCustom(); }}
+                style={{ border:'none', outline:'none', fontSize:14, color:T.ink, width:'100%', background:'transparent', fontFamily:'Inter, system-ui, sans-serif' }} />
+            </div>
+            <div onClick={() => { if (customVal.trim()) handleSendCustom(); }}
+              style={{ width:36, height:36, borderRadius:18, background: customVal.trim() ? '#2E86FD' : T.lightGray, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'background .2s', flexShrink:0 }}>
+              <span style={{ color:'#fff', fontSize:13 }}>↑</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast */}
+      {showToast && (
+        <div style={{ position:'absolute', bottom:100, left:'50%', transform:'translateX(-50%)', background:T.ink, color:'#fff', padding:'10px 20px', borderRadius:10, fontSize:13, fontWeight:500, animation:'fadeUp .3s ease-out', whiteSpace:'nowrap', zIndex:110, boxShadow:'0 4px 16px rgba(28,26,22,.15)', letterSpacing:'-0.01em' }}>
+          {toastMsg}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Chevron icon ─── */
+function ChevronIcon({ collapsed }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={T.gray} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+      style={{ transition:'transform .25s ease', transform: collapsed ? 'rotate(-90deg)' : 'rotate(0deg)' }}>
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  );
+}
+
+/* ─── Intention group header ─── */
+function IntentionHeader({ label, count, collapsed, onToggle }) {
+  return (
+    <div onClick={onToggle} style={{ height:56, display:'flex', alignItems:'center', justifyContent:'space-between', cursor:'pointer' }}>
+      <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+        <div style={{ width:32, height:32, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+          <ChevronIcon collapsed={collapsed} />
+        </div>
+        <span style={{ fontSize:16, fontWeight:500, color:T.ink, letterSpacing:'-0.02em' }}>{label}</span>
+      </div>
+      <span style={{ fontSize:12, fontWeight:500, color:T.ink, background:'#F5F5F5', padding:'4px 8px', borderRadius:16, letterSpacing:'-0.01em' }}>{count}</span>
+    </div>
+  );
+}
+
+/* ─── Important Tab ─── */
+function ImportantTab({ onOpenChat, answeredChats, priorityFeedbackDone, onFeedbackGood, onFeedbackBad }) {
+  const [collapsedGroups, setCollapsedGroups] = useState(new Set());
+  const [showInfoModal, setShowInfoModal] = useState(false);
+  // Collect all answered items across all groups into one flat list
+  const allAnswered = IMPORTANT_GROUPS.flatMap(g =>
+    g.items.filter(item => answeredChats.has(item.user)).map(item => ({ ...item, _sensitive: !!item._sensitive }))
+  );
+
+  const totalPending = IMPORTANT_GROUPS.reduce((sum, g) => sum + g.items.filter(item => !answeredChats.has(item.user)).length, 0);
+
+  const toggleGroup = (gi) => {
+    setCollapsedGroups(prev => {
+      const next = new Set(prev);
+      next.has(gi) ? next.delete(gi) : next.add(gi);
+      return next;
+    });
+  };
+
+  return (
+    <div>
+      {/* Header — Important + context */}
+      <div style={{ padding:'16px 0 12px' }}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:4 }}>
+          <span style={{ fontSize:20, fontWeight:700, color:T.ink, letterSpacing:'-0.02em' }}>Important</span>
+        </div>
+        <div style={{ display:'flex', alignItems:'center', gap:4 }}>
+          <span style={{ fontSize:13, color:T.gray, lineHeight:1.4 }}>Messages that need your attention first.</span>
+          <span onClick={() => setShowInfoModal(true)} style={{ fontSize:13, color:T.ink, fontWeight:500, cursor:'pointer', textDecoration:'underline', textDecorationColor:T.lightGray, textUnderlineOffset:2, whiteSpace:'nowrap' }}>Show more</span>
+        </div>
+      </div>
+
+      {/* Info modal */}
+      {showInfoModal && (
+        <div style={{ position:'fixed', inset:0, zIndex:200, display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <div onClick={() => setShowInfoModal(false)} style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.3)' }} />
+          <div className="fade-up" style={{ position:'relative', zIndex:201, background:'#fff', borderRadius:20, padding:'28px 24px', maxWidth:340, width:'90%', boxShadow:'0 12px 40px rgba(0,0,0,0.15)' }}>
+            <div style={{ fontSize:18, fontWeight:700, color:T.ink, letterSpacing:'-0.02em', marginBottom:12 }}>How I prioritize</div>
+            <div style={{ fontSize:14, color:T.gray, lineHeight:1.55, marginBottom:8 }}>
+              I look at your conversations and sort them based on:
+            </div>
+            <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:20 }}>
+              {[
+                'What you told me about your business',
+                'Who\'s showing buying signals',
+                'Questions that come up often',
+                'Messages that feel personal or sensitive',
+              ].map((item, i) => (
+                <div key={i} style={{ display:'flex', alignItems:'flex-start', gap:8 }}>
+                  <div style={{ width:4, height:4, borderRadius:2, background:T.lightGray, flexShrink:0, marginTop:8 }} />
+                  <span style={{ fontSize:14, color:T.ink, lineHeight:1.5 }}>{item}</span>
+                </div>
+              ))}
+            </div>
+            <div style={{ fontSize:13, color:T.gray, marginBottom:12 }}>Is this working for you?</div>
+            <div style={{ display:'flex', gap:8 }}>
+              <div onClick={() => { onFeedbackGood(); setShowInfoModal(false); }}
+                style={{ width:36, height:36, borderRadius:18, border:`1px solid ${T.lightGray}`, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+              </div>
+              <div onClick={() => { onFeedbackBad(); setShowInfoModal(false); }}
+                style={{ width:36, height:36, borderRadius:18, border:`1px solid ${T.lightGray}`, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/><path d="M17 2h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"/></svg>
+              </div>
+            </div>
+            <div onClick={() => setShowInfoModal(false)} style={{ marginTop:20, textAlign:'center', fontSize:13, color:T.gray, cursor:'pointer' }}>Close</div>
+          </div>
+        </div>
+      )}
+
+      {/* Empty state — all important DMs answered */}
+      {totalPending === 0 && (
+        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'80px 32px 40px', textAlign:'center' }}>
+          <div style={{ fontSize:64, marginBottom:16 }}>☕</div>
+          <div style={{ fontSize:20, fontWeight:700, color:T.ink, letterSpacing:'-0.02em', marginBottom:6 }}>Time to grab a coffee</div>
+          <div style={{ fontSize:14, color:T.gray, lineHeight:1.5 }}>I'll let you know when something that needs your attention comes in</div>
+        </div>
+      )}
+
+      {/* Active groups — only pending items */}
+      {IMPORTANT_GROUPS.map((group, gi) => {
+        const pending = group.items.filter(item => !answeredChats.has(item.user));
+        if (pending.length === 0) return null;
+        const isCollapsed = collapsedGroups.has(gi);
+
+        return (
+          <div key={gi}>
+            <IntentionHeader label={group.intention} count={pending.length} collapsed={isCollapsed} onToggle={() => toggleGroup(gi)} />
+            <div style={{ height:1, background:T.lightGray }} />
+            {!isCollapsed && pending.map((item, i) => (
+              <MsgRow key={item.user} user={item.user} name={item.name} avatar={item.avatar} time={item.time}
+                isAsk={item.mode === 'ask'}
+                isLast={i === pending.length - 1}
+                summary={item.summary}
+                status={item.status}
+                onClick={() => onOpenChat(item, '', T.gray, !!item._sensitive)} />
+            ))}
+          </div>
+        );
+      })}
+
+      {priorityFeedbackDone && (
+        <div className="fade-in" style={{ padding:'20px 0 16px', textAlign:'center' }}>
+          <span style={{ fontSize:12, color:T.gray }}>Thanks — I'll keep learning from how you use your inbox.</span>
+        </div>
+      )}
+
+      {/* Recently answered — grey bg extending to bottom edge */}
+      {allAnswered.length > 0 && (
+        <div style={{ margin:'0 -20px', padding:'24px 16px 32px', background:'#F5F5F5' }}>
+          <div style={{ marginBottom:16 }}>
+            <span style={{ fontSize:20, fontWeight:700, color:'#292929', lineHeight:'32px' }}>Recently answered</span>
+          </div>
+          <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+            {allAnswered.map((item, i) => (
+              <div key={`a${item.user}`}>
+                <div onClick={() => onOpenChat(item, '', T.gray, item._sensitive)}
+                  style={{ display:'flex', alignItems:'center', gap:12, cursor:'pointer', padding:'8px 0 0' }}>
+                  <img src={item.avatar} alt="" style={{ width:32, height:32, borderRadius:400, objectFit:'cover', flexShrink:0, border:'0.5px solid rgba(44,50,58,0.12)' }} />
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                      <span style={{ fontSize:14, fontWeight:400, color:'#707070', lineHeight:'20px' }}>{item.name || item.user}</span>
+                      <span style={{ fontSize:12, fontWeight:400, color:'#707070', lineHeight:'16px', flexShrink:0 }}>{item.time}</span>
+                    </div>
+                  </div>
+                </div>
+                <div style={{ paddingLeft:44 }}>
+                  <div style={{ fontSize:12, lineHeight:'16px', display:'flex', alignItems:'center', gap:4 }}>
+                    <span style={{ color:'#0C8143' }}>Answered</span>
+                    <span style={{ color:'#707070' }}>·</span>
+                    <span style={{ color:'#707070' }}>Waiting for contact's reply</span>
+                  </div>
+                </div>
+                {i < allAnswered.length - 1 && (
+                  <div style={{ marginLeft:44, marginTop:8, height:1, background:'rgba(0,0,0,0.06)' }} />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Priorities Overlay (matches Figma design) ─── */
+function PrioritiesOverlay({ onDismiss }) {
+  const [selected, setSelected] = useState(['coaching', 'scheduling']);
+  const [showToast, setShowToast] = useState(false);
+  const priorities = [
+    { id: 'coaching', label: 'People interested in coaching', desc: 'Leads asking about your services' },
+    { id: 'comments', label: 'Comments on my posts', desc: 'Engage with your audience' },
+    { id: 'collabs', label: 'Collaboration requests', desc: 'Brand deals and partnerships' },
+    { id: 'scheduling', label: 'Scheduling and booking', desc: 'Session requests and reschedules' },
+  ];
+
+  const toggle = (id) => setSelected(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
+
+  const handleSave = () => { setShowToast(true); setTimeout(() => onDismiss(), 1200); };
+
+  return (
+    <div className="fade-up" style={{ position:'absolute', inset:0, zIndex:160, background:T.paper, display:'flex', flexDirection:'column' }}>
+      <div style={{ padding:'52px 20px 0', flexShrink:0 }}>
+        <div onClick={onDismiss} style={{ cursor:'pointer', fontSize:20, color:T.ink, fontWeight:300, padding:'8px 12px', margin:'-8px -12px', display:'inline-block' }}>←</div>
+      </div>
+
+      <div style={{ flex:1, overflowY:'auto', padding:'20px 28px 0' }}>
+        <div style={{ fontSize:11, color:T.gray, marginBottom:6, fontWeight:500 }}>Inbox Agent</div>
+        <h1 style={{ fontSize:26, fontWeight:700, color:T.ink, lineHeight:1.15, marginBottom:10, letterSpacing:'-0.02em' }}>
+          What matters most to you right now?
+        </h1>
+        <p style={{ fontSize:14, color:T.gray, marginBottom:28, lineHeight:1.5 }}>
+          I'll focus on these first. You can change this anytime.
+        </p>
+
+        <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+          {priorities.map((p) => {
+            const on = selected.includes(p.id);
+            return (
+              <div key={p.id} onClick={() => toggle(p.id)}
+                style={{ display:'flex', alignItems:'center', gap:14, padding:'18px', borderRadius:14,
+                  border: on ? '1.5px solid #2E86FD' : `1.5px solid ${T.lightGray}`,
+                  background: on ? '#F0F7FF' : T.cardBg, cursor:'pointer', transition:'all .2s ease' }}>
+                <div style={{ width:32, height:32, borderRadius:16,
+                  border: on ? 'none' : `1.5px solid ${T.lightGray}`,
+                  background: on ? '#2E86FD' : 'transparent',
+                  display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, transition:'all .2s ease' }}>
+                  {on && <span style={{ color:'#fff', fontSize:14 }}>✓</span>}
+                </div>
+                <div>
+                  <div style={{ fontSize:15, fontWeight:600, color:T.ink, letterSpacing:'-0.01em' }}>{p.label}</div>
+                  <div style={{ fontSize:12, color:T.gray, marginTop:1 }}>{p.desc}</div>
+                </div>
+              </div>
+            );
+          })}
+
+          {/* Something else */}
+          <div style={{ display:'flex', alignItems:'center', gap:14, padding:'18px', borderRadius:14,
+            border:`1.5px dashed ${T.lightGray}`, cursor:'pointer' }}>
+            <div style={{ width:32, height:32, borderRadius:16, border:`1.5px solid ${T.lightGray}`,
+              display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+              <span style={{ fontSize:16, color:T.gray, fontWeight:300 }}>+</span>
+            </div>
+            <span style={{ fontSize:15, color:T.gray, letterSpacing:'-0.01em' }}>Something else...</span>
+          </div>
+        </div>
+      </div>
+
+      {showToast && (
+        <div className="fade-up" style={{ position:'absolute', top:60, left:'50%', transform:'translateX(-50%)', background:T.ink, color:'#fff', padding:'10px 24px', borderRadius:50, fontSize:13, fontWeight:500, zIndex:170, whiteSpace:'nowrap' }}>
+          Updating your priorities...
+        </div>
+      )}
+
+      <div style={{ padding:'16px 28px 50px' }}>
+        <BlackBtn label="Save" onClick={handleSave} disabled={selected.length === 0} />
+      </div>
+    </div>
+  );
+}
+
+/* ═══ INBOX MAIN ═══ */
+
+function InboxV2({ onOverlayChange, openChatOnLoad }) {
+  const [reportCollapsed, setReportCollapsed] = useState(true);
+  const [summaryOpen, setSummaryOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('important');
+  const [openChat, setOpenChat] = useState(null);
+  const [answeredChats, setAnsweredChats] = useState(new Set());
+  const [headerHidden, setHeaderHidden] = useState(false);
+  const [showPriorities, setShowPriorities] = useState(false);
+  const [priorityFeedbackDone, setPriorityFeedbackDone] = useState(false);
+  const [skipDraftCount, setSkipDraftCount] = useState(0);
+  const [draftMode, setDraftMode] = useState('suggest'); // 'suggest' | 'inline'
+  const [firstSendDone, setFirstSendDone] = useState(false);
+  const [showModeChangeNotif, setShowModeChangeNotif] = useState(false);
+  const scrollRef = useRef(null);
+  const lastScrollTop = useRef(0);
+
+  // Auto-open a chat if passed from onboarding "Reply now"
+  useEffect(() => {
+    if (openChatOnLoad) {
+      setTimeout(() => {
+        setOpenChat({ item: openChatOnLoad, label:'', labelColor:T.gray, isSensitive:false });
+      }, 300);
+    }
+  }, []);
+
+  // Report overlay state AND scroll-hide to parent for nav visibility
+  useEffect(() => {
+    const anyOverlay = !!openChat || summaryOpen || showPriorities;
+    if (onOverlayChange) onOverlayChange(anyOverlay || headerHidden);
+  }, [openChat, summaryOpen, showPriorities, headerHidden]);
+
+  const handleScroll = () => {
+    if (!scrollRef.current) return;
+    const st = scrollRef.current.scrollTop;
+    const delta = st - lastScrollTop.current;
+
+    if (delta > 5 && st > 40) {
+      // Scrolling down
+      setHeaderHidden(true);
+    } else if (delta < -5) {
+      // Scrolling up
+      setHeaderHidden(false);
+    }
+    lastScrollTop.current = st;
+  };
+
+  const [showFeedbackSheet, setShowFeedbackSheet] = useState(false);
+  const [feedbackCustomText, setFeedbackCustomText] = useState('');
+
+  const handleOpenChat = (item, label, labelColor, isSensitive) => {
+    setOpenChat({ item, label, labelColor, isSensitive });
+  };
+
+  const handleFeedbackReason = (reason) => {
+    setShowFeedbackSheet(false);
+    setPriorityFeedbackDone(true);
+  };
+
+  const handleFeedbackCustom = () => {
+    if (!feedbackCustomText.trim()) return;
+    setShowFeedbackSheet(false);
+    setPriorityFeedbackDone(true);
+  };
+
+  const counts = {
+    important: IMPORTANT_GROUPS.reduce((sum, g) => sum + g.items.length, 0),
+  };
+
+  return (
+    <div style={{ background:T.paper, height:'100%', display:'flex', flexDirection:'column', position:'relative' }}>
+
+      {showPriorities && (
+        <PrioritiesOverlay onDismiss={() => setShowPriorities(false)} />
+      )}
+
+      {/* Top spacing */}
+      <div style={{ paddingTop:52, flexShrink:0 }} />
+
+      {/* Scrollable content */}
+      <div ref={scrollRef} onScroll={handleScroll}
+        style={{ flex:1, overflowY:'auto', overflowX:'hidden', padding:'0 16px 0 16px' }}>
+        {showModeChangeNotif && (
+          <div className="fade-up" style={{ marginBottom:16, padding:'14px 16px', background:'#F5F5F5', borderRadius:14, display:'flex', gap:12, alignItems:'flex-start' }}>
+            <div style={{ flex:1 }}>
+              <div style={{ fontSize:11, color:T.gray, marginBottom:4, fontWeight:500 }}>Inbox Agent</div>
+              <div style={{ fontSize:13, color:T.ink, lineHeight:1.5, letterSpacing:'-0.01em' }}>I noticed you've been writing your own replies. I'll put my drafts in the conversation from now on — easier to compare.</div>
+            </div>
+            <div onClick={() => setShowModeChangeNotif(false)} style={{ cursor:'pointer', color:T.gray, fontSize:18, lineHeight:1, paddingTop:1 }}>×</div>
+          </div>
+        )}
+        <ImportantTab onOpenChat={handleOpenChat} answeredChats={answeredChats}
+          priorityFeedbackDone={priorityFeedbackDone}
+          onFeedbackGood={() => setPriorityFeedbackDone(true)}
+          onFeedbackBad={() => setShowFeedbackSheet(true)} />
+      </div>
+
+      {/* ═══ Floating agent pill — fixed width, ellipsis ═══ */}
+      {!summaryOpen && !openChat && (
+        <div onClick={() => setSummaryOpen(true)}
+          style={{
+            position:'absolute', bottom:90, right:20, zIndex:20,
+            background:'#151515', borderRadius:50,
+            padding:'9px 16px', width:190,
+            display:'flex', alignItems:'center', gap:7,
+            cursor:'pointer',
+            boxShadow:'0 4px 20px rgba(0,0,0,0.18)',
+            animation:'fadeUp .4s ease both',
+          }}>
+          <div style={{ width:6, height:6, borderRadius:3, background:'#2E86FD', flexShrink:0, animation:'pulse 1.4s ease-in-out infinite' }} />
+          <AgentPillText />
+        </div>
+      )}
+
+      {/* ═══ Expanded agent screen ═══ */}
+      {summaryOpen && <AgentExpandedScreen onDismiss={() => setSummaryOpen(false)} />}
+
+      {/* ═══ Feedback bottom sheet ═══ */}
+      {showFeedbackSheet && (
+        <div style={{ position:'absolute', inset:0, zIndex:80 }}>
+          {/* Dim backdrop */}
+          <div onClick={() => setShowFeedbackSheet(false)} style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.25)' }} />
+          {/* Sheet */}
+          <div className="sheet-up" style={{
+            position:'absolute', bottom:0, left:0, right:0,
+            background:'#151515', borderRadius:'22px 22px 0 0',
+            padding:'10px 22px 48px',
+          }}>
+            <div style={{ width:36, height:4, background:'rgba(255,255,255,0.14)', borderRadius:2, margin:'0 auto 20px' }} />
+            <div style={{ fontSize:15, fontWeight:500, color:'#fff', marginBottom:14, letterSpacing:'-0.01em' }}>What feels off?</div>
+            <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+              {[
+                'Some of these aren\'t important to me',
+                'Missing messages I care about',
+                'Groups don\'t match how I think',
+                'Too many categories',
+                'The order feels wrong',
+              ].map(reason => (
+                <div key={reason} onClick={() => handleFeedbackReason(reason)}
+                  style={{ padding:'13px 16px', background:'rgba(255,255,255,0.06)', borderRadius:12, cursor:'pointer', fontSize:14, color:'rgba(255,255,255,0.8)', letterSpacing:'-0.01em', transition:'background .15s ease', border:'1px solid rgba(255,255,255,0.06)' }}>
+                  {reason}
+                </div>
+              ))}
+            </div>
+            <div style={{ display:'flex', gap:8, marginTop:12, alignItems:'center' }}>
+              <div style={{ flex:1, padding:'13px 16px', background:'rgba(255,255,255,0.06)', borderRadius:12, border:'1px solid rgba(255,255,255,0.06)' }}>
+                <input value={feedbackCustomText} onChange={e => setFeedbackCustomText(e.target.value)}
+                  placeholder="Something else..."
+                  onKeyDown={e => { if (e.key === 'Enter') handleFeedbackCustom(); }}
+                  style={{ border:'none', outline:'none', fontSize:14, color:'#fff', width:'100%', background:'transparent', fontFamily:'Inter, system-ui, sans-serif', letterSpacing:'-0.01em' }} />
+              </div>
+              {feedbackCustomText.trim() && (
+                <div onClick={handleFeedbackCustom}
+                  style={{ width:36, height:36, borderRadius:18, background:'#fff', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#151515" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Chat Detail Overlay */}
+      {openChat && (
+        <ChatDetail
+          item={openChat.item}
+          label={openChat.label}
+          labelColor={openChat.labelColor}
+          isSensitive={openChat.isSensitive}
+          draftMode={draftMode}
+          onClose={() => {
+            setOpenChat(null);
+          }}
+          onSent={(user) => setAnsweredChats(prev => new Set([...prev, user]))}
+          onSkipDraft={() => {
+            const newCount = skipDraftCount + 1;
+            setSkipDraftCount(newCount);
+            return newCount;
+          }}
+          onDraftFeedback={() => { setDraftMode('inline'); setShowModeChangeNotif(true); }}
+          isFirstSend={!firstSendDone}
+          onFirstSend={() => setFirstSendDone(true)}
+        />
+      )}
+    </div>
+  );
+}
+
+
+/* ─── iOS 26 Bottom Navigation ─── */
+function BottomNav() {
+  return (
+    <div style={{ position:'absolute', bottom:0, left:0, right:0, zIndex:80, background:'rgba(255,255,255,0.92)', backdropFilter:'blur(20px)', WebkitBackdropFilter:'blur(20px)', borderTop:`1px solid ${T.lightGray}`, padding:'8px 0 22px', display:'flex', justifyContent:'space-around', alignItems:'center' }}>
+      {[
+        { icon: '⌂', label: 'Home', active: false },
+        { icon: '☐', label: 'Inbox', active: true },
+        { icon: '☺', label: 'Contacts', active: false },
+        { icon: '⚙', label: 'Automations', active: false },
+      ].map((item, i) => (
+        <div key={i} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:2, cursor:'pointer', padding:'4px 16px', borderRadius:12, background: item.active ? T.warmGray : 'transparent' }}>
+          <span style={{ fontSize:18, color: item.active ? T.accent : T.gray, lineHeight:1 }}>{item.icon}</span>
+          <span style={{ fontSize:10, color: item.active ? T.accent : T.gray, fontWeight: item.active ? 600 : 400 }}>{item.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ─── Shared stats data ─── */
+const OB_STATS = [
+  { n:'142', label:'DMs reviewed' },
+  { n:'8',   label:'messages that truly need you' },
+  { n:'18',  label:'people interested in your 12-week course' },
+  { n:'12',  label:'replies ready to send' },
+];
+
+/* ─── Onboarding screens: Welcome + Results ─── */
+function ObWelcomeV2b({ onNext }) {
+  const [vis, setVis] = useState(0); // how many elements are visible
+  const total = 5; // title, body1, body2, body3, button
+
+  useEffect(() => {
+    const timers = [];
+    for (let i = 1; i <= total; i++) {
+      timers.push(setTimeout(() => setVis(i), i * 500 + 200));
+    }
+    return () => timers.forEach(t => clearTimeout(t));
+  }, []);
+
+  const show = (i) => ({
+    opacity: vis >= i ? 1 : 0,
+    transform: vis >= i ? 'translateY(0)' : 'translateY(8px)',
+    transition: 'opacity .45s ease, transform .45s ease',
+  });
+
+  return (
+    <div style={{ background:'#151515', height:'100%', display:'flex', flexDirection:'column', position:'relative', overflow:'hidden' }}>
+
+      <div style={{ flex:1, display:'flex', flexDirection:'column', padding:'100px 28px 0' }}>
+        <div style={{ marginBottom:20, ...show(1) }}>
+          <h1 style={{ fontSize:34, fontWeight:900, color:'#fff', letterSpacing:'-0.04em', lineHeight:1.12, WebkitTextStroke:'0.5px #fff' }}>
+            Hi Sofia.
+          </h1>
+        </div>
+
+        <div style={{ ...show(2) }}>
+          <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:12 }}>
+            Managing DMs shouldn't be a part-time job.
+          </p>
+        </div>
+
+        <div style={{ ...show(3) }}>
+          <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:12 }}>
+            Between real leads and noise, knowing where to start takes more time than it should.
+          </p>
+        </div>
+
+        <div style={{ ...show(4) }}>
+          <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6 }}>
+            That's what I'm here for.
+          </p>
+        </div>
+      </div>
+
+      <div style={{ padding:'0 28px 90px', ...show(5) }}>
+        <button onClick={onNext}
+          style={{ width:'100%', padding:'16px', background:'transparent', color:'rgba(255,255,255,0.8)', border:'1.5px solid rgba(255,255,255,0.18)', borderRadius:50, fontSize:16, fontWeight:500, cursor:'pointer', letterSpacing:'-0.01em' }}>
+          Show me
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ObResultsV2b({ onReplyNow, onOpenInbox }) {
+  const [vis, setVis] = useState(0);
+  const total = 9; // title, subtitle, stat1, stat2, stat3, teaser text, teaser card, btn1, btn2
+
+  useEffect(() => {
+    const timers = [];
+    for (let i = 1; i <= total; i++) {
+      timers.push(setTimeout(() => setVis(i), i * 400 + 300));
+    }
+    return () => timers.forEach(t => clearTimeout(t));
+  }, []);
+
+  const show = (i) => ({
+    opacity: vis >= i ? 1 : 0,
+    transform: vis >= i ? 'translateY(0)' : 'translateY(8px)',
+    transition: 'opacity .45s ease, transform .45s ease',
+  });
+
+  return (
+    <div style={{ background:'#151515', height:'100%', display:'flex', flexDirection:'column', position:'relative', overflow:'hidden' }}>
+
+      <div style={{ flex:1, display:'flex', flexDirection:'column', padding:'100px 28px 0' }}>
+        <div style={{ marginBottom:16, ...show(1) }}>
+          <h1 style={{ fontSize:34, fontWeight:900, color:'#fff', letterSpacing:'-0.04em', lineHeight:1.12, WebkitTextStroke:'0.5px #fff' }}>Ready to go.</h1>
+        </div>
+
+        <div style={{ ...show(2) }}>
+          <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:24 }}>
+            I analyzed 142 DMs and this is what I found:
+          </p>
+        </div>
+
+        <div style={{ ...show(3) }}>
+          <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:16 }}>
+            <span style={{ fontWeight:700 }}>8</span> interested in your 12-week course
+          </p>
+        </div>
+        <div style={{ ...show(4) }}>
+          <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:16 }}>
+            <span style={{ fontWeight:700 }}>12</span> want to collaborate
+          </p>
+        </div>
+        <div style={{ ...show(5) }}>
+          <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6 }}>
+            <span style={{ fontWeight:700 }}>2</span> expressed emotions and need your advice
+          </p>
+        </div>
+      </div>
+
+      <div style={{ padding:'0 28px 90px' }}>
+        <div style={{ ...show(6) }}>
+          <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:12 }}>
+            Someone's already interested in your coaching
+          </p>
+        </div>
+        <div style={{ padding:'14px 16px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:16, marginBottom:16, ...show(7) }}>
+          <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
+            <img src="https://i.pravatar.cc/88?u=jayrunz" alt="" style={{ width:24, height:24, borderRadius:12, objectFit:'cover' }} />
+            <span style={{ fontSize:12, color:'rgba(255,255,255,0.4)', fontWeight:500 }}>@jayrunz</span>
+          </div>
+          <div style={{ fontSize:14, color:'rgba(255,255,255,0.55)', lineHeight:1.5, fontStyle:'italic' }}>
+            "I've been struggling for 2 years. Is it too late to start?"
+          </div>
+        </div>
+
+        <div style={{ ...show(8) }}>
+          <button onClick={onReplyNow} style={{ width:'100%', padding:'16px', background:'#fff', color:'#151515', border:'none', borderRadius:50, fontSize:16, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em', marginBottom:10 }}>
+            Reply now
+          </button>
+        </div>
+        <div style={{ ...show(9) }}>
+          <button onClick={onOpenInbox} style={{ width:'100%', padding:'16px', background:'transparent', color:'rgba(255,255,255,0.5)', border:'1.5px solid rgba(255,255,255,0.12)', borderRadius:50, fontSize:15, fontWeight:500, cursor:'pointer', letterSpacing:'-0.01em' }}>
+            Open inbox
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══ APP ═══ */
+
+function App() {
+  const [screen, setScreen] = useState(window.location.hash === '#inbox' ? 'main' : 'ob-welcome');
+  const [hideNav, setHideNav] = useState(false);
+  const [openChatOnLoad, setOpenChatOnLoad] = useState(null); // item to auto-open after onboarding
+
+  // Find jayrunz item for "Reply now"
+  const jayrunzItem = IMPORTANT_GROUPS[0].items[0];
+
+  return (
+    <div style={{ width:'100%', height:'100%', position:'relative', overflow:'hidden' }}>
+
+      {/* ─── Onboarding (3-screen flow: welcome → loading → results) ─── */}
+      {screen === 'ob-welcome' && <ObWelcomeV2b onNext={() => setScreen('ob-loading')} />}
+      {screen === 'ob-loading' && <ObSorting onNext={() => setScreen('ob-question')} />}
+      {screen === 'ob-question' && <ObQuestion onNext={() => setScreen('ob-loading2')} />}
+      {screen === 'ob-loading2' && <ObLoading2 onNext={() => setScreen('ob-results')} />}
+      {screen === 'ob-results' && <ObResultsV2b
+        onReplyNow={() => { setOpenChatOnLoad(jayrunzItem); setScreen('main'); }}
+        onOpenInbox={() => setScreen('main')}
+      />}
+
+      {/* ─── Inbox ─── */}
+      {screen === 'main' && <InboxV2 onOverlayChange={(open) => setHideNav(open)} openChatOnLoad={openChatOnLoad} />}
+
+      {/* Bottom Nav — visible on welcome + main inbox, hidden on loading/results/overlays */}
+      {(screen === 'ob-welcome' || (screen === 'main' && !hideNav)) && <BottomNav />}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+
+<!-- Version toggle -->
+<div style="position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;background:#fff;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,0.12);overflow:hidden;font-family:Inter,sans-serif;font-size:12px;">
+  <a href="wip-v1.html" style="padding:8px 16px;text-decoration:none;color:#888;font-weight:500;">wip-v1</a>
+  <a href="mini-v1.html" style="padding:8px 16px;text-decoration:none;color:#fff;background:#1C1A16;font-weight:600;">mini-v1</a>
+</div>
+</body>
+</html>
