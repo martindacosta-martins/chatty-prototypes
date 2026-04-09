@@ -16,6 +16,7 @@
 
   /* Animations */
   @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes fadeSlideIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
   @keyframes slideFromLeft { from { opacity:0; transform:translateX(-16px); } to { opacity:1; transform:translateX(0); } }
   @keyframes slideFromRight { from { opacity:0; transform:translateX(16px); } to { opacity:1; transform:translateX(0); } }
   @keyframes screenSlideIn { from { transform:translateX(100%); } to { transform:translateX(0); } }
@@ -92,16 +93,16 @@ const { useState, useEffect, useRef, useCallback } = React;
 
 /* ═══ DESIGN TOKENS ═══ */
 const T = {
-  paper: '#FFFFFF',
-  ink: '#292929',
-  gray: '#707070',
-  lightGray: '#D6D6D6',
-  cardBg: '#FFFFFF',
-  accent: '#006BE2',
+  ink: '#303336',        // Cool Gray 900 — primary text
+  gray: '#6F757E',       // Cool Gray 500 — secondary text
+  lightGray: '#E0E2E5',  // Cool Gray 200 — borders, dividers
+  accent: '#2952CC',     // Blue 500 — primary action
+  paper: '#FFFFFF',      // page background
+  cardBg: '#FFFFFF',     // card background
+  warmGray: '#F5F5F7',   // Cool Gray 50 — secondary bg, hover
   darkBg: '#1B1B18',
   darkSurface: '#28271F',
   darkBorder: '#3D3C34',
-  warmGray: '#F5F5F5',
 };
 
 /* ═══ DATA ═══ */
@@ -117,96 +118,96 @@ const IMPORTANT_GROUPS = [
           { from:'automation', text:"Hey! Thank you so much for reaching out. Would you like me to keep you informed about my new programs?", time:'2h ago' },
           { from:'them', text:"Yes please! I've been struggling for 2 years. Is it too late to start?", time:'2h ago' },
         ],
-        context:"Following you for 14 months. Saved your transformation reel last week. He's not asking about price — he's asking if it's too late.",
-        draft:"It's never too late — 2 years of trying tells me you're serious about change. The 12-Week Reboot is built for people exactly where you are. Want to see what week 1 looks like?",
-        styleReason:"I went with validation first, no pitch. Similar to how you replied to @sarah.wellness when she had doubts — you tend to lead with encouragement before sharing details.",
+        context:"Following you for 14 months. Saved your transformation reel last week. He's not asking about price. He's asking if it's too late.",
+        draft:"It's never too late. 2 years of trying tells me you're serious about change. The 12-Week Reboot is built for people exactly where you are. Want to see what week 1 looks like?",
+        styleReason:"I went with validation first, no pitch. Similar to how you replied to @sarah.wellness when she had doubts. You tend to lead with encouragement before sharing details.",
         agentRead:'Ready to sign up · Reply drafted' },
       { user:'@emma.k', name:'Emma Kim', avatar:'https://i.pravatar.cc/88?u=emmak', msg:"How much is the coaching program? I've been thinking about it for weeks", source:'DM', time:'4h', unread:2, intent:'Interested', mode:'ask',
         chatHistory: [
           { from:'them', text:"Hi! I saw your reel about the coaching program", time:'4h ago' },
-          { from:'automation', text:"Hey! Thanks for reaching out. I'd love to tell you more — what are you most interested in?", time:'4h ago' },
+          { from:'automation', text:"Hey! Thanks for reaching out. I'd love to tell you more. What are you most interested in?", time:'4h ago' },
           { from:'them', text:"How much is the coaching program? I've been thinking about it for weeks", time:'4h ago' },
         ],
-        context:"Engaged for weeks — commented on 5 posts, saved your course breakdown. Warm lead asking about pricing.",
-        agentQuestion:"Emma wants to know your coaching program price. She's been engaging with your content for weeks — this feels like a warm lead. What's the pricing?",
+        context:"Engaged for weeks, commented on 5 posts, saved your course breakdown. Warm lead asking about pricing.",
+        agentQuestion:"Emma wants to know your coaching program price. She's been engaging with your content for weeks. This feels like a warm lead. What's the pricing?",
         askPlaceholder:"e.g., $597 or 3 payments of $197/mo",
-        draftTemplate:"Great news — the 12-Week Reboot is {answer}. It includes weekly 1-on-1 coaching, custom meal plans, and access to the private community. I also have a flexible payment plan if that helps. Want me to send the full details?",
-        styleReasonTemplate:"Used the pricing you shared + mentioned the payment plan. Cost hesitation is her main blocker — you tend to remove friction, not discount. Similar to how you handled @marcus.fit's first message.",
+        draftTemplate:"Great news: the 12-Week Reboot is {answer}. It includes weekly 1-on-1 coaching, custom meal plans, and access to the private community. I also have a flexible payment plan if that helps. Want me to send the full details?",
+        styleReasonTemplate:"Used the pricing you shared + mentioned the payment plan. Cost hesitation is her main blocker. You tend to remove friction, not discount. Similar to how you handled @marcus.fit's first message.",
         summary:'Asking about pricing', status:'Needs your input',
         agentRead:'Asking about pricing · Needs your input' },
       { user:'@marcus.fit', name:'Marcus Rivera', avatar:'https://i.pravatar.cc/88?u=marcusfit', msg:"I saw your client Ana's results. That's exactly what I need. How do I start?", source:'DM', time:'1h', unread:1, intent:'Interested', mode:'confident',
-        context:"First DM, but high intent — referenced Ana's results. Followed 3 months, liked Ana's transformation post.",
-        draft:"Love that Ana's journey resonated with you! The first step is a quick chat to see which program fits — I have a 12-week deep dive and a 4-week kickstart. What's your main goal right now?",
-        styleReason:"Went conversational and qualifying. You usually ask 'what's your main goal' with new leads — keeps it open without overwhelming. 89% of your first replies to new leads are under 3 sentences.",
+        context:"First DM, but high intent. Referenced Ana's results. Followed 3 months, liked Ana's transformation post.",
+        draft:"Love that Ana's journey resonated with you! The first step is a quick chat to see which program fits. I have a 12-week deep dive and a 4-week kickstart. What's your main goal right now?",
+        styleReason:"Went conversational and qualifying. You usually ask 'what's your main goal' with new leads, keeps it open without overwhelming. 89% of your first replies to new leads are under 3 sentences.",
         summary:'High intent', status:'Reply ready',
         agentRead:'High intent · Reply drafted' },
     ],
   },
   {
     intention: 'Want to book a call',
-    desc: 'Ready to talk — just need scheduling.',
+    desc: 'Ready to talk. Just need scheduling.',
     items: [
       { user:'@sarah.wellness', name:'Sarah Cho', avatar:'https://i.pravatar.cc/88?u=sarahcho', msg:"I'd love to book a discovery call. When are you available?", source:'DM', time:'3h', unread:1, intent:'Interested', mode:'confident',
-        context:"Came back after 2 weeks — DM'd before about the program. Following 6 months. People who return are usually ready.",
+        context:"Came back after 2 weeks. DM'd before about the program. Following 6 months. People who return are usually ready.",
         draft:"Great to hear from you again, Sarah! I have openings Tuesday and Thursday afternoons this week. Which works better for you? I'll send a link to grab a spot.",
-        styleReason:"Warm and specific — offered real times, not a generic link. When @jayrunz came back after going quiet, you also gave specific next steps. Returning leads get your personal touch.",
+        styleReason:"Warm and specific: offered real times, not a generic link. When @jayrunz came back after going quiet, you also gave specific next steps. Returning leads get your personal touch.",
         summary:'Returning lead', status:'Reply ready',
         agentRead:'Returning lead · Reply drafted' },
       { user:'@daniela.r', name:'Daniela Ruiz', avatar:'https://i.pravatar.cc/88?u=danielar', msg:"Do you do free consultations? I'd love to talk before committing", source:'DM', time:'5h', unread:1, intent:'Interested', mode:'ask',
-        context:"New follower (2 weeks), first DM. Wants to talk before buying — normal for high-ticket services.",
-        agentQuestion:"Daniela wants to talk before committing — do you offer free consultations? If yes, how should she book?",
+        context:"New follower (2 weeks), first DM. Wants to talk before buying. Normal for high-ticket services.",
+        agentQuestion:"Daniela wants to talk before committing. Do you offer free consultations? If yes, how should she book?",
         askPlaceholder:"e.g., Yes, 15-min call at calendly.com/sofia",
-        draftTemplate:"Absolutely! I offer a free {answer}. It's a casual conversation — no commitment, just a chance to see if we're a good fit. Here's the link to grab a spot.",
-        styleReasonTemplate:"Kept it low-pressure — 'no commitment, just a conversation' removes the friction. You tend to be warmer with first-time contacts who show vulnerability.",
+        draftTemplate:"Absolutely! I offer a free {answer}. It's a casual conversation, no commitment, just a chance to see if we're a good fit. Here's the link to grab a spot.",
+        styleReasonTemplate:"Kept it low-pressure: 'no commitment, just a conversation' removes the friction. You tend to be warmer with first-time contacts who show vulnerability.",
         summary:'Wants a call', status:'Needs your input',
         agentRead:'Wants a call · Needs your input' },
     ],
   },
   {
     intention: 'Questions about your services',
-    desc: 'They need info I don\'t have yet — help me answer.',
+    desc: 'They need info I don\'t have yet. Help me answer.',
     items: [
       { user:'@mike.coach', name:'Mike Chen', avatar:'https://i.pravatar.cc/88?u=mikecoach', msg:"What's included in the premium program?", source:'DM', time:'3h', unread:1, intent:'FAQ', mode:'ask',
         chatHistory: [
           { from:'them', text:"Hey, quick question", time:'3h ago' },
-          { from:'automation', text:"Hi! Thanks for your message. I'll get back to you shortly — in the meantime, feel free to share what you're looking for!", time:'3h ago' },
+          { from:'automation', text:"Hi! Thanks for your message. I'll get back to you shortly. In the meantime, feel free to share what you're looking for!", time:'3h ago' },
           { from:'them', text:"What's included in the premium program?", time:'3h ago' },
         ],
-        context:"Following 4 months, engaged with content regularly. Direct question — not casual browsing.",
+        context:"Following 4 months, engaged with content regularly. Direct question, not casual browsing.",
         agentQuestion:"Mike is asking what's included in your premium program. What are the main features?",
         askPlaceholder:"e.g., Weekly calls, meal plan, community, 60+ videos",
         draftTemplate:"Great question! The program includes {answer}. Want me to send the full breakdown?",
-        styleReasonTemplate:"Listed the key features you shared and ended with a soft push. You usually keep FAQ replies short and end with a next step — I followed that pattern.",
+        styleReasonTemplate:"Listed the key features you shared and ended with a soft push. You usually keep FAQ replies short and end with a next step. I followed that pattern.",
         summary:'Product question', status:'Needs your input',
         agentRead:'Product question · Needs your input' },
       { user:'@alex.j', name:'Alex Jordan', avatar:'https://i.pravatar.cc/88?u=alexj', msg:"Is there a refund policy?", source:'DM', time:'5h', unread:1, intent:'FAQ', mode:'ask',
         context:"New contact, 1 week following. Refund questions usually mean they're close to buying but need safety.",
         agentQuestion:"Alex is asking about your refund policy. What should I tell them?",
         askPlaceholder:"e.g., 7-day money-back guarantee, no questions asked",
-        draftTemplate:"Yes — {answer}. Most people know within the first week if it's the right fit. Want to take a look at what's included before deciding?",
-        styleReasonTemplate:"Framed the guarantee as confidence, not a safety net. Added a soft redirect to what's included — you did something similar with @emma.k when she was hesitant.",
+        draftTemplate:"Yes! {answer}. Most people know within the first week if it's the right fit. Want to take a look at what's included before deciding?",
+        styleReasonTemplate:"Framed the guarantee as confidence, not a safety net. Added a soft redirect to what's included. You did something similar with @emma.k when she was hesitant.",
         summary:'Refund question', status:'Needs your input',
         agentRead:'Refund question · Needs your input' },
       { user:'@carlos.m', name:'Carlos Mendez', avatar:'https://i.pravatar.cc/88?u=carlosm', msg:"Do you offer group sessions or is it only 1-on-1?", source:'DM', time:'2h', unread:1, intent:'FAQ', mode:'ask',
-        context:"Following 2 months. Commented on your group workout post last week — the interest is specific.",
+        context:"Following 2 months. Commented on your group workout post last week. The interest is specific.",
         agentQuestion:"Carlos wants to know if you offer group sessions. Do you?",
         askPlaceholder:"e.g., 1-on-1 only right now, group program launching in January",
-        draftTemplate:"Right now it's {answer}. I'd love to find the right fit for you — want to chat about what you're looking for?",
-        styleReasonTemplate:"Kept the door open with a conversation invite. When you don't have what they're looking for, you tend to redirect to a call — I followed that.",
+        draftTemplate:"Right now it's {answer}. I'd love to find the right fit for you. Want to chat about what you're looking for?",
+        styleReasonTemplate:"Kept the door open with a conversation invite. When you don't have what they're looking for, you tend to redirect to a call. I followed that.",
         summary:'Group sessions question', status:'Needs your input',
         agentRead:'Group sessions question · Needs your input' },
     ],
   },
   {
     intention: 'Shared something personal',
-    desc: 'These need your personal touch — no draft created.',
+    desc: 'These need your personal touch. No draft created.',
     items: [
       { user:'@lena.fit', name:'Lena Muller', avatar:'https://i.pravatar.cc/88?u=lenafit', msg:"You seem real. I've tried everything. I'm scared to spend more money.", source:'DM', time:'1h', unread:1, _sensitive:true,
         summary:"Tried everything, scared to invest",
-        context:"She's been burned before. Emotionally invested but afraid. This isn't a sales moment — it needs your voice." },
+        context:"She's been burned before. Emotionally invested but afraid. This isn't a sales moment. It needs your voice." },
       { user:'@ana.healing', name:'Ana Reyes', avatar:'https://i.pravatar.cc/88?u=anahealing', msg:"I'm going through a really hard time and need something to focus on", source:'DM', time:'5h', _sensitive:true,
         summary:"Going through a hard time",
-        context:"Personal difficulty. Looking for structure and support — acknowledge her situation before suggesting anything." },
+        context:"Personal difficulty. Looking for structure and support. Acknowledge her situation before suggesting anything." },
     ],
   },
 ];
@@ -215,7 +216,7 @@ const IMPORTANT_GROUPS = [
 function BlackBtn({ label, onClick, disabled }) {
   return (
     <button onClick={onClick} disabled={disabled}
-      style={{ width:'100%', padding:'14px 0', background: disabled ? T.lightGray : T.ink, color: disabled ? T.gray : '#FFFFFF',
+      style={{ width:'100%', padding:'14px 0', background: disabled ? T.lightGray : '#2952CC', color: disabled ? T.gray : '#FFFFFF',
         border:'none', borderRadius:12, fontSize:15, fontWeight:600, cursor: disabled ? 'default' : 'pointer',
         transition:'all .2s ease', letterSpacing:'-0.01em' }}>
       {label}
@@ -275,9 +276,9 @@ function InboxMessages({ messages, onAllDone }) {
 function ObSorting({ onNext }) {
   const [vis, setVis] = useState(0);
   const lines = [
-    'Reading your DMs...',
-    'Found some interesting conversations',
-    'I have a few questions for you',
+    'Going through your DMs...',
+    'Found a few worth your attention...',
+    'One quick question before I finish...',
   ];
 
   useEffect(() => {
@@ -320,18 +321,18 @@ function ObQuestion({ onNext }) {
   const revisions = [
     {
       title: "Did I get it right?",
-      subtitle: "Let me know if this is correct",
+      subtitle: "Here's what I found about your business.",
       summary: "I run a fitness coaching business called Sofia Reyes Coaching. My main offer is a 12-Week Reboot program with weekly 1-on-1 calls, custom meal plans, and a private community. I also have a 4-Week Kickstart for beginners. Most of my leads come from Instagram DMs and post comments.",
     },
     {
       title: "Okay, let me try again.",
       subtitle: "Here's what I understand now",
-      summary: "Sofia Reyes Coaching offers two programs: the 12-Week Reboot ($597 or 3x $197/mo) with weekly 1-on-1 coaching, custom meal plans, and a private community — and the 4-Week Kickstart ($197) for beginners. Your main audience is women 25-40 interested in fitness transformations. Leads mostly come through Instagram DMs and comments on transformation posts.",
+      summary: "Sofia Reyes Coaching offers two programs: the 12-Week Reboot ($597 or 3x $197/mo) with weekly 1-on-1 coaching, custom meal plans, and a private community. The 4-Week Kickstart ($197) is for beginners. Your main audience is women 25-40 interested in fitness transformations. Leads mostly come through Instagram DMs and comments on transformation posts.",
     },
     {
       title: "Third time's the charm?",
       subtitle: "I think I've got it now",
-      summary: "Sofia Reyes Coaching helps women 25-40 transform their fitness with two programs: the flagship 12-Week Reboot (1-on-1 coaching, custom nutrition, private community) and the entry-level 4-Week Kickstart. Most clients discover you through Instagram — especially your before/after posts and Reels. Your biggest conversion driver is DM conversations where you address hesitation around cost and commitment. You also get collab requests from fitness brands weekly.",
+      summary: "Sofia Reyes Coaching helps women 25-40 transform their fitness with two programs: the flagship 12-Week Reboot (1-on-1 coaching, custom nutrition, private community) and the entry-level 4-Week Kickstart. Most clients discover you through Instagram, especially your before/after posts and Reels. Your biggest conversion driver is DM conversations where you address hesitation around cost and commitment. You also get collab requests from fitness brands weekly.",
     },
   ];
 
@@ -411,12 +412,12 @@ function ObQuestion({ onNext }) {
       <div style={{ flex:1, display:'flex', flexDirection:'column', padding:'100px 28px 0' }}>
         <div style={{ marginBottom:16, ...show(1) }}>
           <h1 style={{ fontSize:34, fontWeight:900, color:'#fff', letterSpacing:'-0.04em', lineHeight:1.12, WebkitTextStroke:'0.5px #fff' }}>
-            Tell me more about your business
+            Emma Kim is asking about your services.
           </h1>
         </div>
         <div style={{ ...show(2) }}>
           <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6 }}>
-            I have found people like Emma Kim interested in your service, but I would like to learn more about your business to find the right messages.
+            Tell me what you do so I'll know how to prioritize and prepare replies you could use.
           </p>
         </div>
       </div>
@@ -435,7 +436,7 @@ function ObQuestion({ onNext }) {
       {inputMode === 'typing' && (
         <div style={{ padding:'0 28px 40px', ...show(3) }}>
           <textarea value={inputVal} onChange={e => setInputVal(e.target.value)} autoFocus
-            placeholder="Describe your business or share your website..."
+            placeholder="Your business in a sentence, or drop your website"
             style={{ width:'100%', fontSize:16, color:'#fff', lineHeight:1.5, padding:'14px 16px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:16, resize:'none', height:100, fontFamily:'Inter, system-ui, sans-serif', outline:'none', letterSpacing:'-0.01em' }} />
           <div style={{ display:'flex', gap:10, marginTop:12 }}>
             <button onClick={handleTypeSend}
@@ -512,7 +513,7 @@ function ObQuestion({ onNext }) {
           <div className="fade-in">
             <button onClick={() => setPhase('fantastic')}
               style={{ width:'100%', padding:'16px', background:'#fff', color:'#151515', border:'none', borderRadius:50, fontSize:16, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em', marginBottom:10 }}>
-              It's good
+              That's right
             </button>
             <button onClick={handleEdit}
               style={{ width:'100%', padding:'16px', background:'transparent', color:'rgba(255,255,255,0.5)', border:'1.5px solid rgba(255,255,255,0.12)', borderRadius:50, fontSize:15, fontWeight:500, cursor:'pointer', letterSpacing:'-0.01em' }}>
@@ -560,10 +561,10 @@ function ObQuestion({ onNext }) {
     <div style={{ background:'#151515', height:'100%', display:'flex', flexDirection:'column', justifyContent:'center', padding:'0 28px' }}>
       <div className="fade-up">
         <h1 style={{ fontSize:34, fontWeight:900, color:'#fff', letterSpacing:'-0.04em', lineHeight:1.12, WebkitTextStroke:'0.5px #fff', marginBottom:16 }}>
-          Fantastic.
+          Got it.
         </h1>
         <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6 }}>
-          Let me continue analyzing your messages with this in mind.
+          Finishing up your inbox...
         </p>
       </div>
     </div>
@@ -574,9 +575,8 @@ function ObQuestion({ onNext }) {
 function ObLoading2({ onNext }) {
   const [vis, setVis] = useState(0);
   const lines = [
-    'Got it, analyzing your conversations...',
-    'Matching messages to your business...',
-    'Found some patterns',
+    'Got it. Reading your DMs with this in mind...',
+    'Almost done...',
   ];
 
   useEffect(() => {
@@ -804,25 +804,38 @@ const AGENT_STATUS = [
 ];
 
 const AGENT_INSIGHTS = [
-  "Your audience is really responding to you. @jayrunz said \"You're the only creator who actually replies\" — that kind of trust is rare.",
-  "People keep coming back to your 12-week course page. 3 repeat visitors this week asked follow-up questions — they're close to signing up.",
-  "Your response time is faster than 90% of creators your size. That's a huge trust signal — people notice when you show up quickly.",
-  "@emma.k told a friend about your coaching. Word of mouth is working — you might see more referrals this week.",
-  "The way you handle pricing questions is really effective. Most creators dodge it, but you lean in — and it's converting.",
+  "Your audience is really responding to you. @jayrunz said \"You're the only creator who actually replies\". That kind of trust is rare.",
+  "People keep coming back to your 12-week course page. 3 repeat visitors this week asked follow-up questions. They're close to signing up.",
+  "Your response time is faster than 90% of creators your size. That's a huge trust signal. People notice when you show up quickly.",
+  "@emma.k told a friend about your coaching. Word of mouth is working. You might see more referrals this week.",
+  "The way you handle pricing questions is really effective. Most creators dodge it, but you lean in. And it's converting.",
   "6 people saved your last post. When they come to DMs, they already trust you. That makes my job easier.",
-  "Your audience asks thoughtful questions — that means they're engaged, not just browsing. This is a quality community.",
-  "@lena.fit came back after 3 weeks. She's been reading your stories. Sometimes people just need time — and you gave her that space.",
+  "Your audience asks thoughtful questions. That means they're engaged, not just browsing. This is a quality community.",
+  "@lena.fit came back after 3 weeks. She's been reading your stories. Sometimes people just need time. And you gave her that space.",
 ];
 
 /* ─── Expanded agent screen (fullscreen black overlay) ─── */
+// Track how many times the agent panel has been opened (persists in session)
+let agentOpenCount = 0;
+
 function AgentExpandedScreen({ onDismiss }) {
   const [showInsight, setShowInsight] = useState(false);
   const [insight] = useState(() => AGENT_INSIGHTS[Math.floor(Math.random() * AGENT_INSIGHTS.length)]);
+  const [isCompact] = useState(() => agentOpenCount >= 3);
 
   useEffect(() => {
+    agentOpenCount++;
     const t = setTimeout(() => setShowInsight(true), 600);
     return () => clearTimeout(t);
   }, []);
+
+  const checklist = [
+    { check:true, text:'Reading every new message as it comes in' },
+    { check:true, text:'Checking if it\'s a real lead, a question, or noise' },
+    { check:true, text:'Preparing replies when I have enough context' },
+    { check:true, text:'Holding personal messages for you to answer' },
+    { check:false, text:'Sending anything without your approval' },
+  ];
 
   return (
     <div className="pill-expand" style={{
@@ -834,51 +847,54 @@ function AgentExpandedScreen({ onDismiss }) {
     }}>
       {/* Close */}
       <div style={{ flexShrink:0, display:'flex', justifyContent:'flex-end', marginBottom:20 }}>
-        <div onClick={onDismiss} style={{ cursor:'pointer', fontSize:16, color:'rgba(255,255,255,0.5)', padding:'8px 12px', margin:'-8px -12px' }}>✕</div>
+        <div onClick={onDismiss} style={{ cursor:'pointer', fontSize:16, color:'rgba(255,255,255,0.5)', padding:'8px 12px', margin:'-8px -12px' }}>&#10005;</div>
       </div>
 
-      {/* TOP: Status + Stats */}
-      <div style={{ display:'flex', alignItems:'center', gap:7, marginBottom:24 }}>
+      {/* Status */}
+      <div style={{ display:'flex', alignItems:'center', gap:7, marginBottom: isCompact ? 16 : 28 }}>
         <div style={{ width:7, height:7, borderRadius:4, background:'#2E86FD', flexShrink:0, animation:'pulse 1.4s ease-in-out infinite' }} />
         <div style={{ fontSize:15, fontWeight:600, color:'#fff', letterSpacing:'-0.02em' }}>Analyzing your DMs</div>
       </div>
 
-      <div style={{ display:'flex', gap:0, marginBottom:28 }}>
-        {[
-          { n:'18', label:'interested' },
-          { n:'12', label:'replies ready' },
-          { n:'4m', label:'saved per reply' },
-        ].map((s, i) => (
-          <div key={i} style={{ flex:1 }}>
-            <div style={{ fontSize:22, fontWeight:700, color:'#fff', letterSpacing:'-0.03em', lineHeight:1.1 }}>{s.n}</div>
-            <div style={{ fontSize:11, color:'rgba(255,255,255,0.38)', marginTop:4 }}>{s.label}</div>
+      {/* Checklist (full) — shown for first 3 visits */}
+      {!isCompact && (
+        <div style={{ marginBottom:32 }}>
+          <div style={{ fontSize:10, fontWeight:700, color:'rgba(255,255,255,0.25)', letterSpacing:'0.07em', textTransform:'uppercase', marginBottom:14 }}>
+            What I'm doing right now
           </div>
-        ))}
-      </div>
-
-      {/* MIDDLE: Recent activity */}
-      <div style={{ fontSize:10, fontWeight:700, color:'rgba(255,255,255,0.3)', letterSpacing:'0.07em', textTransform:'uppercase', marginBottom:10 }}>
-        Recent activity
-      </div>
-      <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:28 }}>
-        {[
-          'Sorted 142 DMs by priority',
-          'Drafted 12 replies matching your tone',
-          'Found 18 people interested in your course',
-          'Filtered out 96 spam and noise',
-        ].map((line, i) => (
-          <div key={i} className="fade-up" style={{ display:'flex', alignItems:'center', gap:10, animationDelay:`${i * 0.06}s` }}>
-            <div style={{ width:4, height:4, borderRadius:2, background:'rgba(255,255,255,0.2)', flexShrink:0 }} />
-            <div style={{ fontSize:13, color:'rgba(255,255,255,0.55)', letterSpacing:'-0.01em' }}>{line}</div>
+          <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+            {checklist.map((item, i) => (
+              <div key={i} className="fade-up" style={{ display:'flex', alignItems:'flex-start', gap:10, animationDelay:`${i * 0.08}s` }}>
+                <div style={{ fontSize:14, color: item.check ? 'rgba(255,255,255,0.4)' : 'rgba(255,100,100,0.5)', flexShrink:0, marginTop:1 }}>
+                  {item.check ? '\u2713' : '\u2717'}
+                </div>
+                <div style={{ fontSize:14, color: item.check ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.3)', lineHeight:1.4 }}>
+                  {item.text}
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
+      )}
 
-      {/* BOTTOM: Conversational insight — streaming */}
+      {/* Compact summary — shown after 3+ visits */}
+      {isCompact && (
+        <div style={{ marginBottom:24 }}>
+          <div style={{ fontSize:14, color:'rgba(255,255,255,0.45)', lineHeight:1.6 }}>
+            Reading, sorting, preparing replies. Nothing gets sent without you.
+          </div>
+        </div>
+      )}
+
+      {/* Dynamic insight */}
       <div style={{ marginTop:'auto', borderTop:'1px solid rgba(255,255,255,0.06)', paddingTop:20 }}>
+        <div style={{ fontSize:10, fontWeight:700, color:'rgba(255,255,255,0.2)', letterSpacing:'0.07em', textTransform:'uppercase', marginBottom:12 }}>
+          Regarding your messages
+        </div>
+
         {showInsight && (
-          <div style={{ fontSize:15, fontWeight:400, color:'#ffffff', lineHeight:1.55, letterSpacing:'-0.01em', marginBottom:20 }}>
-            <StreamText text={insight} speed={18} delay={200} style={{}} />
+          <div style={{ fontSize: isCompact ? 18 : 14, fontWeight: isCompact ? 500 : 400, color:'rgba(255,255,255,0.75)', lineHeight:1.55, letterSpacing:'-0.01em', marginBottom:20, opacity:0, animation:'fadeSlideIn 0.5s ease 0.4s forwards' }}>
+            {insight}
           </div>
         )}
 
@@ -1003,7 +1019,7 @@ function AgentButtons({ onSend, onEdit, onSkip }) {
       </button>
       <button onClick={onSkip}
         style={{ flex:1, padding:'8px 16px', background:'transparent', border:`1px solid ${A.btnBorder}`, borderRadius:12, fontSize:15, fontWeight:500, cursor:'pointer', color:A.text, lineHeight:'22px', letterSpacing:'-0.195px' }}>
-        I'll write
+        Write my own
       </button>
     </div>
   );
@@ -1048,8 +1064,7 @@ function AgentSheet({ item, onSend, onEdit, onSkip }) {
   const [dismissed, setDismissed] = useState(false);
   const dragStartY = useRef(0);
 
-  const questions = ['Should I send it?','Want me to send this?','Ready to send?','Should I go ahead?','Does this work?','Good to send?'];
-  const [question] = useState(() => questions[Math.floor(Math.random() * questions.length)]);
+  const question = 'How does this look?';
 
   useEffect(() => {
     const timer = setTimeout(() => setPhase('ready'), 800);
@@ -1175,7 +1190,7 @@ function AgentSheet({ item, onSend, onEdit, onSkip }) {
             </button>
             <button onClick={onSkip}
               style={{ flex:1, padding:'13px 0', background:'transparent', border:'1px solid rgba(255,255,255,0.2)', borderRadius:50, fontSize:14, fontWeight:500, cursor:'pointer', color:'rgba(255,255,255,0.7)', letterSpacing:'-0.01em' }}>
-              I'll write
+              Write my own
             </button>
           </div>
         </>
@@ -1269,8 +1284,8 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
   const allIntents = ['Interested', 'FAQ', 'Collab', 'Emotional', 'Spam', 'Other'];
 
   const intentColors = {
-    'Interested':'#E85D04', 'FAQ':'#0369A1', 'Collab':'#7C3AED',
-    'Emotional':'#DC2626', 'Spam':'#999', 'Other':'#666',
+    'Interested':'#E8710A', 'FAQ':'#2952CC', 'Collab':'#7627BB',
+    'Emotional':'#D93025', 'Spam':'#6F757E', 'Other':'#525960',
   };
 
   const triggerToast = (msg) => {
@@ -1291,8 +1306,8 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
         setTimeout(() => setEditFeedback('asking'), 1200);
       } else {
         triggerToast(activeTone
-          ? 'Got it — ' + activeTone.toLowerCase() + ' tone for similar messages.'
-          : 'Noted — I\'ll adjust my style based on your edit.');
+          ? 'Got it,' + activeTone.toLowerCase() + ' tone for similar messages.'
+          : 'Noted. I\'ll adjust my style based on your edit.');
       }
     }
     if (onSent) onSent(item.user);
@@ -1308,7 +1323,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
     setSentMsg(customVal);
     setMode('sent');
     if (onSent) onSent(item.user);
-    triggerToast('Got it — I\'ll adjust for next time');
+    triggerToast('Got it,I\'ll adjust for next time');
   };
 
   const handleIllReply = () => {
@@ -1340,12 +1355,12 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
   const handleAskSend = () => {
     setSentMsg(generatedDraft);
     setMode('sent');
-    triggerToast('Got it — I\'ll use this for similar questions.');
+    triggerToast('Got it,I\'ll use this for similar questions.');
     if (onSent) onSent(item.user);
   };
 
   const handleFeedbackChoice = (reason) => {
-    triggerToast('Got it — ' + reason + '. I\'ll adjust.');
+    triggerToast('Got it,' + reason + '. I\'ll adjust.');
     if (onDraftFeedback) onDraftFeedback(); // switches parent to inline mode
     setMode('custom');
     setCustomVal('');
@@ -1401,7 +1416,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
         {intentLabel && (
           <div style={{ position:'relative' }}>
             <div onClick={(e) => { e.stopPropagation(); setIntentMenu(intentMenu ? false : 'main'); }}
-              style={{ fontSize:11, fontWeight:500, color: intentColors[intentLabel] || '#666', background:(intentColors[intentLabel] || '#666') + '14', padding:'5px 12px', borderRadius:8, cursor:'pointer', userSelect:'none', letterSpacing:'-0.01em' }}>
+              style={{ fontSize:11, fontWeight:500, color: intentColors[intentLabel] || '#525960', background:(intentColors[intentLabel] || '#525960') + '14', padding:'5px 12px', borderRadius:8, cursor:'pointer', userSelect:'none', letterSpacing:'-0.01em' }}>
               {intentLabel}
             </div>
 
@@ -1430,7 +1445,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
                   Why isn't this {intentLabel.toLowerCase()}?
                 </div>
                 {['Just browsing', 'Wrong topic', 'Spam or bot', 'It\'s something else'].map(reason => (
-                  <div key={reason} onClick={() => { triggerToast('Got it — I\'ll learn from this.'); setIntentLabel(null); setIntentMenu(false); }}
+                  <div key={reason} onClick={() => { triggerToast('Got it,I\'ll learn from this.'); setIntentLabel(null); setIntentMenu(false); }}
                     style={{ padding:'13px 16px', fontSize:13, color:'rgba(255,255,255,0.7)', cursor:'pointer', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
                     {reason}
                   </div>
@@ -1447,7 +1462,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
                 {allIntents.filter(i => i !== intentLabel).map(intent => (
                   <div key={intent} onClick={() => { setIntentLabel(intent); setIntentMenu(false); triggerToast('Updated to ' + intent); }}
                     style={{ padding:'13px 16px', fontSize:13, color:'rgba(255,255,255,0.7)', cursor:'pointer', borderBottom:'1px solid rgba(255,255,255,0.06)', display:'flex', alignItems:'center', gap:8 }}>
-                    <span style={{ width:8, height:8, borderRadius:4, background: intentColors[intent] || '#666', flexShrink:0 }} />
+                    <span style={{ width:8, height:8, borderRadius:4, background: intentColors[intent] || '#525960', flexShrink:0 }} />
                     {intent}
                   </div>
                 ))}
@@ -1461,7 +1476,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
       <div ref={chatBodyRef} style={{ flex:1, overflowY:'auto', padding:'20px 16px 12px', paddingBottom: '12px' }}>
         {/* Timestamp marker */}
         <div style={{ textAlign:'center', marginBottom:16 }}>
-          <span style={{ fontSize:12, color:'#707070' }}>Today {item.time || '8:10 AM'}</span>
+          <span style={{ fontSize:12, color:'#6F757E' }}>Today {item.time || '8:10 AM'}</span>
         </div>
 
         {chatHistory.map((m, i) => {
@@ -1475,20 +1490,20 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
               animation: `${isOutgoing ? 'slideFromRight' : 'slideFromLeft'} .4s cubic-bezier(.25,.46,.45,.94) ${i * 0.12}s forwards`,
             }}>
               {m.from === 'them' && (
-                <div style={{ maxWidth:'75%', padding:'8px 12px', borderRadius:12, background:'#F5F5F5' }}>
-                  <div style={{ fontSize:16, lineHeight:1.5, color:'#292929' }}>{m.text}</div>
+                <div style={{ maxWidth:'75%', padding:'8px 12px', borderRadius:12, background:'#F5F5F7' }}>
+                  <div style={{ fontSize:16, lineHeight:1.5, color:'#303336' }}>{m.text}</div>
                 </div>
               )}
               {isAutomation && (
                 <>
-                  <div style={{ maxWidth:'75%', padding:'8px 12px', borderRadius:12, background:'#D6D6D6' }}>
-                    <div style={{ fontSize:16, lineHeight:1.5, color:'#292929' }}>{m.text}</div>
+                  <div style={{ maxWidth:'75%', padding:'8px 12px', borderRadius:12, background:'#E0E2E5' }}>
+                    <div style={{ fontSize:16, lineHeight:1.5, color:'#303336' }}>{m.text}</div>
                   </div>
-                  <span style={{ fontSize:12, color:'#707070', marginTop:4 }}>Automation</span>
+                  <span style={{ fontSize:12, color:'#6F757E', marginTop:4 }}>Automation</span>
                 </>
               )}
               {m.from === 'you' && (
-                <div style={{ maxWidth:'75%', padding:'8px 12px', borderRadius:12, background:'#006BE2' }}>
+                <div style={{ maxWidth:'75%', padding:'8px 12px', borderRadius:12, background:'#2952CC' }}>
                   <div style={{ fontSize:16, lineHeight:1.5, color:'#fff' }}>{m.text}</div>
                 </div>
               )}
@@ -1508,7 +1523,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
                   <div style={{ fontSize:14, lineHeight:1.5, color:T.ink, letterSpacing:'-0.01em' }}>{item.draft}</div>
                 </div>
                 <div style={{ display:'flex', gap:6, marginTop:8 }}>
-                  <button onClick={handleSend} style={{ padding:'7px 16px', background:T.ink, color:'#fff', border:'none', borderRadius:20, fontSize:12, fontWeight:600, cursor:'pointer' }}>Send</button>
+                  <button onClick={handleSend} style={{ padding:'7px 16px', background:'#2952CC', color:'#fff', border:'none', borderRadius:20, fontSize:12, fontWeight:600, cursor:'pointer' }}>Send</button>
                   <button onClick={() => { setMode('editing'); setEditVal(item.draft); }} style={{ padding:'7px 14px', background:'transparent', border:`1px solid ${T.lightGray}`, borderRadius:20, fontSize:12, fontWeight:500, cursor:'pointer', color:T.ink }}>Edit</button>
                 </div>
               </div>
@@ -1542,8 +1557,8 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
                   <div key={reason} onClick={() => {
                     setEditFeedback('done');
                     triggerToast(reason === 'I just wanted to personalize'
-                      ? 'Got it — draft was fine, you wanted your touch.'
-                      : 'Got it — ' + reason.toLowerCase() + '. I\'ll adjust.');
+                      ? 'Got it,draft was fine, you wanted your touch.'
+                      : 'Got it,' + reason.toLowerCase() + '. I\'ll adjust.');
                   }}
                     style={{ padding:'8px 14px', background:'rgba(255,255,255,0.06)', borderRadius:20, cursor:'pointer', fontSize:12, color:'#fff', border:'1px solid rgba(255,255,255,0.12)', fontWeight:500, transition:'all .15s ease' }}>
                     {reason}
@@ -1617,7 +1632,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
           <div style={{ height:1, background:T.lightGray, marginBottom:16 }} />
 
           <textarea value={editVal} onChange={e => setEditVal(e.target.value)} autoFocus
-            style={{ width:'100%', fontSize:14, color:T.ink, lineHeight:1.5, padding:'13px 16px', border:`1.5px solid ${T.ink}`, borderRadius:14, resize:'none', height:80, fontFamily:'Inter, system-ui, sans-serif', background:'#fff', outline:'none', letterSpacing:'-0.01em', boxSizing:'border-box' }} />
+            style={{ width:'100%', fontSize:14, color:T.ink, lineHeight:1.5, padding:'13px 16px', border:'1px solid #E0E2E5', borderRadius:14, resize:'none', height:80, fontFamily:'Inter, system-ui, sans-serif', background:'#fff', outline:'none', letterSpacing:'-0.01em', boxSizing:'border-box' }} />
 
           {/* Tone chips */}
           <div style={{ display:'flex', gap:6, marginTop:10, flexWrap:'wrap' }}>
@@ -1636,13 +1651,13 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
                   const sentences = base.split(/(?<=[.!?])\s+/);
                   setEditVal(sentences.filter(s => s.length > 20).join(' ') || base);
                 }
-              }} style={{ fontSize:12, padding:'6px 14px', borderRadius:20, border: activeTone === tone ? `1.5px solid ${T.ink}` : `1px solid ${T.lightGray}`, cursor:'pointer', color: activeTone === tone ? '#fff' : T.ink, fontWeight:500, background: activeTone === tone ? T.ink : '#fff', transition:'all .15s ease' }}>{tone}</span>
+              }} style={{ fontSize:12, padding:'6px 14px', borderRadius:20, border: activeTone === tone ? '1.5px solid #2952CC' : `1px solid ${T.lightGray}`, cursor:'pointer', color: activeTone === tone ? '#fff' : T.ink, fontWeight:500, background: activeTone === tone ? '#2952CC' : '#fff', transition:'all .15s ease' }}>{tone}</span>
             ))}
           </div>
 
           <div style={{ display:'flex', gap:8, marginTop:12 }}>
             <button onClick={handleSend}
-              style={{ flex:1, padding:'12px 0', background:T.ink, color:'#fff', border:'none', borderRadius:12, fontSize:14, fontWeight:600, cursor:'pointer' }}>
+              style={{ flex:1, padding:'12px 0', background:'#2952CC', color:'#fff', border:'none', borderRadius:12, fontSize:14, fontWeight:600, cursor:'pointer' }}>
               Send
             </button>
             <button onClick={() => { setMode('suggest'); setActiveTone(null); setEditVal(item.draft); }}
@@ -1663,7 +1678,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
           <div style={{ width:36, height:4, background:'rgba(255,255,255,0.14)', borderRadius:2, margin:'0 auto 18px' }} />
 
           <div style={{ fontSize:15, fontWeight:400, color:'#fff', lineHeight:1.55, letterSpacing:'-0.01em', marginBottom:16 }}>
-            I noticed you prefer writing your own replies. That's fine — but what's off about mine?
+            I noticed you prefer writing your own replies. That's fine. But what's off about mine?
           </div>
 
           <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
@@ -1694,7 +1709,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
                 style={{ border:'none', outline:'none', fontSize:14, color:T.ink, width:'100%', background:'transparent', fontFamily:'Inter, system-ui, sans-serif' }} />
             </div>
             <div onClick={() => { if (customVal.trim()) handleSendCustom(); }}
-              style={{ width:36, height:36, borderRadius:18, background: customVal.trim() ? '#2E86FD' : T.lightGray, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'background .2s', flexShrink:0 }}>
+              style={{ width:36, height:36, borderRadius:18, background: customVal.trim() ? '#2952CC' : T.lightGray, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'background .2s', flexShrink:0 }}>
               <span style={{ color:'#fff', fontSize:13 }}>↑</span>
             </div>
           </div>
@@ -1721,9 +1736,9 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
 
       {/* ═══ Bottom: Undo toast after sending ═══ */}
       {mode === 'sent' && undoCount > 0 && (
-        <div style={{ position:'absolute', bottom:140, left:'50%', transform:'translateX(-50%)', background:'#E8E8E8', color:'#333', padding:'10px 20px', borderRadius:50, fontSize:13, fontWeight:500, zIndex:20, boxShadow:'0 2px 12px rgba(0,0,0,0.08)', display:'flex', alignItems:'center', gap:12, whiteSpace:'nowrap' }}>
-          <span style={{ color:'#666' }}>✓ Sent to {item.user}</span>
-          <button onClick={handleUndo} style={{ fontSize:13, color:'#333', background:'none', border:'none', cursor:'pointer', fontWeight:700, padding:0 }}>Undo</button>
+        <div style={{ position:'absolute', bottom:140, left:'50%', transform:'translateX(-50%)', background:'#E0E2E5', color:'#303336', padding:'10px 20px', borderRadius:6, fontSize:13, fontWeight:500, zIndex:20, boxShadow:'0 4px 12px rgba(0,0,0,0.15)', display:'flex', alignItems:'center', gap:12, whiteSpace:'nowrap' }}>
+          <span style={{ color:'#525960' }}>✓ Sent to {item.user}</span>
+          <button onClick={handleUndo} style={{ fontSize:13, color:'#303336', background:'none', border:'none', cursor:'pointer', fontWeight:700, padding:0 }}>Undo</button>
           <span style={{ color:'rgba(0,0,0,0.3)', fontSize:12 }}>({undoCount})</span>
         </div>
       )}
@@ -1736,11 +1751,11 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
             <div className="fade-up" style={{ marginBottom:10 }}>
               <div style={{ fontSize:12, color:T.gray, marginBottom:8 }}>Was my reply helpful as a starting point?</div>
               <div style={{ display:'flex', gap:6 }}>
-                <div onClick={() => { setCustomFeedback('done'); triggerToast('Got it — glad it helped.'); }}
+                <div onClick={() => { setCustomFeedback('done'); triggerToast('Got it,glad it helped.'); }}
                   style={{ padding:'8px 14px', background:T.warmGray, borderRadius:20, cursor:'pointer', fontSize:12, color:T.ink, fontWeight:500 }}>
                   Yes
                 </div>
-                <div onClick={() => { setCustomFeedback('done'); triggerToast('Got it — I\'ll improve.'); }}
+                <div onClick={() => { setCustomFeedback('done'); triggerToast('Got it,I\'ll improve.'); }}
                   style={{ padding:'8px 14px', background:T.warmGray, borderRadius:20, cursor:'pointer', fontSize:12, color:T.ink, fontWeight:500 }}>
                   No
                 </div>
@@ -1755,7 +1770,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
                 style={{ border:'none', outline:'none', fontSize:14, color:T.ink, width:'100%', background:'transparent', fontFamily:'Inter, system-ui, sans-serif' }} />
             </div>
             <div onClick={() => { if (customVal.trim()) handleSendCustom(); }}
-              style={{ width:36, height:36, borderRadius:18, background: customVal.trim() ? '#2E86FD' : T.lightGray, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'background .2s', flexShrink:0 }}>
+              style={{ width:36, height:36, borderRadius:18, background: customVal.trim() ? '#2952CC' : T.lightGray, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'background .2s', flexShrink:0 }}>
               <span style={{ color:'#fff', fontSize:13 }}>↑</span>
             </div>
           </div>
@@ -1764,7 +1779,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, dra
 
       {/* Toast */}
       {showToast && (
-        <div style={{ position:'absolute', bottom:100, left:'50%', transform:'translateX(-50%)', background:T.ink, color:'#fff', padding:'10px 20px', borderRadius:10, fontSize:13, fontWeight:500, animation:'fadeUp .3s ease-out', whiteSpace:'nowrap', zIndex:110, boxShadow:'0 4px 16px rgba(28,26,22,.15)', letterSpacing:'-0.01em' }}>
+        <div style={{ position:'absolute', bottom:100, left:'50%', transform:'translateX(-50%)', background:T.ink, color:'#fff', padding:'10px 20px', borderRadius:6, fontSize:13, fontWeight:500, animation:'fadeUp .3s ease-out', whiteSpace:'nowrap', zIndex:110, boxShadow:'0 4px 12px rgba(0,0,0,0.15)', letterSpacing:'-0.01em' }}>
           {toastMsg}
         </div>
       )}
@@ -1792,7 +1807,7 @@ function IntentionHeader({ label, count, collapsed, onToggle }) {
         </div>
         <span style={{ fontSize:16, fontWeight:500, color:T.ink, letterSpacing:'-0.02em' }}>{label}</span>
       </div>
-      <span style={{ fontSize:12, fontWeight:500, color:T.ink, background:'#F5F5F5', padding:'4px 8px', borderRadius:16, letterSpacing:'-0.01em' }}>{count}</span>
+      <span style={{ fontSize:12, fontWeight:500, color:'#6F757E', background:'#F5F5F7', padding:'4px 8px', borderRadius:16, letterSpacing:'-0.01em' }}>{count}</span>
     </div>
   );
 }
@@ -1833,7 +1848,7 @@ function ImportantTab({ onOpenChat, answeredChats, priorityFeedbackDone, onFeedb
       {showInfoModal && (
         <div style={{ position:'fixed', inset:0, zIndex:200, display:'flex', alignItems:'center', justifyContent:'center' }}>
           <div onClick={() => setShowInfoModal(false)} style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.3)' }} />
-          <div className="fade-up" style={{ position:'relative', zIndex:201, background:'#fff', borderRadius:20, padding:'28px 24px', maxWidth:340, width:'90%', boxShadow:'0 12px 40px rgba(0,0,0,0.15)' }}>
+          <div className="fade-up" style={{ position:'relative', zIndex:201, background:'#fff', borderRadius:10, padding:'28px 24px', maxWidth:340, width:'90%', boxShadow:'0 8px 32px rgba(0,0,0,0.2)' }}>
             <div style={{ fontSize:18, fontWeight:700, color:T.ink, letterSpacing:'-0.02em', marginBottom:12 }}>How I prioritize</div>
             <div style={{ fontSize:14, color:T.gray, lineHeight:1.55, marginBottom:8 }}>
               I look at your conversations and sort them based on:
@@ -1846,7 +1861,7 @@ function ImportantTab({ onOpenChat, answeredChats, priorityFeedbackDone, onFeedb
                 'Messages that feel personal or sensitive',
               ].map((item, i) => (
                 <div key={i} style={{ display:'flex', alignItems:'flex-start', gap:8 }}>
-                  <div style={{ width:4, height:4, borderRadius:2, background:T.lightGray, flexShrink:0, marginTop:8 }} />
+                  <div style={{ width:4, height:4, borderRadius:2, background:'#E0E2E5', flexShrink:0, marginTop:8 }} />
                   <span style={{ fontSize:14, color:T.ink, lineHeight:1.5 }}>{item}</span>
                 </div>
               ))}
@@ -1855,11 +1870,11 @@ function ImportantTab({ onOpenChat, answeredChats, priorityFeedbackDone, onFeedb
             <div style={{ display:'flex', gap:8 }}>
               <div onClick={() => { onFeedbackGood(); setShowInfoModal(false); }}
                 style={{ width:36, height:36, borderRadius:18, border:`1px solid ${T.lightGray}`, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6F757E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
               </div>
               <div onClick={() => { onFeedbackBad(); setShowInfoModal(false); }}
                 style={{ width:36, height:36, borderRadius:18, border:`1px solid ${T.lightGray}`, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/><path d="M17 2h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"/></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6F757E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/><path d="M17 2h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"/></svg>
               </div>
             </div>
             <div onClick={() => setShowInfoModal(false)} style={{ marginTop:20, textAlign:'center', fontSize:13, color:T.gray, cursor:'pointer' }}>Close</div>
@@ -1900,15 +1915,15 @@ function ImportantTab({ onOpenChat, answeredChats, priorityFeedbackDone, onFeedb
 
       {priorityFeedbackDone && (
         <div className="fade-in" style={{ padding:'20px 0 16px', textAlign:'center' }}>
-          <span style={{ fontSize:12, color:T.gray }}>Thanks — I'll keep learning from how you use your inbox.</span>
+          <span style={{ fontSize:12, color:T.gray }}>Thanks. I'll keep learning from how you use your inbox.</span>
         </div>
       )}
 
       {/* Recently answered — grey bg extending to bottom edge */}
       {allAnswered.length > 0 && (
-        <div style={{ margin:'0 -20px', padding:'24px 16px 32px', background:'#F5F5F5' }}>
+        <div style={{ margin:'0 -20px', padding:'24px 16px 32px', background:'#F5F5F7' }}>
           <div style={{ marginBottom:16 }}>
-            <span style={{ fontSize:20, fontWeight:700, color:'#292929', lineHeight:'32px' }}>Recently answered</span>
+            <span style={{ fontSize:20, fontWeight:700, color:'#303336', lineHeight:'32px' }}>Recently answered</span>
           </div>
           <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
             {allAnswered.map((item, i) => (
@@ -1918,20 +1933,20 @@ function ImportantTab({ onOpenChat, answeredChats, priorityFeedbackDone, onFeedb
                   <img src={item.avatar} alt="" style={{ width:32, height:32, borderRadius:400, objectFit:'cover', flexShrink:0, border:'0.5px solid rgba(44,50,58,0.12)' }} />
                   <div style={{ flex:1, minWidth:0 }}>
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                      <span style={{ fontSize:14, fontWeight:400, color:'#707070', lineHeight:'20px' }}>{item.name || item.user}</span>
-                      <span style={{ fontSize:12, fontWeight:400, color:'#707070', lineHeight:'16px', flexShrink:0 }}>{item.time}</span>
+                      <span style={{ fontSize:14, fontWeight:400, color:'#6F757E', lineHeight:'20px' }}>{item.name || item.user}</span>
+                      <span style={{ fontSize:12, fontWeight:400, color:'#6F757E', lineHeight:'16px', flexShrink:0 }}>{item.time}</span>
                     </div>
                   </div>
                 </div>
                 <div style={{ paddingLeft:44 }}>
                   <div style={{ fontSize:12, lineHeight:'16px', display:'flex', alignItems:'center', gap:4 }}>
-                    <span style={{ color:'#0C8143' }}>Answered</span>
-                    <span style={{ color:'#707070' }}>·</span>
-                    <span style={{ color:'#707070' }}>Waiting for contact's reply</span>
+                    <span style={{ color:'#188038' }}>Answered</span>
+                    <span style={{ color:'#6F757E' }}>·</span>
+                    <span style={{ color:'#6F757E' }}>Waiting for contact's reply</span>
                   </div>
                 </div>
                 {i < allAnswered.length - 1 && (
-                  <div style={{ marginLeft:44, marginTop:8, height:1, background:'rgba(0,0,0,0.06)' }} />
+                  <div style={{ marginLeft:44, marginTop:8, height:1, background:'#E0E2E5' }} />
                 )}
               </div>
             ))}
@@ -1978,11 +1993,11 @@ function PrioritiesOverlay({ onDismiss }) {
             return (
               <div key={p.id} onClick={() => toggle(p.id)}
                 style={{ display:'flex', alignItems:'center', gap:14, padding:'18px', borderRadius:14,
-                  border: on ? '1.5px solid #2E86FD' : `1.5px solid ${T.lightGray}`,
-                  background: on ? '#F0F7FF' : T.cardBg, cursor:'pointer', transition:'all .2s ease' }}>
+                  border: on ? '1.5px solid #2952CC' : `1.5px solid ${T.lightGray}`,
+                  background: on ? '#E8F0FE' : T.cardBg, cursor:'pointer', transition:'all .2s ease' }}>
                 <div style={{ width:32, height:32, borderRadius:16,
                   border: on ? 'none' : `1.5px solid ${T.lightGray}`,
-                  background: on ? '#2E86FD' : 'transparent',
+                  background: on ? '#2952CC' : 'transparent',
                   display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, transition:'all .2s ease' }}>
                   {on && <span style={{ color:'#fff', fontSize:14 }}>✓</span>}
                 </div>
@@ -2007,7 +2022,7 @@ function PrioritiesOverlay({ onDismiss }) {
       </div>
 
       {showToast && (
-        <div className="fade-up" style={{ position:'absolute', top:60, left:'50%', transform:'translateX(-50%)', background:T.ink, color:'#fff', padding:'10px 24px', borderRadius:50, fontSize:13, fontWeight:500, zIndex:170, whiteSpace:'nowrap' }}>
+        <div className="fade-up" style={{ position:'absolute', top:60, left:'50%', transform:'translateX(-50%)', background:T.ink, color:'#fff', padding:'10px 24px', borderRadius:6, fontSize:13, fontWeight:500, zIndex:170, whiteSpace:'nowrap' }}>
           Updating your priorities...
         </div>
       )}
@@ -2023,6 +2038,8 @@ function PrioritiesOverlay({ onDismiss }) {
 
 function InboxV2({ onOverlayChange, openChatOnLoad }) {
   const [reportCollapsed, setReportCollapsed] = useState(true);
+  const [morningReportVisible, setMorningReportVisible] = useState(true);
+  const [chatInteractions, setChatInteractions] = useState(0);
   const [summaryOpen, setSummaryOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('important');
   const [openChat, setOpenChat] = useState(null);
@@ -2103,14 +2120,34 @@ function InboxV2({ onOverlayChange, openChatOnLoad }) {
       <div ref={scrollRef} onScroll={handleScroll}
         style={{ flex:1, overflowY:'auto', overflowX:'hidden', padding:'0 16px 0 16px' }}>
         {showModeChangeNotif && (
-          <div className="fade-up" style={{ marginBottom:16, padding:'14px 16px', background:'#F5F5F5', borderRadius:14, display:'flex', gap:12, alignItems:'flex-start' }}>
+          <div className="fade-up" style={{ marginBottom:16, padding:'14px 16px', background:'#F5F5F7', borderRadius:14, display:'flex', gap:12, alignItems:'flex-start' }}>
             <div style={{ flex:1 }}>
               <div style={{ fontSize:11, color:T.gray, marginBottom:4, fontWeight:500 }}>Inbox Agent</div>
-              <div style={{ fontSize:13, color:T.ink, lineHeight:1.5, letterSpacing:'-0.01em' }}>I noticed you've been writing your own replies. I'll put my drafts in the conversation from now on — easier to compare.</div>
+              <div style={{ fontSize:13, color:T.ink, lineHeight:1.5, letterSpacing:'-0.01em' }}>I noticed you've been writing your own replies. I'll put my drafts in the conversation from now on. Easier to compare.</div>
             </div>
             <div onClick={() => setShowModeChangeNotif(false)} style={{ cursor:'pointer', color:T.gray, fontSize:18, lineHeight:1, paddingTop:1 }}>×</div>
           </div>
         )}
+        {/* ═══ Morning Report ═══ */}
+        {morningReportVisible && (
+          <div className="fade-up" style={{ marginBottom:16, background:'#1B1B18', borderRadius:16, padding:'18px 18px 20px', color:'#fff', position:'relative' }}>
+            {/* X dismiss */}
+            <div onClick={() => setMorningReportVisible(false)}
+              style={{ position:'absolute', top:14, right:14, cursor:'pointer', color:'rgba(255,255,255,0.3)', fontSize:18, lineHeight:1, padding:'4px', zIndex:1 }}>&#10005;</div>
+
+            <div style={{ fontSize:10, color:'rgba(255,255,255,0.3)', fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase', marginBottom:10 }}>Morning report</div>
+
+            <div style={{ fontSize:15, lineHeight:'1.6', color:'rgba(255,255,255,0.7)', marginBottom:14, paddingRight:20 }}>
+              Busy night. 35 messages. I cleared 15 that weren't worth your time. <strong style={{ color:'#fff' }}>20 are ready for you</strong>, including <strong style={{ color:'#E85D04' }}>3 leads</strong> asking about your coaching. I wrote replies for all of them.
+            </div>
+
+            <div style={{ paddingTop:12, borderTop:'1px solid rgba(255,255,255,0.08)' }}>
+              <div style={{ fontSize:20, fontWeight:700, color:'#fff', marginBottom:3 }}>About 5 min</div>
+              <div style={{ fontSize:12, color:'rgba(255,255,255,0.3)', lineHeight:1.4 }}>to go through everything. Replies are ready, you just approve or edit.</div>
+            </div>
+          </div>
+        )}
+
         <ImportantTab onOpenChat={handleOpenChat} answeredChats={answeredChats}
           priorityFeedbackDone={priorityFeedbackDone}
           onFeedbackGood={() => setPriorityFeedbackDone(true)}
@@ -2193,7 +2230,12 @@ function InboxV2({ onOverlayChange, openChatOnLoad }) {
           onClose={() => {
             setOpenChat(null);
           }}
-          onSent={(user) => setAnsweredChats(prev => new Set([...prev, user]))}
+          onSent={(user) => {
+            setAnsweredChats(prev => new Set([...prev, user]));
+            const newCount = chatInteractions + 1;
+            setChatInteractions(newCount);
+            if (newCount >= 3) setMorningReportVisible(false);
+          }}
           onSkipDraft={() => {
             const newCount = skipDraftCount + 1;
             setSkipDraftCount(newCount);
@@ -2219,7 +2261,7 @@ function BottomNav() {
         { icon: '☺', label: 'Contacts', active: false },
         { icon: '⚙', label: 'Automations', active: false },
       ].map((item, i) => (
-        <div key={i} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:2, cursor:'pointer', padding:'4px 16px', borderRadius:12, background: item.active ? T.warmGray : 'transparent' }}>
+        <div key={i} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:2, cursor:'pointer', padding:'4px 16px', borderRadius:12, background: item.active ? '#E8F0FE' : 'transparent' }}>
           <span style={{ fontSize:18, color: item.active ? T.accent : T.gray, lineHeight:1 }}>{item.icon}</span>
           <span style={{ fontSize:10, color: item.active ? T.accent : T.gray, fontWeight: item.active ? 600 : 400 }}>{item.label}</span>
         </div>
@@ -2267,19 +2309,19 @@ function ObWelcomeV2b({ onNext }) {
 
         <div style={{ ...show(2) }}>
           <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:12 }}>
-            Managing DMs shouldn't be a part-time job.
+            You've got DMs waiting.
           </p>
         </div>
 
         <div style={{ ...show(3) }}>
           <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:12 }}>
-            Between real leads and noise, knowing where to start takes more time than it should.
+            The leads, the quick replies, the noise. I'll go through all of it and have the good ones ready for you.
           </p>
         </div>
 
         <div style={{ ...show(4) }}>
           <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6 }}>
-            That's what I'm here for.
+            Want me to get started?
           </p>
         </div>
       </div>
@@ -2287,7 +2329,7 @@ function ObWelcomeV2b({ onNext }) {
       <div style={{ padding:'0 28px 90px', ...show(5) }}>
         <button onClick={onNext}
           style={{ width:'100%', padding:'16px', background:'transparent', color:'rgba(255,255,255,0.8)', border:'1.5px solid rgba(255,255,255,0.18)', borderRadius:50, fontSize:16, fontWeight:500, cursor:'pointer', letterSpacing:'-0.01em' }}>
-          Show me
+          Let's do it
         </button>
       </div>
     </div>
@@ -2317,28 +2359,28 @@ function ObResultsV2b({ onReplyNow, onOpenInbox }) {
 
       <div style={{ flex:1, display:'flex', flexDirection:'column', padding:'100px 28px 0' }}>
         <div style={{ marginBottom:16, ...show(1) }}>
-          <h1 style={{ fontSize:34, fontWeight:900, color:'#fff', letterSpacing:'-0.04em', lineHeight:1.12, WebkitTextStroke:'0.5px #fff' }}>Ready to go.</h1>
+          <h1 style={{ fontSize:34, fontWeight:900, color:'#fff', letterSpacing:'-0.04em', lineHeight:1.12, WebkitTextStroke:'0.5px #fff' }}>Went through 142 DMs. Here's what matters:</h1>
         </div>
 
         <div style={{ ...show(2) }}>
-          <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:24 }}>
-            I analyzed 142 DMs and this is what I found:
+          <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:16 }}>
+            <span style={{ fontWeight:700 }}>54</span> messages that need you
           </p>
         </div>
 
         <div style={{ ...show(3) }}>
           <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:16 }}>
-            <span style={{ fontWeight:700 }}>8</span> interested in your 12-week course
+            <span style={{ fontWeight:700 }}>8</span> people interested in your 12-week course
           </p>
         </div>
         <div style={{ ...show(4) }}>
           <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:16 }}>
-            <span style={{ fontWeight:700 }}>12</span> want to collaborate
+            <span style={{ fontWeight:700 }}>2</span> shared something personal (worth reading yourself)
           </p>
         </div>
         <div style={{ ...show(5) }}>
           <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6 }}>
-            <span style={{ fontWeight:700 }}>2</span> expressed emotions and need your advice
+            <span style={{ fontWeight:700 }}>32</span> replies ready to send
           </p>
         </div>
       </div>
@@ -2366,7 +2408,7 @@ function ObResultsV2b({ onReplyNow, onOpenInbox }) {
         </div>
         <div style={{ ...show(9) }}>
           <button onClick={onOpenInbox} style={{ width:'100%', padding:'16px', background:'transparent', color:'rgba(255,255,255,0.5)', border:'1.5px solid rgba(255,255,255,0.12)', borderRadius:50, fontSize:15, fontWeight:500, cursor:'pointer', letterSpacing:'-0.01em' }}>
-            Open inbox
+            See all
           </button>
         </div>
       </div>
