@@ -109,106 +109,88 @@ const CREATOR_AVATAR = 'https://i.pravatar.cc/48?u=creator_mc';
 /* ═══ DATA ═══ */
 const IMPORTANT_GROUPS = [
   {
-    intention: 'Interested in your services',
-    desc: 'These people want what you offer.',
+    intention: 'Interested in your service',
+    icon: 'fire',
+    desc: 'Was interested. The AI didn\'t close the loop. They went quiet.',
     items: [
-      { user:'@jayrunz', name:'Jay Ruiz', avatar:'https://i.pravatar.cc/88?u=jayrunz', msg:"I've been struggling for 2 years. Is it too late to start?", source:'DM', time:'2h', unread:3, intent:'Interested', mode:'confident',
-        summary:'Ready to sign up', status:'Reply ready',
+      { user:'@jolato82', name:'jolato82', avatar:'https://i.pravatar.cc/88?u=jolato82', msg:"Envíame el link a tu web", source:'DM', time:'19d', unread:3, intent:'Interested', mode:'confident',
+        summary:'Hot lead, bot dropped the ball', status:'Input needed',
         chatHistory: [
-          { from:'them', text:'Hey!', time:'2h ago' },
-          { from:'automation', text:"Hey! Thank you so much for reaching out. Would you like me to keep you informed about my new programs?", time:'2h ago' },
-          { from:'them', text:"Yes please! I've been struggling for 2 years. Is it too late to start?", time:'2h ago' },
+          { from:'them', text:"Hola! Eres guapo", time:'Mar 22' },
+          { from:'them', text:"Cuánto cuesta tu curso?", time:'Mar 22' },
+          { from:'automation', text:"El curso se llama Lili dog y cuesta 50€.", time:'Mar 22' },
+          { from:'them', text:"Me interesa", time:'Mar 22' },
+          { from:'automation', text:"¿Qué nivel te interesa del curso Lili dog? Hay niveles 1, 2 y 3. Si no sabes, puedo compartir mi sitio web para que lo revises.", time:'Mar 22' },
+          { from:'them', text:"Envíame el link a tu web", time:'Mar 22' },
+          { from:'them', text:"Y el Link????", time:'Mar 22' },
+          { from:'them', text:"Ya no hablas?", time:'Mar 22' },
+          { from:'them', text:"Vale", time:'Mar 22' },
         ],
-        context:"Following you for 14 months. Saved your transformation reel last week. He's not asking about price. He's asking if it's too late.",
-        draft:"It's never too late. 2 years of trying tells me you're serious about change. The 12-Week Reboot is built for people exactly where you are. Want to see what week 1 looks like?",
-        styleReason:"I went with validation first, no pitch. Similar to how you replied to @sarah.wellness when she had doubts. You tend to lead with encouragement before sharing details.",
-        agentRead:'Ready to sign up · Reply drafted' },
-      { user:'@emma.k', name:'Emma Kim', avatar:'https://i.pravatar.cc/88?u=emmak', msg:"How much is the coaching program? I've been thinking about it for weeks", source:'DM', time:'4h', unread:2, intent:'Interested', mode:'ask',
-        chatHistory: [
-          { from:'them', text:"Hi! I saw your reel about the coaching program", time:'4h ago' },
-          { from:'automation', text:"Hey! Thanks for reaching out. I'd love to tell you more. What are you most interested in?", time:'4h ago' },
-          { from:'them', text:"How much is the coaching program? I've been thinking about it for weeks", time:'4h ago' },
-        ],
-        context:"Engaged for weeks, commented on 5 posts, saved your course breakdown. Warm lead asking about pricing.",
-        agentQuestion:"Emma wants to know your coaching program price. She's been engaging with your content for weeks. This feels like a warm lead. What's the pricing?",
-        askPlaceholder:"e.g., $597 or 3 payments of $197/mo",
-        draftTemplate:"Great news: the 12-Week Reboot is {answer}. It includes weekly 1-on-1 coaching, custom meal plans, and access to the private community. I also have a flexible payment plan if that helps. Want me to send the full details?",
-        styleReasonTemplate:"Used the pricing you shared + mentioned the payment plan. Cost hesitation is her main blocker. You tend to remove friction, not discount. Similar to how you handled @marcus.fit's first message.",
-        summary:'Asking about pricing', status:'Needs your input',
-        agentRead:'Asking about pricing · Needs your input' },
-      { user:'@marcus.fit', name:'Marcus Rivera', avatar:'https://i.pravatar.cc/88?u=marcusfit', msg:"I saw your client Ana's results. That's exactly what I need. How do I start?", source:'DM', time:'1h', unread:1, intent:'Interested', mode:'confident',
-        context:"First DM, but high intent. Referenced Ana's results. Followed 3 months, liked Ana's transformation post.",
-        draft:"Love that Ana's journey resonated with you! The first step is a quick chat to see which program fits. I have a 12-week deep dive and a 4-week kickstart. What's your main goal right now?",
-        styleReason:"Went conversational and qualifying. You usually ask 'what's your main goal' with new leads, keeps it open without overwhelming. 89% of your first replies to new leads are under 3 sentences.",
-        summary:'High intent', status:'Reply ready',
-        agentRead:'High intent · Reply drafted' },
+        context:"Asked about price, said 'me interesa', then asked for the website link twice. The AI answered the price but never sent the link. They sent 3 follow-up messages and gave up with 'Vale'. Warm lead that went cold because of an AI gap, not lack of interest. 19 days of silence — a recovery message can still work.",
+        draft:"¡Hola! Perdona el retraso — aquí tienes el link directo a mi web 👉 [tu-web.com] El curso Lili Dog tiene 3 niveles; si no sabes por cuál empezar, el nivel 1 es perfecto para arrancar desde cero. ¿Te mando los detalles de cada uno?",
+        styleReason:"Lead went cold because the AI never sent the link they asked for twice. Opening with the link directly — not another question — removes the exact friction that killed the conversation. Apologetic but warm, not groveling.",
+        agentRead:'Warm lead, bot failed · Recovery drafted' },
     ],
   },
   {
-    intention: 'Want to book a call',
-    desc: 'Ready to talk. Just need scheduling.',
+    intention: 'Engaged',
+    icon: 'star',
+    desc: 'Active conversation. New message just came in, unanswered.',
     items: [
-      { user:'@sarah.wellness', name:'Sarah Cho', avatar:'https://i.pravatar.cc/88?u=sarahcho', msg:"I'd love to book a discovery call. When are you available?", source:'DM', time:'3h', unread:1, intent:'Interested', mode:'confident',
-        context:"Came back after 2 weeks. DM'd before about the program. Following 6 months. People who return are usually ready.",
-        draft:"Great to hear from you again, Sarah! I have openings Tuesday and Thursday afternoons this week. Which works better for you? I'll send a link to grab a spot.",
-        styleReason:"Warm and specific: offered real times, not a generic link. When @jayrunz came back after going quiet, you also gave specific next steps. Returning leads get your personal touch.",
-        summary:'Returning lead', status:'Reply ready',
-        agentRead:'Returning lead · Reply drafted' },
-      { user:'@daniela.r', name:'Daniela Ruiz', avatar:'https://i.pravatar.cc/88?u=danielar', msg:"Do you do free consultations? I'd love to talk before committing", source:'DM', time:'5h', unread:1, intent:'Interested', mode:'ask',
-        context:"New follower (2 weeks), first DM. Wants to talk before buying. Normal for high-ticket services.",
-        agentQuestion:"Daniela wants to talk before committing. Do you offer free consultations? If yes, how should she book?",
-        askPlaceholder:"e.g., Yes, 15-min call at calendly.com/sofia",
-        draftTemplate:"Absolutely! I offer a free {answer}. It's a casual conversation, no commitment, just a chance to see if we're a good fit. Here's the link to grab a spot.",
-        styleReasonTemplate:"Kept it low-pressure: 'no commitment, just a conversation' removes the friction. You tend to be warmer with first-time contacts who show vulnerability.",
-        summary:'Wants a call', status:'Needs your input',
-        agentRead:'Wants a call · Needs your input' },
-    ],
-  },
-  {
-    intention: 'Questions about your services',
-    desc: 'They need info I don\'t have yet. Help me answer.',
-    items: [
-      { user:'@mike.coach', name:'Mike Chen', avatar:'https://i.pravatar.cc/88?u=mikecoach', msg:"What's included in the premium program?", source:'DM', time:'3h', unread:1, intent:'FAQ', mode:'ask',
+      { user:'@dacos.t.a', name:'dacos.t.a', avatar:'https://i.pravatar.cc/88?u=dacosta2', msg:"Cuál es el horario? Es online?", source:'DM', time:'just now', unread:1, intent:'Interested', mode:'confident',
+        summary:'Asking about format — ready to decide', status:'Reply ready',
         chatHistory: [
-          { from:'them', text:"Hey, quick question", time:'3h ago' },
-          { from:'automation', text:"Hi! Thanks for your message. I'll get back to you shortly. In the meantime, feel free to share what you're looking for!", time:'3h ago' },
-          { from:'them', text:"What's included in the premium program?", time:'3h ago' },
+          { from:'them', text:"Hola! Cuánto cuesta el curso?", time:'8:23 AM' },
+          { from:'automation', text:"El curso cuesta 50€.", time:'8:23 AM' },
+          { from:'them', text:"Que ofreces?", time:'8:26 AM' },
+          { from:'automation', text:"Ofrecemos un curso llamado Lili dog, que cuesta 50€. Hay niveles 1, 2 y 3 disponibles.", time:'8:26 AM' },
+          { from:'them', text:"Cuál es el horario? Es online?", time:'8:26 AM' },
         ],
-        context:"Following 4 months, engaged with content regularly. Direct question, not casual browsing.",
-        agentQuestion:"Mike is asking what's included in your premium program. What are the main features?",
-        askPlaceholder:"e.g., Weekly calls, meal plan, community, 60+ videos",
-        draftTemplate:"Great question! The program includes {answer}. Want me to send the full breakdown?",
-        styleReasonTemplate:"Listed the key features you shared and ended with a soft push. You usually keep FAQ replies short and end with a next step. I followed that pattern.",
-        summary:'Product question', status:'Needs your input',
-        agentRead:'Product question · Needs your input' },
-      { user:'@alex.j', name:'Alex Jordan', avatar:'https://i.pravatar.cc/88?u=alexj', msg:"Is there a refund policy?", source:'DM', time:'5h', unread:1, intent:'FAQ', mode:'ask',
-        context:"New contact, 1 week following. Refund questions usually mean they're close to buying but need safety.",
-        agentQuestion:"Alex is asking about your refund policy. What should I tell them?",
-        askPlaceholder:"e.g., 7-day money-back guarantee, no questions asked",
-        draftTemplate:"Yes! {answer}. Most people know within the first week if it's the right fit. Want to take a look at what's included before deciding?",
-        styleReasonTemplate:"Framed the guarantee as confidence, not a safety net. Added a soft redirect to what's included. You did something similar with @emma.k when she was hesitant.",
-        summary:'Refund question', status:'Needs your input',
-        agentRead:'Refund question · Needs your input' },
-      { user:'@carlos.m', name:'Carlos Mendez', avatar:'https://i.pravatar.cc/88?u=carlosm', msg:"Do you offer group sessions or is it only 1-on-1?", source:'DM', time:'2h', unread:1, intent:'FAQ', mode:'ask',
-        context:"Following 2 months. Commented on your group workout post last week. The interest is specific.",
-        agentQuestion:"Carlos wants to know if you offer group sessions. Do you?",
-        askPlaceholder:"e.g., 1-on-1 only right now, group program launching in January",
-        draftTemplate:"Right now it's {answer}. I'd love to find the right fit for you. Want to chat about what you're looking for?",
-        styleReasonTemplate:"Kept the door open with a conversation invite. When you don't have what they're looking for, you tend to redirect to a call. I followed that.",
-        summary:'Group sessions question', status:'Needs your input',
-        agentRead:'Group sessions question · Needs your input' },
+        context:"Came back today with real product questions — price, what's offered, now asking about format. No more friction. Three messages in 3 minutes means they're actively deciding. Last question is unanswered.",
+        draft:"Es 100% online, sin horarios fijos — lo haces a tu ritmo desde donde quieras 📲 Los materiales están disponibles siempre. ¿Te interesa algún nivel en concreto?",
+        styleReason:"Answered both questions directly (online + no fixed schedule). Framed flexibility as a feature. Soft closing question to keep the conversation moving without pressure.",
+        agentRead:'Asking about format · Reply drafted' },
     ],
   },
   {
-    intention: 'Shared something personal',
-    desc: 'These need your personal touch. No draft created.',
+    intention: 'Urgent',
+    icon: 'urgent',
+    desc: 'Personal or sensitive — needs your touch.',
     items: [
-      { user:'@lena.fit', name:'Lena Muller', avatar:'https://i.pravatar.cc/88?u=lenafit', msg:"You seem real. I've tried everything. I'm scared to spend more money.", source:'DM', time:'1h', unread:1, _sensitive:true,
-        summary:"Tried everything, scared to invest",
-        context:"She's been burned before. Emotionally invested but afraid. This isn't a sales moment. It needs your voice." },
-      { user:'@ana.healing', name:'Ana Reyes', avatar:'https://i.pravatar.cc/88?u=anahealing', msg:"I'm going through a really hard time and need something to focus on", source:'DM', time:'5h', _sensitive:true,
-        summary:"Going through a hard time",
-        context:"Personal difficulty. Looking for structure and support. Acknowledge her situation before suggesting anything." },
+      { user:'@dmtrackerbot', name:'DM Tracker', avatar:'https://i.pravatar.cc/88?u=dmtracker', msg:"Hey Martin, Serdar here, founder of DM Tracker. Just a quick note that I've sent you an email :)", source:'DM', time:'25d', unread:0, intent:'Spam', mode:'confident',
+        summary:'Unsolicited sales outreach', status:'Held for you',
+        chatHistory: [
+          { from:'them', text:"Test message #1\n\nSent by DM Tracker", time:'Mar 16' },
+          { from:'them', text:"Test message #2\n\nSent by DM Tracker", time:'Mar 16' },
+          { from:'them', text:"Hey Martin, Serdar here, founder of DM Tracker. Just a quick note that I\'ve sent you an email :)", time:'Mar 16' },
+        ],
+        context:"Unsolicited outreach. They sent two test messages via their own tool then followed up with a personal note. No action needed.",
+        draft:"",
+        styleReason:"",
+        agentRead:'Spam · No reply needed' },
+      { user:'@rocdacoc', name:'rocdacoc', avatar:'https://i.pravatar.cc/88?u=rocdacoc', msg:"Molta peli nostàlgia", source:'DM', time:'6d', unread:0, intent:'Personal', mode:'confident',
+        summary:'Personal contact, sent a reaction', status:'Held for you',
+        chatHistory: [
+          { from:'them', text:"Molta peli nostàlgia", time:'Mar 2020' },
+          { from:'me', text:"Tio, paga la pena? Què hi ha?", time:'Mar 2020' },
+          { from:'them', text:"(reacció / missatge buit)", time:'Apr 4' },
+        ],
+        context:"Personal contact. Old conversation in Catalan. Their recent message (Apr 4) was empty — likely a reaction or media attachment. Not a business lead.",
+        draft:"",
+        styleReason:"",
+        agentRead:'Personal · Not business' },
+      { user:'@ignacioluk', name:'ignacioluk', avatar:'https://i.pravatar.cc/88?u=ignacioluk', msg:"Amee", source:'DM', time:'37d', unread:0, intent:'Personal', mode:'confident',
+        summary:'Personal contact, old conversation resurfaced', status:'Held for you',
+        chatHistory: [
+          { from:'them', text:"Keee", time:'May 2020' },
+          { from:'them', text:"Jajaj", time:'May 2020' },
+          { from:'them', text:"Amee", time:'May 2020' },
+          { from:'them', text:"(mensaje vacío / reacción)", time:'Mar 4' },
+        ],
+        context:"Personal contact. Old conversation from 2020. Recent message (Mar 4) was empty — likely a reaction. Not a business lead.",
+        draft:"",
+        styleReason:"",
+        agentRead:'Personal · Not business' },
     ],
   },
 ];
@@ -812,25 +794,51 @@ function AgentExpandedScreen({ onDismiss }) {
 }
 
 /* ─── Message row (IG DM style) ─── */
-function MsgRow({ user, name, avatar, time, onClick, isLast, isAsk, summary, status }) {
+function StatusBadge({ status }) {
+  if (!status) return null;
+  if (status === 'Reply ready') return (
+    <div style={{ display:'inline-flex', alignItems:'center', gap:5, background:'#EEF3FF', borderRadius:20, padding:'4px 10px 4px 8px' }}>
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+        <circle cx="8" cy="8" r="6.5" stroke="#2952CC" strokeWidth="1.5"/>
+        <polyline points="5,8.2 7,10.5 11,5.5" stroke="#2952CC" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+      <span style={{ fontSize:12, color:'#2952CC', fontWeight:500, letterSpacing:'-0.01em' }}>Reply ready</span>
+    </div>
+  );
+  if (status === 'Input needed') return (
+    <div style={{ display:'inline-flex', alignItems:'center', gap:5, border:'1px solid #D1D5DB', borderRadius:20, padding:'4px 10px 4px 8px' }}>
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+        <circle cx="8" cy="8" r="6.5" stroke="#6F757E" strokeWidth="1.5"/>
+        <text x="8" y="12.5" textAnchor="middle" fontSize="9" fill="#6F757E" fontWeight="700" fontFamily="system-ui">?</text>
+      </svg>
+      <span style={{ fontSize:12, color:'#6F757E', fontWeight:500, letterSpacing:'-0.01em' }}>Input needed</span>
+    </div>
+  );
+  if (status === 'Held for you') return (
+    <div style={{ display:'inline-flex', alignItems:'center', gap:5, border:'1px solid #D1D5DB', borderRadius:20, padding:'4px 10px 4px 8px' }}>
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+        <path d="M8 13C8 13 2.5 9.8 2.5 5.8C2.5 4 3.8 2.5 5.5 2.5C6.5 2.5 7.4 3 8 3.9C8.6 3 9.5 2.5 10.5 2.5C12.2 2.5 13.5 4 13.5 5.8C13.5 9.8 8 13 8 13Z" stroke="#6F757E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+      <span style={{ fontSize:12, color:'#6F757E', fontWeight:500, letterSpacing:'-0.01em' }}>Held for you</span>
+    </div>
+  );
+  return null;
+}
+
+function MsgRow({ user, name, avatar, time, onClick, isLast, isAsk, msg, status }) {
   return (
     <div>
-      <div onClick={onClick} style={{ display:'flex', alignItems:'flex-start', gap:12, padding:'16px 0 8px', cursor:'pointer' }}>
-        <img src={avatar} alt="" style={{ width:32, height:32, borderRadius:400, objectFit:'cover', flexShrink:0, border:'0.5px solid rgba(44,50,58,0.12)', marginTop:2 }} />
+      <div onClick={onClick} style={{ display:'flex', alignItems:'flex-start', gap:12, padding:'14px 0 12px', cursor:'pointer' }}>
+        <img src={avatar} alt="" style={{ width:48, height:48, borderRadius:400, objectFit:'cover', flexShrink:0, border:'0.5px solid rgba(44,50,58,0.08)' }} />
         <div style={{ flex:1, minWidth:0 }}>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:4 }}>
-            <span style={{ fontSize:14, fontWeight:500, color:T.ink, letterSpacing:'-0.01em', lineHeight:'20px' }}>{name || user}</span>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:3 }}>
+            <span style={{ fontSize:15, fontWeight:600, color:T.ink, letterSpacing:'-0.02em', lineHeight:'20px' }}>{name || user}</span>
             <span style={{ fontSize:12, color:T.gray, fontWeight:400, flexShrink:0, lineHeight:'16px' }}>{time}</span>
           </div>
-          {summary && (
-            <div style={{ fontSize:14, color:T.ink, fontWeight:400, lineHeight:'20px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', marginBottom:4 }}>{summary}</div>
+          {msg && (
+            <div style={{ fontSize:14, color:'#6F757E', fontWeight:400, lineHeight:'20px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', marginBottom:6 }}>{msg}</div>
           )}
-          {status && (
-            <div style={{ display:'flex', alignItems:'center', gap:5, lineHeight:'16px' }}>
-              {status === 'Reply ready' && <div style={{ width:5, height:5, borderRadius:3, background:'#2952CC', flexShrink:0 }} />}
-              <span style={{ fontSize:12, color: status === 'Reply ready' ? '#2952CC' : T.gray, fontWeight:400, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{status}</span>
-            </div>
-          )}
+          <StatusBadge status={status} />
         </div>
       </div>
     </div>
@@ -1857,10 +1865,33 @@ function ChevronIcon({ collapsed }) {
 }
 
 /* ─── Intention group header ─── */
-function IntentionHeader({ label, dotColor, collapsed, onToggle }) {
+function IntentionIcon({ type }) {
+  if (type === 'fire') return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={T.ink} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ opacity:0.55 }}>
+      <path d="M12 2c0 0-4 4.5-4 9a4 4 0 0 0 8 0c0-2.5-1.5-4.5-2-5.5C13.5 7.5 13 9 12 9c-1 0-1.5-1-1-3z"/>
+      <path d="M9 17c0 1.1.9 2 2 2h2a2 2 0 0 0 2-2"/>
+    </svg>
+  );
+  if (type === 'star') return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={T.ink} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ opacity:0.55 }}>
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+    </svg>
+  );
+  if (type === 'urgent') return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={T.ink} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ opacity:0.55 }}>
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+    </svg>
+  );
+  return null;
+}
+
+function IntentionHeader({ label, icon, collapsed, onToggle }) {
   return (
-    <div onClick={onToggle} style={{ height:56, display:'flex', alignItems:'center', justifyContent:'space-between', cursor:'pointer' }}>
-      <span style={{ fontSize:17, fontWeight:600, color:T.ink, letterSpacing:'-0.02em' }}>{label}</span>
+    <div onClick={onToggle} style={{ height:52, display:'flex', alignItems:'center', justifyContent:'space-between', cursor:'pointer' }}>
+      <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+        <IntentionIcon type={icon} />
+        <span style={{ fontSize:17, fontWeight:600, color:T.ink, letterSpacing:'-0.02em' }}>{label}</span>
+      </div>
       <ChevronIcon collapsed={collapsed} />
     </div>
   );
@@ -1887,7 +1918,7 @@ function ImportantTab({ onOpenChat, answeredChats, viewedChats = [], priorityFee
       {/* Header — Important + context */}
       <div style={{ padding:'16px 0 12px', position:'relative' }}>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:4 }}>
-          <span style={{ fontSize:20, fontWeight:700, color:T.ink, letterSpacing:'-0.02em' }}>Important</span>
+          <span style={{ fontSize:20, fontWeight:700, color:T.ink, letterSpacing:'-0.02em' }}>Inbox</span>
           <div onClick={() => setShowHistory(h => !h)} style={{ width:32, height:32, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', borderRadius:8 }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={T.gray} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="1 4 1 10 7 10" /><path d="M3.51 15a9 9 0 1 0 .49-4" />
@@ -1983,16 +2014,15 @@ function ImportantTab({ onOpenChat, answeredChats, viewedChats = [], priorityFee
         if (pending.length === 0) return null;
         const isCollapsed = collapsedGroups.has(gi);
 
-        const dotColor = pending.some(item => item.status === 'Reply ready') ? '#2952CC' : '#6F757E';
         return (
           <div key={gi}>
-            <IntentionHeader label={group.intention} dotColor={dotColor} collapsed={isCollapsed} onToggle={() => toggleGroup(gi)} />
+            <IntentionHeader label={group.intention} icon={group.icon} collapsed={isCollapsed} onToggle={() => toggleGroup(gi)} />
             <div style={{ height:1, background:T.lightGray }} />
             {!isCollapsed && pending.map((item, i) => (
               <MsgRow key={item.user} user={item.user} name={item.name} avatar={item.avatar} time={item.time}
                 isAsk={item.mode === 'ask'}
                 isLast={i === pending.length - 1}
-                summary={item.summary}
+                msg={item.msg}
                 status={item.status}
                 onClick={() => onOpenChat(item, '', T.gray, !!item._sensitive)} />
             ))}
