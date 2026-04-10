@@ -909,25 +909,36 @@ const A = {
   btnBorder: '#292929', // border for secondary/tertiary buttons
 };
 
-/* ─── Grid-based sheet expansion — sheet rises by taking flex space from chat ─── */
+/* ─── Sheet expansion via measured height — physically pushes chat body up ─── */
+/* Measures content height, then transitions from 0→h so flex:1 chat shrinks live */
 function SheetWrap({ children, delay }) {
-  const [open, setOpen] = useState(false);
+  const [h, setH] = useState(0);
+  const [stable, setStable] = useState(false);
+  const inner = useRef(null);
+
   useEffect(() => {
     const t = setTimeout(() => {
-      requestAnimationFrame(() => requestAnimationFrame(() => setOpen(true)));
+      const naturalH = inner.current ? inner.current.scrollHeight : 600;
+      // Double RAF: ensure browser has painted height:0 before transitioning
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        setH(naturalH);
+        // After animation, release height so content can grow freely (e.g. Why section)
+        setTimeout(() => setStable(true), 420);
+      }));
     }, delay || 0);
     return () => clearTimeout(t);
   }, []);
+
+  if (stable) return <div style={{ flexShrink:0 }}>{children}</div>;
+
   return (
     <div style={{
       flexShrink:0,
-      display:'grid',
-      gridTemplateRows: open ? '1fr' : '0fr',
-      transition:'grid-template-rows 380ms cubic-bezier(0.32,0.72,0,1)',
+      height: h,
+      overflow:'hidden',
+      transition: h > 0 ? 'height 380ms cubic-bezier(0.32,0.72,0,1)' : 'none',
     }}>
-      <div style={{ overflow:'hidden', minHeight:0 }}>
-        {children}
-      </div>
+      <div ref={inner}>{children}</div>
     </div>
   );
 }
