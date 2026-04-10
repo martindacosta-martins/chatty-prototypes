@@ -1328,10 +1328,16 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
     setMode('undo');
   };
 
-  // Scroll chat to bottom on mode change
+  // Scroll chat to bottom on mode change — double-scroll to catch resize
   useEffect(() => {
-    if (chatBodyRef.current) {
-      setTimeout(() => { chatBodyRef.current.scrollTo({ top: chatBodyRef.current.scrollHeight, behavior: 'smooth' }); }, mode === 'suggest' ? 300 : 50);
+    if (!chatBodyRef.current) return;
+    const el = chatBodyRef.current;
+    const scroll = () => el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+    if (mode === 'suggest' || mode === 'ask' || mode === 'summary') {
+      setTimeout(scroll, 100);
+      setTimeout(scroll, 550);
+    } else {
+      setTimeout(scroll, 50);
     }
   }, [mode]);
 
@@ -1374,17 +1380,20 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
     <div className="screen-slide-in" onClick={(e) => e.stopPropagation()}
       style={{ position:'absolute', inset:0, zIndex:100,
         display:'flex', flexDirection:'column',
-        background: T.paper,
+        background: sheetActive ? '#0F0F0F' : T.paper,
+        transition:'background .35s ease',
       }}>
 
-    {/* ═══ CHAT CARD — flex:1, shrinks as sheet sibling expands ═══ */}
+    {/* ═══ CHAT CARD — flex:1, shrinks + scales as sheet sibling expands ═══ */}
     <div style={{
       flex:1, minHeight:0,
       background:T.paper,
-      borderRadius: sheetActive ? '0 0 24px 24px' : 0,
+      borderRadius: sheetActive ? 16 : 0,
+      transform: sheetActive ? 'scale(0.96)' : 'scale(1)',
+      transformOrigin:'top center',
       display:'flex', flexDirection:'column',
       overflow:'hidden',
-      transition:'border-radius .35s ease',
+      transition:'border-radius .35s ease, transform .35s cubic-bezier(.32,.72,.35,1.01)',
     }}>
       {/* Header */}
       <div style={{ padding:'52px 20px 14px', display:'flex', alignItems:'center', justifyContent:'space-between', borderBottom:`1px solid ${T.lightGray}`, flexShrink:0 }}>
@@ -1471,8 +1480,6 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
             <div key={i} style={{
               marginBottom:16, display:'flex', flexDirection:'column',
               alignItems: isOutgoing ? 'flex-end' : 'flex-start',
-              opacity:0,
-              animation: `${isOutgoing ? 'slideFromRight' : 'slideFromLeft'} .4s cubic-bezier(.25,.46,.45,.94) ${i * 0.12}s forwards`,
             }}>
               {m.from === 'them' && (
                 <div style={{ maxWidth:'75%', padding:'10px 14px', borderRadius:'18px 18px 18px 2px', background:'#F0F0F2' }}>
