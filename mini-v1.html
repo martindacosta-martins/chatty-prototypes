@@ -910,22 +910,6 @@ const A = {
 };
 
 /* ─── Agent Sheet Shell — single source of truth for agent bottom sheet ─── */
-/* ─── Rainbow glow — iridescent top edge for white sheets ─── */
-function RainbowGlow() {
-  return (
-    <div style={{
-      position:'absolute', top:-6, left:20, right:20,
-      height:18,
-      background:'linear-gradient(90deg, #ff6b6b, #ffd93d, #6bcb77, #4d96ff, #c77dff, #ff9a9e, #ffd93d)',
-      filter:'blur(10px)',
-      opacity:0.5,
-      borderRadius:20,
-      pointerEvents:'none',
-      zIndex:-1,
-    }} />
-  );
-}
-
 function AgentSheetShell({ children, onDismiss }) {
   const [dragY, setDragY] = useState(0);
   const [dragging, setDragging] = useState(false);
@@ -948,10 +932,10 @@ function AgentSheetShell({ children, onDismiss }) {
 
   return (
     <div className="sheet-up" style={{
-      flexShrink:0, zIndex:10,
+      position:'absolute', bottom:0, left:0, right:0, zIndex:10,
       background:'#fff', borderRadius:'24px 24px 0 0',
       padding:'0 24px 54px',
-      position:'relative', overflow:'visible',
+      overflow:'hidden',
       display:'flex', flexDirection:'column', gap:16,
       transform:`translateY(${dragY}px)`,
       transition: dragging ? 'none' : 'transform .3s ease',
@@ -963,7 +947,6 @@ function AgentSheetShell({ children, onDismiss }) {
       onMouseUp={handleEnd}
       onMouseLeave={() => { if (dragging) handleEnd(); }}
     >
-      <RainbowGlow />
       {/* Grab handle */}
       <div
         onTouchStart={handleTouchStart}
@@ -1088,17 +1071,16 @@ function AgentSheet({ item, onSend, onEdit, onSkip }) {
   return (
     <div className="sheet-up"
       style={{
-        flexShrink:0, zIndex:10,
+        position:'absolute', bottom:0, left:0, right:0, zIndex:10,
         background:'#fff', borderRadius:'24px 24px 0 0',
         transform:`translateY(${dismissed ? '100%' : dragY + 'px'})`,
         transition: dragging ? 'none' : 'transform .3s cubic-bezier(.32,.72,.35,1)',
         opacity: dismissed ? 0 : 1,
         padding:'0 24px 54px',
-        position:'relative', overflow:'visible',
+        overflow:'hidden',
         display:'flex', flexDirection:'column',
         cursor: dragging ? 'grabbing' : 'default',
       }}>
-      <RainbowGlow />
 
       {/* Drag handle */}
       <div onTouchStart={handleTouchStart} onMouseDown={handleMouseDown}
@@ -1362,19 +1344,20 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
 
   return (
     <div className="screen-slide-in" onClick={(e) => e.stopPropagation()}
-      style={{ position:'absolute', inset:0, zIndex:100, display:'flex', flexDirection:'column',
+      style={{ position:'absolute', inset:0, zIndex:100,
         background: sheetActive ? '#1C1C1E' : T.paper,
-        transition:'background .3s ease',
+        transition:'background .35s ease',
       }}>
 
     {/* ═══ CHAT CARD — shrinks when sheet opens ═══ */}
     <div style={{
-      flex:1, minHeight:0,
+      position:'absolute', top:0, left:0, right:0,
+      height: sheetActive ? 490 : 852,
       background:T.paper,
-      borderRadius: sheetActive ? '0 0 24px 24px' : 0,
+      borderRadius: sheetActive ? '0 0 28px 28px' : 0,
       display:'flex', flexDirection:'column',
       overflow:'hidden',
-      transition:'border-radius .3s ease',
+      transition:'height .45s cubic-bezier(.32,.72,.35,1), border-radius .35s ease',
     }}>
       {/* Header */}
       <div style={{ padding:'52px 20px 14px', display:'flex', alignItems:'center', justifyContent:'space-between', borderBottom:`1px solid ${T.lightGray}`, flexShrink:0 }}>
@@ -1720,8 +1703,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
 
     {/* Feedback mode */}
     {mode === 'feedback' && (
-      <div className="sheet-up" style={{ flexShrink:0, zIndex:10, background:'#fff', borderRadius:'24px 24px 0 0', padding:'0 24px 44px', position:'relative', overflow:'visible' }}>
-        <RainbowGlow />
+      <div className="sheet-up" style={{ position:'absolute', bottom:0, left:0, right:0, zIndex:10, background:'#fff', borderRadius:'24px 24px 0 0', padding:'0 24px 44px', overflow:'hidden' }}>
         <div style={{ padding:'14px 0 4px' }}><div style={{ width:36, height:4, background:'rgba(0,0,0,0.12)', borderRadius:2, margin:'0 auto' }} /></div>
         <div style={{ fontSize:15, color:T.ink, lineHeight:1.55, marginBottom:16 }}>
           I noticed you prefer writing your own replies. That's fine. But what's off about mine?
@@ -1737,10 +1719,9 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
       </div>
     )}
 
-    {/* Agent help — flex-flow white sheet */}
+    {/* Agent help — absolute sheet at bottom */}
     {agentHelpPhase && agentHelpPhase !== 'bubble' && mode === 'custom' && (
-      <div className="sheet-up" style={{ flexShrink:0, zIndex:10, background:'#fff', borderRadius:'24px 24px 0 0', padding:'0 24px 52px', position:'relative', overflow:'visible' }}>
-        <RainbowGlow />
+      <div className="sheet-up" style={{ position:'absolute', bottom:0, left:0, right:0, zIndex:10, background:'#fff', borderRadius:'24px 24px 0 0', padding:'0 24px 52px', overflow:'hidden' }}>
         <div style={{ padding:'14px 0 4px' }}><div style={{ width:36, height:4, background:'rgba(0,0,0,0.12)', borderRadius:2, margin:'0 auto' }} /></div>
         {agentHelpPhase === 'sheet' && (
           <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
