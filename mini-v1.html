@@ -1925,11 +1925,6 @@ function ImportantTab({ onOpenChat, answeredChats, viewedChats = [], priorityFee
             </svg>
           </div>
         </div>
-        <div onClick={() => setShowInfoModal(true)} style={{ display:'flex', alignItems:'center', gap:4, cursor:'pointer' }}>
-          <span style={{ fontSize:13, color:T.gray, lineHeight:1.4 }}>Based on your business model</span>
-          <span style={{ fontSize:13, color:T.gray }}>›</span>
-        </div>
-
         {/* History popover */}
         {showHistory && (
           <>
@@ -2036,6 +2031,13 @@ function ImportantTab({ onOpenChat, answeredChats, viewedChats = [], priorityFee
         </div>
       )}
 
+      {/* Footer — business model context */}
+      <div onClick={() => setShowInfoModal(true)}
+        style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5, padding:'24px 0 32px', cursor:'pointer' }}>
+        <span style={{ fontSize:13, color:T.gray, lineHeight:1.4 }}>Based on your business model</span>
+        <span style={{ fontSize:13, color:'#2952CC', fontWeight:500 }}>Show more</span>
+      </div>
+
     </div>
   );
 }
@@ -2121,7 +2123,7 @@ function PrioritiesOverlay({ onDismiss }) {
 
 function InboxV2({ onOverlayChange, openChatOnLoad }) {
   const [reportCollapsed, setReportCollapsed] = useState(true);
-  const [morningReportVisible, setMorningReportVisible] = useState(true);
+  const [morningReportVisible, setMorningReportVisible] = useState(false);
   const [showClearedSheet, setShowClearedSheet] = useState(false);
   const [chatInteractions, setChatInteractions] = useState(0);
   const [summaryOpen, setSummaryOpen] = useState(false);
