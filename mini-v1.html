@@ -1349,15 +1349,19 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
         transition:'background .35s ease',
       }}>
 
-    {/* ═══ CHAT CARD — shrinks when sheet opens ═══ */}
+    {/* ═══ CHAT CARD — shrinks + insets when sheet opens (Instagram-style) ═══ */}
     <div style={{
-      position:'absolute', top:0, left:0, right:0,
-      height: sheetActive ? 490 : 852,
+      position:'absolute',
+      top: 0,
+      left: sheetActive ? 10 : 0,
+      right: sheetActive ? 10 : 0,
+      height: sheetActive ? 488 : 852,
       background:T.paper,
-      borderRadius: sheetActive ? '0 0 28px 28px' : 0,
+      borderRadius: sheetActive ? '18px 18px 26px 26px' : 0,
       display:'flex', flexDirection:'column',
       overflow:'hidden',
-      transition:'height .45s cubic-bezier(.32,.72,.35,1), border-radius .35s ease',
+      boxShadow: sheetActive ? '0 8px 40px rgba(0,0,0,0.28)' : 'none',
+      transition:'height .45s cubic-bezier(.32,.72,.35,1), left .45s cubic-bezier(.32,.72,.35,1), right .45s cubic-bezier(.32,.72,.35,1), border-radius .35s ease, box-shadow .35s ease',
     }}>
       {/* Header */}
       <div style={{ padding:'52px 20px 14px', display:'flex', alignItems:'center', justifyContent:'space-between', borderBottom:`1px solid ${T.lightGray}`, flexShrink:0 }}>
