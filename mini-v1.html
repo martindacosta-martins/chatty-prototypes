@@ -1730,7 +1730,7 @@ function ImportantTab({ onOpenChat, answeredChats, viewedChats = [], priorityFee
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
 
-  const totalPending = IMPORTANT_GROUPS.filter(g => g.icon !== 'urgent').reduce((sum, g) => sum + g.items.filter(item => !answeredChats.has(item.user)).length, 0);
+  const totalPending = IMPORTANT_GROUPS.reduce((sum, g) => sum + g.items.filter(item => !answeredChats.has(item.user)).length, 0);
 
   const toggleGroup = (gi) => {
     setCollapsedGroups(prev => {
@@ -1856,7 +1856,6 @@ function ImportantTab({ onOpenChat, answeredChats, viewedChats = [], priorityFee
           <div style={{ fontSize:64, marginBottom:16 }}>☕</div>
           <div style={{ fontSize:20, fontWeight:700, color:T.ink, letterSpacing:'-0.02em', marginBottom:6 }}>Time to grab a coffee</div>
           <div style={{ fontSize:14, color:T.gray, lineHeight:1.5 }}>I'll let you know when something that needs your attention comes in</div>
-          <div style={{ fontSize:13, color:T.gray, opacity:0.6, marginTop:8 }}>Pull down to refresh</div>
         </div>
       )}
 
