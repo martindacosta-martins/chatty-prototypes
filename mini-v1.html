@@ -299,10 +299,12 @@ function PurpleBg({ animate }) {
       }} />
       <div style={{
         position:'absolute', inset:0,
-        backgroundImage:'linear-gradient(rgba(255,255,255,0.13) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.13) 1px, transparent 1px)',
+        backgroundImage:'linear-gradient(rgba(255,255,255,0.18) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.18) 1px, transparent 1px)',
         backgroundSize:'84px 87px',
         backgroundPosition:'-42px 0px',
         animation: animate ? 'gridDrift 6s linear infinite' : 'none',
+        maskImage:'radial-gradient(ellipse 85% 70% at 52% 48%, black 10%, rgba(0,0,0,0.45) 52%, transparent 82%)',
+        WebkitMaskImage:'radial-gradient(ellipse 85% 70% at 52% 48%, black 10%, rgba(0,0,0,0.45) 52%, transparent 82%)',
       }} />
     </div>
   );
@@ -357,22 +359,25 @@ function ObSorting({ onNext }) {
     const vWorms = vXs.map(x => mkV(x));
     const hWorms = hYs.map(y => mkH(y));
 
-    function resetV(w) { w.pause = 40 + Math.floor(Math.random() * 100); w.y = -(w.len); w.speed = 0.8 + Math.random() * 1.2; w.len = 40 + Math.random() * 80; w.op = 0.45 + Math.random() * 0.35; }
-    function resetH(w) { w.pause = 40 + Math.floor(Math.random() * 100); w.x = -(w.len); w.speed = 0.6 + Math.random() * 0.9; w.len = 50 + Math.random() * 90; w.op = 0.35 + Math.random() * 0.3; }
+    // Softer opacity — gradient peaks in the middle, fades at both ends
+    function resetV(w) { w.pause = 50 + Math.floor(Math.random() * 120); w.y = -(w.len); w.speed = 0.6 + Math.random() * 0.9; w.len = 35 + Math.random() * 70; w.op = 0.22 + Math.random() * 0.22; }
+    function resetH(w) { w.pause = 50 + Math.floor(Math.random() * 120); w.x = -(w.len); w.speed = 0.4 + Math.random() * 0.7; w.len = 45 + Math.random() * 80; w.op = 0.18 + Math.random() * 0.18; }
 
     let id;
     function draw() {
       ctx.clearRect(0, 0, W, H);
-      ctx.lineWidth = 1.5;
+      ctx.lineWidth = 1;
 
       vWorms.forEach(w => {
         if (w.pause > 0) { w.pause--; return; }
         w.y += w.speed;
         if (w.y > H + w.len) resetV(w);
+        // Fade in from tail, peak ~40%, fade out at head — segment "floats" along the line
         const g = ctx.createLinearGradient(0, w.y, 0, w.y + w.len);
-        g.addColorStop(0, 'rgba(255,255,255,0)');
-        g.addColorStop(0.6, `rgba(255,255,255,${w.op * 0.6})`);
-        g.addColorStop(1, `rgba(255,255,255,${w.op})`);
+        g.addColorStop(0,   'rgba(255,255,255,0)');
+        g.addColorStop(0.3, `rgba(255,255,255,${w.op})`);
+        g.addColorStop(0.7, `rgba(255,255,255,${w.op * 0.8})`);
+        g.addColorStop(1,   'rgba(255,255,255,0)');
         ctx.strokeStyle = g;
         ctx.beginPath(); ctx.moveTo(w.x, w.y); ctx.lineTo(w.x, w.y + w.len); ctx.stroke();
       });
@@ -382,9 +387,10 @@ function ObSorting({ onNext }) {
         w.x += w.speed;
         if (w.x > W + w.len) resetH(w);
         const g = ctx.createLinearGradient(w.x, 0, w.x + w.len, 0);
-        g.addColorStop(0, 'rgba(255,255,255,0)');
-        g.addColorStop(0.6, `rgba(255,255,255,${w.op * 0.6})`);
-        g.addColorStop(1, `rgba(255,255,255,${w.op})`);
+        g.addColorStop(0,   'rgba(255,255,255,0)');
+        g.addColorStop(0.3, `rgba(255,255,255,${w.op})`);
+        g.addColorStop(0.7, `rgba(255,255,255,${w.op * 0.8})`);
+        g.addColorStop(1,   'rgba(255,255,255,0)');
         ctx.strokeStyle = g;
         ctx.beginPath(); ctx.moveTo(w.x, w.y); ctx.lineTo(w.x + w.len, w.y); ctx.stroke();
       });
@@ -2511,6 +2517,7 @@ function useCountUp(target, duration, active) {
 
 function ObResultsV2b({ onOpenInbox }) {
   const [vis, setVis] = useState(0);
+  const [closing, setClosing] = useState(false);
 
   useEffect(() => {
     const timers = [];
@@ -2519,6 +2526,11 @@ function ObResultsV2b({ onOpenInbox }) {
     }
     return () => timers.forEach(t => clearTimeout(t));
   }, []);
+
+  function handleOpen() {
+    setClosing(true);
+    setTimeout(onOpenInbox, 520);
+  }
 
   const show = (i) => ({
     opacity: vis >= i ? 1 : 0,
@@ -2562,11 +2574,15 @@ function ObResultsV2b({ onOpenInbox }) {
         </div>
       </div>
       <div style={{ position:'relative', zIndex:1, padding:'0 32px 56px', ...show(6) }}>
-        <button onClick={onOpenInbox}
+        <button onClick={handleOpen}
           style={{ width:'100%', height:48, background:'#292929', color:'#fff', border:'none', borderRadius:24, fontSize:17, fontWeight:500, cursor:'pointer', letterSpacing:'-0.01em' }}>
           Open Inbox
         </button>
       </div>
+      {/* Fade-to-white transition overlay */}
+      {closing && (
+        <div style={{ position:'absolute', inset:0, zIndex:20, background:'#fff', animation:'fadeIn 0.5s ease both' }} />
+      )}
     </div>
   );
 }
@@ -2585,7 +2601,11 @@ function App() {
       {screen === 'ob-results' && <ObResultsV2b onOpenInbox={() => setScreen('main')} />}
 
       {/* ─── Inbox ─── */}
-      {screen === 'main' && <InboxV2 onOverlayChange={(open) => setHideNav(open)} />}
+      {screen === 'main' && (
+        <div style={{ position:'absolute', inset:0, animation:'fadeIn 0.45s ease both' }}>
+          <InboxV2 onOverlayChange={(open) => setHideNav(open)} />
+        </div>
+      )}
 
       {/* Bottom Nav — visible on welcome + main inbox, hidden on loading/results/overlays */}
       {(screen === 'ob-welcome' || screen === 'main') && <BottomNav hidden={hideNav} />}
