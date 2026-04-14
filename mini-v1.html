@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Inbox — AI Native Inbox</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -76,6 +76,15 @@
     55%  { transform: translateY(6px)  scaleX(0.99); filter: blur(0.5px); opacity: 0.9; }
     80%  { transform: translateY(-2px) scaleX(1);    filter: blur(0px);   opacity: 1;   }
     100% { transform: translateY(0)    scaleX(1);    filter: blur(0px);   opacity: 1;   }
+  }
+
+  @keyframes gridDrift {
+    from { background-position: -42px 0px, -42px 0px; }
+    to   { background-position: -42px -87px, -42px -87px; }
+  }
+  @keyframes textShimmer {
+    0%   { background-position: 200% center; }
+    100% { background-position: -100% center; }
   }
 
   /* Scrollbar hide */
@@ -279,95 +288,46 @@ function BlackBtn({ label, onClick, disabled }) {
 
 /* ═══ ONBOARDING ═══ */
 
-/* ─── NEW Step 2: "Watch Me Work" — Live Processing Feed ─── */
+/* ─── Shared purple background with optional animated grid ─── */
+function PurpleBg({ animate }) {
+  return (
+    <div style={{ position:'absolute', inset:0, overflow:'hidden', zIndex:0 }}>
+      <div style={{
+        position:'absolute', inset:'-20%',
+        background:'conic-gradient(from 0deg at 50% 50%, #6e30d4 0%, #c3b3ff 37%, #966efa 64%, #7f53e0 100%)',
+        filter:'blur(80px)',
+      }} />
+      <div style={{
+        position:'absolute', inset:0,
+        backgroundImage:'linear-gradient(rgba(255,255,255,0.13) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.13) 1px, transparent 1px)',
+        backgroundSize:'84px 87px',
+        backgroundPosition:'-42px 0px',
+        animation: animate ? 'gridDrift 6s linear infinite' : 'none',
+      }} />
+    </div>
+  );
+}
+
+/* ─── Step 2: Loading — Reading DMs ─── */
 function ObSorting({ onNext }) {
-  // 142 DMs — first ones slow & readable, then accelerates
-  const dmFeed = [
-    { user:'@jayrunz', snippet:'"Is it too late to start?"', important:true, speed:'slow' },
-    { user:'@mike', snippet:'"What\'s in the premium program?"', important:true, speed:'slow' },
-    { user:'@sarah_m', snippet:'"love this!"', important:false, speed:'slow' },
-    { user:'@lena.fit', snippet:'"I\'ve tried everything..."', important:true, speed:'slow' },
-    { user:'@emma_k', snippet:'"Nervous about the cost"', important:true, speed:'slow' },
-    { user:'@spam_1', snippet:'"Free followers! Click here"', important:false, speed:'medium' },
-    { user:'@brand_co', snippet:'"Partnership — 200k followers"', important:true, speed:'medium' },
-    { user:'@user_42', snippet:'"thanks!"', important:false, speed:'medium' },
-    { user:'@fit_mom', snippet:'"Can I reschedule?"', important:false, speed:'medium' },
-    { user:'@ana_r', snippet:'"Going through a hard time..."', important:true, speed:'medium' },
-    { user:'@random_1', snippet:'"hey"', important:false, speed:'medium' },
-    { user:'@carlos_m', snippet:'"Do you ship internationally?"', important:false, speed:'medium' },
-    ...Array.from({ length: 130 }, (_, i) => {
-      const names = ['@user_','@fan_','@dm_','@msg_','@follower_','@insta_','@reply_','@ask_','@note_','@ping_'];
-      const snippets = ['"hey"','"thanks!"','"nice post"','"love it"','"cool"','"hi there"','"great content"','"wow"','"amazing"','"send link"','"when?"','"how much?"','"interested"','"question..."','"."','"hi!"','"sup"','"love this"','"awesome"','"more info?"'];
-      const isImportant = (i === 22 || i === 67);
-      const snip = isImportant ? ['"12-week course — sign me up"','"I want to collaborate"'][i === 22 ? 0 : 1] : snippets[i % snippets.length];
-      return { user: names[i % names.length] + (i + 10), snippet: snip, important: isImportant, speed: 'fast' };
-    }),
-  ];
-
-  const [items, setItems] = useState([]);
-  const [phase, setPhase] = useState('processing');
-  const feedRef = useRef(null);
-  const timers = useRef([]);
-  const speedMap = { slow: 600, medium: 250, fast: 20 };
-
   useEffect(() => {
-    let cum = 500;
-    dmFeed.forEach((dm, i) => {
-      timers.current.push(setTimeout(() => {
-        setItems(prev => [...prev, { ...dm, sorted: false }]);
-        if (feedRef.current) setTimeout(() => { feedRef.current.scrollTop = feedRef.current.scrollHeight; }, 20);
-      }, cum));
-      const sortDelay = dm.speed === 'slow' ? 350 : dm.speed === 'medium' ? 150 : 15;
-      timers.current.push(setTimeout(() => {
-        setItems(prev => prev.map((it, idx) => idx === i ? { ...it, sorted: true } : it));
-      }, cum + sortDelay));
-      cum += speedMap[dm.speed];
-    });
-    timers.current.push(setTimeout(() => setPhase('summary'), cum + 300));
-    timers.current.push(setTimeout(onNext, cum + 1200));
-    return () => timers.current.forEach(t => clearTimeout(t));
+    const t = setTimeout(onNext, 3500);
+    return () => clearTimeout(t);
   }, []);
 
   return (
-    <div style={{ background:'#151515', height:'100%', display:'flex', flexDirection:'column', position:'relative' }}>
-      <div style={{ padding:'56px 24px 0', flexShrink:0 }}>
-        <div style={{ fontSize:10, fontWeight:700, color:'rgba(255,255,255,0.3)', letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:16 }}>
-          Processing your inbox
-        </div>
-      </div>
-      <div ref={feedRef} style={{ flex:1, overflowY:'auto', padding:'0 24px', maskImage:'linear-gradient(to bottom, transparent 0%, black 6%, black 88%, transparent 100%)', WebkitMaskImage:'linear-gradient(to bottom, transparent 0%, black 6%, black 88%, transparent 100%)' }}>
-        {items.map((dm, i) => {
-          const isFast = dm.speed === 'fast';
-          const slideDir = dm.sorted ? (dm.important ? 1 : -1) : 0;
-          const slideX = slideDir * (isFast ? 60 : 40);
-          return (
-            <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding: isFast ? '4px 0' : '7px 0', opacity: dm.sorted ? (isFast ? 0.15 : 0.35) : (isFast ? 0.5 : 0.9), transform:`translateX(${slideX}px)`, transition:'transform .4s cubic-bezier(.25,.46,.45,.94), opacity .4s ease', animation: !dm.sorted ? 'fadeUp .25s ease both' : 'none' }}>
-              <div style={{ width:16, height:16, borderRadius:8, flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', opacity: dm.sorted ? 1 : 0, transition:'opacity .3s ease', background: dm.important ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.06)' }}>
-                {dm.sorted && (dm.important
-                  ? <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                  : <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                )}
-              </div>
-              <div style={{ flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', fontSize: isFast ? 12 : 14, letterSpacing:'-0.01em', color: dm.sorted ? (dm.important ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.25)') : 'rgba(255,255,255,0.75)', transition:'color .3s ease' }}>
-                <span style={{ fontWeight:600, color: dm.sorted && dm.important ? '#fff' : 'inherit' }}>{dm.user}</span>
-                <span style={{ fontWeight:400 }}> · {dm.snippet}</span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      <div style={{ flexShrink:0, padding:'16px 24px 50px', borderTop:'1px solid rgba(255,255,255,0.06)' }}>
-        {phase === 'processing' && (
-          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-            <div style={{ width:6, height:6, borderRadius:3, background:'#0095F6', animation:'pulse 1s ease-in-out infinite' }} />
-            <span style={{ fontSize:13, color:'rgba(255,255,255,0.4)', fontWeight:500 }}>{items.length} messages processed</span>
-          </div>
-        )}
-        {phase === 'summary' && (
-          <div className="fade-up" style={{ fontSize:14, fontWeight:600, color:'#fff', letterSpacing:'-0.01em' }}>
-            142 reviewed · 8 need you · 12 replies drafted
-          </div>
-        )}
+    <div style={{ background:'#6830c8', height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', position:'relative', overflow:'hidden' }}>
+      <PurpleBg animate={true} />
+      <div style={{ position:'relative', zIndex:1 }}>
+        <span style={{
+          fontSize:16, fontWeight:400,
+          background:'linear-gradient(90deg, rgba(255,255,255,0.65) 0%, rgba(255,255,255,1) 40%, rgba(255,255,255,0.65) 60%, rgba(255,255,255,0.65) 100%)',
+          backgroundSize:'200% auto',
+          WebkitBackgroundClip:'text',
+          WebkitTextFillColor:'transparent',
+          backgroundClip:'text',
+          animation:'textShimmer 2.5s linear infinite',
+        }}>Reading your DMs...</span>
       </div>
     </div>
   );
@@ -1135,7 +1095,7 @@ function AgentSheet({ item, onSend, onEdit, onSkip, onWhy }) {
       boxShadow:'0 8px 16px rgba(132,146,166,0.12)',
       padding:16,
       display:'flex', flexDirection:'column', gap:12,
-      flexShrink:0, overflow:'auto', maxHeight:'35%',
+      flexShrink:0, overflow:'auto', maxHeight:'55%',
       animation:'slideInRight .5s cubic-bezier(.25,.46,.45,.94) .6s both',
     }}>
       {/* Header: Reply ready | Why > ... X */}
@@ -1155,10 +1115,29 @@ function AgentSheet({ item, onSend, onEdit, onSkip, onWhy }) {
 
       {/* Why — now opens ReasoningSheet via onWhy prop */}
 
-      {/* Draft text — italic */}
-      <div style={{ fontSize:16, fontWeight:400, fontStyle:'italic', color:'#292929', lineHeight:'24px' }}>
-        {item.draft}
-      </div>
+      {/* Draft messages — 2 bubbles, split at sentence boundary */}
+      {(() => {
+        const draft = item.draft || '';
+        // Split at last sentence that starts a question or short closing
+        const sentences = draft.split(/(?<=[.!?])\s+/);
+        const splitIdx = Math.max(1, sentences.length - 1);
+        const msg1 = sentences.slice(0, splitIdx).join(' ');
+        const msg2 = sentences.slice(splitIdx).join(' ');
+        return (
+          <div style={{ display:'flex', flexDirection:'column', gap:8, alignItems:'flex-end' }}>
+            {msg1 && (
+              <div style={{ background:'#EFF6FF', border:'1.5px dashed #65A4FF', borderRadius:'12px 12px 12px 12px', padding:16 }}>
+                <div style={{ fontSize:16, fontWeight:400, fontStyle:'italic', color:'#292929', lineHeight:'24px' }}>{msg1}</div>
+              </div>
+            )}
+            {msg2 && (
+              <div style={{ background:'#EFF6FF', border:'1.5px dashed #65A4FF', borderRadius:'12px 12px 2px 12px', padding:16 }}>
+                <div style={{ fontSize:16, fontWeight:400, fontStyle:'italic', color:'#292929', lineHeight:'24px' }}>{msg2}</div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Question */}
       <div style={{ fontSize:16, fontWeight:400, color:'#292929', lineHeight:'24px' }}>
@@ -1167,11 +1146,11 @@ function AgentSheet({ item, onSend, onEdit, onSkip, onWhy }) {
 
       {/* Buttons — right aligned */}
       <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
-        <button onClick={onEdit} style={{ width:92, padding:'12px 24px', background:'#F0F0F0', border:'none', borderRadius:12, fontSize:17, fontWeight:500, color:'#292929', cursor:'pointer', lineHeight:'24px', letterSpacing:'-0.255px' }}>
-          Edit
+        <button onClick={onSkip} style={{ padding:'12px 24px', background:'#F5F5F5', border:'none', borderRadius:12, fontSize:17, fontWeight:500, color:'#292929', cursor:'pointer', lineHeight:'24px', letterSpacing:'-0.255px' }}>
+          No, I'll reply
         </button>
-        <button onClick={onSend} style={{ width:92, padding:'12px 24px', background:'#292929', border:'none', borderRadius:12, fontSize:17, fontWeight:500, color:'#fff', cursor:'pointer', lineHeight:'24px', letterSpacing:'-0.255px' }}>
-          Send
+        <button onClick={onSend} style={{ padding:'12px 24px', background:'#292929', border:'none', borderRadius:12, fontSize:17, fontWeight:500, color:'#fff', cursor:'pointer', lineHeight:'24px', letterSpacing:'-0.255px' }}>
+          Yes, send
         </button>
       </div>
     </div>
@@ -1253,10 +1232,25 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
     setTimeout(() => setShowToast(false), 2500);
   };
 
+  // Helper: split draft into 2 messages at sentence boundary
+  const splitDraft = (draft) => {
+    if (!draft) return [draft];
+    const sentences = draft.split(/(?<=[.!?])\s+/);
+    if (sentences.length <= 1) return [draft];
+    const splitIdx = Math.max(1, sentences.length - 1);
+    return [sentences.slice(0, splitIdx).join(' '), sentences.slice(splitIdx).join(' ')];
+  };
+
   const handleSend = () => {
     const wasEditing = (mode === 'editing');
     const msg = wasEditing ? editVal : item.draft;
-    setSentMsgs(prev => [...prev, msg]);
+    // When sending from agent card (not editing), split into 2 messages
+    if (!wasEditing) {
+      const parts = splitDraft(msg);
+      setSentMsgs(prev => [...prev, ...parts]);
+    } else {
+      setSentMsgs(prev => [...prev, msg]);
+    }
     setMode('sent');
     if (wasEditing) {
       const distance = calcEditDistance(originalDraft, editVal);
@@ -1527,33 +1521,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
           );
         })}
 
-        {/* Gap 2: Edit feedback — appears after sent when draft was heavily rewritten */}
-        {editFeedback === 'asking' && mode === 'sent' && (
-          <div className="fade-up" style={{ marginBottom:12 }}>
-            <div style={{ background:'#151515', borderRadius:14, padding:'14px 16px', maxWidth:'90%' }}>
-              <div style={{ fontSize:13, color:'#fff', lineHeight:1.5, marginBottom:12 }}>
-                I noticed you changed my reply a lot. Was it off?
-              </div>
-              <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
-                {[
-                  'Not my tone',
-                  'Wrong info',
-                  'I just wanted to personalize',
-                ].map(reason => (
-                  <div key={reason} onClick={() => {
-                    setEditFeedback('done');
-                    triggerToast(reason === 'I just wanted to personalize'
-                      ? 'Got it,draft was fine, you wanted your touch.'
-                      : 'Got it,' + reason.toLowerCase() + '. I\'ll adjust.');
-                  }}
-                    style={{ padding:'8px 14px', background:'rgba(255,255,255,0.06)', borderRadius:20, cursor:'pointer', fontSize:12, color:'#fff', border:'1px solid rgba(255,255,255,0.12)', fontWeight:500, transition:'all .15s ease' }}>
-                    {reason}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Edit feedback moved to bottom section */}
       </div>
 
     </div>{/* ─── end chat card ─── */}
@@ -1563,10 +1531,29 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
     {/* Suggest mode */}
     {mode === 'suggest' && item.draft && <AgentSheet item={item} onSend={handleSend} onEdit={() => { setMode('editing'); setEditVal(item.draft); setFeedbackEligible(true); }} onSkip={handleIllReply} onWhy={() => setReasoningSheet({ title:'Reply reasoning', body: item.styleReason || item.context || '' })} />}
 
-    {/* ═══ Message Input — handles idle, typing, and edit mode ═══ */}
+    {/* ═══ Message Input — hidden during suggest mode, slides up when agent card dismissed ═══ */}
     {mode !== 'suggest' && (
-      <div style={{ margin:'0 16px 16px', flexShrink:0 }}>
+      <div style={{ margin:'0 16px 16px', flexShrink:0, animation:'toastUp .4s cubic-bezier(.25,.46,.45,.94) both' }}>
         {/* Follow-up question — shows after user edits/dismisses/types instead of sending directly */}
+        {/* Edit feedback — same style as follow-up card */}
+        {editFeedback === 'asking' && (
+          <div style={{ background:'#fff', border:'1px solid #D6D6D6', borderRadius:12, boxShadow:'0 8px 16px rgba(132,146,166,0.12)', padding:16, marginBottom:8, display:'flex', flexDirection:'column', gap:16, animation:'slideInRight .4s cubic-bezier(.25,.46,.45,.94) both' }}>
+            <div style={{ fontSize:14, fontWeight:400, color:'#292929', lineHeight:'20px' }}>I noticed you changed my reply a lot. Was it off?</div>
+            <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+              {['Not my tone', 'Wrong info', 'I just wanted to personalize'].map(reason => (
+                <button key={reason} onClick={() => {
+                  setEditFeedback('done');
+                  triggerToast(reason === 'I just wanted to personalize'
+                    ? 'Got it — draft was fine, you wanted your touch.'
+                    : 'Got it — ' + reason.toLowerCase() + '. I\'ll adjust.');
+                }}
+                  style={{ padding:'8px 16px', border:'none', borderRadius:12, background:'#F0F0F0', fontSize:13, fontWeight:500, color:'#292929', cursor:'pointer', letterSpacing:'-0.104px', lineHeight:'18px' }}>{reason}</button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Follow-up feedback — after user ignored/dismissed the agent draft */}
         {mode === 'custom' && customFeedback === 'asking' && (
           <div style={{ background:'#fff', border:'1px solid #D6D6D6', borderRadius:12, boxShadow:'0 8px 16px rgba(132,146,166,0.12)', padding:16, marginBottom:8, display:'flex', flexDirection:'column', gap:16, animation:'slideInRight .4s cubic-bezier(.25,.46,.45,.94) both' }}>
             <div style={{ fontSize:14, fontWeight:400, color:'#292929', lineHeight:'20px' }}>Was my reply helpful as a starting point?</div>
@@ -1628,34 +1615,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
       </div>
     )}
 
-    {/* Message input — only when agent card is showing (suggest mode) */}
-    {mode === 'suggest' && (
-      <div style={{ margin:'0 16px 16px', background:'#fff', border:'1px solid #D6D6D6', borderRadius:12, boxShadow:'0 8px 16px rgba(132,146,166,0.12)', padding:8, display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }}>
-        <div style={{ width:36, height:36, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:12 }}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-        </div>
-        <input value={customVal} onChange={e => {
-            setCustomVal(e.target.value);
-            if (e.target.value.length >= 15 && mode === 'suggest') {
-              setMode('custom');
-              if (item.draft) setFeedbackEligible(true);
-            }
-          }}
-          onKeyDown={e => { if (e.key === 'Enter' && customVal.trim()) { setMode('custom'); setTimeout(() => handleSendCustom(), 50); } }}
-          placeholder="Reply..."
-          style={{ flex:1, fontSize:16, color: customVal ? '#292929' : '#878787', lineHeight:'24px', border:'none', outline:'none', background:'transparent', padding:'0 8px', fontFamily:'Inter, system-ui, sans-serif' }} />
-        {customVal.trim() ? (
-          <div onClick={() => { setMode('custom'); setTimeout(() => handleSendCustom(), 50); }}
-            style={{ width:36, height:36, borderRadius:20, background:'#006BE2', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0 }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-          </div>
-        ) : (
-          <div style={{ width:36, height:36, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:12 }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-          </div>
-        )}
-      </div>
-    )}
+    {/* Message input removed from suggest mode — only appears after agent card is dismissed */}
 
     {/* Reasoning Bottom Sheet */}
     {reasoningSheet && (
@@ -2360,55 +2320,88 @@ function BottomNav({ hidden }) {
 
 /* ─── Onboarding screens: Welcome + Results ─── */
 function ObWelcomeV2b({ onNext }) {
-  const [vis, setVis] = useState(0); // how many elements are visible
-  const total = 5; // title, body1, body2, body3, button
+  const [vis, setVis] = useState(0);
 
   useEffect(() => {
     const timers = [];
-    for (let i = 1; i <= total; i++) {
-      timers.push(setTimeout(() => setVis(i), i * 500 + 200));
+    for (let i = 1; i <= 6; i++) {
+      timers.push(setTimeout(() => setVis(i), i * 280 + 300));
     }
     return () => timers.forEach(t => clearTimeout(t));
   }, []);
 
   const show = (i) => ({
     opacity: vis >= i ? 1 : 0,
-    transform: vis >= i ? 'translateY(0)' : 'translateY(8px)',
-    transition: 'opacity .45s ease, transform .45s ease',
+    transform: vis >= i ? 'translateY(0)' : 'translateY(10px)',
+    transition: 'opacity .5s ease, transform .5s ease',
   });
 
-  return (
-    <div style={{ background:'#151515', height:'100%', display:'flex', flexDirection:'column', position:'relative', overflow:'hidden' }}>
+  const features = [
+    {
+      icon: (
+        <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+          <path d="M38.1933 31.212C35.9737 29.4494 32.8663 29.5277 30.5944 31.1859L34.9422 36.526C34.8247 37.6749 33.7672 37.4921 33.7672 37.4921L29.0538 32.7527C27.0692 35.5467 27.487 39.3592 30.0852 41.4091C32.7749 43.5373 36.7701 42.9889 39.0028 40.1687C41.2354 37.3485 40.8829 33.3402 38.1933 31.1989V31.212Z" fill="white"/>
+          <path d="M25.1367 24.4879L27.2387 17.6463L19.4049 6L17.1592 14.8131L25.1367 24.4879Z" fill="white"/>
+          <path d="M22.7473 26.4333L13.5295 17.2155L4.57275 18.9781L16.6238 27.7781L22.7473 26.4333Z" fill="white"/>
+          <path d="M16.0998 18.1609C17.7031 17.7969 18.8177 16.6867 18.5895 15.6811C18.3612 14.6756 16.8764 14.1554 15.2731 14.5194C13.6698 14.8834 12.5552 15.9936 12.7834 16.9992C13.0117 18.0047 14.4965 18.5248 16.0998 18.1609Z" fill="white"/>
+          <path d="M51.0405 41.5788C53.0773 35.2595 51.4453 28.1698 46.288 23.587C40.0209 18.025 30.6725 18.0903 24.1704 23.2998L27.1472 26.9556C31.4428 23.587 37.4749 23.352 41.7443 26.7467C46.7711 30.7419 47.45 38.2755 43.2589 43.5503C39.0547 48.8382 31.5734 49.8696 26.5466 45.8743C21.5199 41.8791 20.841 34.3455 25.0321 29.0707C25.0843 29.0054 25.1365 28.9401 25.2018 28.8749L21.8724 25.5324C15.5531 32.7787 16.0623 43.6156 23.0606 49.8174C30.0066 55.98 40.739 55.2358 47.1889 48.2245L55.4275 49.9088L51.0666 41.5918L51.0405 41.5788Z" fill="white"/>
+        </svg>
+      ),
+      label: 'Only what matters',
+      desc: 'Real conversations, not noise',
+    },
+    {
+      icon: (
+        <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+          <path d="M13.158 11.596L9.3418 37.6374L18.0223 37.2914L16.2822 48.75C24.6166 45.9719 26.6928 37.6374 26.6928 37.6374L46.8319 36.9454L50.658 11.25L13.158 11.596ZM27.3058 33.0698C20.9289 26.1393 18.2299 23.9642 18.2299 23.9642L25.0121 19.7723L27.0784 26.5051C27.0784 26.5051 30.9144 18.3881 38.2108 15.4024C40.7615 19.1 43.0354 23.6478 43.0354 23.6478C43.0354 23.6478 33.1488 23.4106 27.3058 33.0797V33.0698Z" fill="white"/>
+        </svg>
+      ),
+      label: 'Replies in your voice',
+      desc: 'Draft first. You approve.',
+    },
+    {
+      icon: (
+        <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+          <path d="M20.2034 30.089C19.7947 29.3846 19.4158 28.7137 19.0569 28.0763C19.0569 28.0763 19.0569 28.0763 19.0569 28.0875C19.037 28.0428 19.017 27.9981 18.9971 27.9533C18.7578 27.5284 18.5285 27.1147 18.3092 26.7234C17.5814 25.6387 16.6442 24.7442 15.5076 24.1739C13.7131 23.2571 11.5995 23.0781 9.71516 23.7826C7.93055 24.4535 6.42511 25.9518 5.94655 28.0428C5.29851 30.8718 6.55471 33.8125 7.99037 36.0712C10.8816 40.6333 15.1188 44.0997 19.2563 47.1187C19.9841 47.6554 20.7219 48.1698 21.4696 48.6841C21.6989 48.8407 21.9282 48.7512 22.0578 48.5723C22.0877 48.5388 22.1177 48.5052 22.1376 48.4605C23.8524 45.6763 25.7866 43.0598 27.5712 40.3314C27.7706 40.0295 27.96 39.7276 28.1594 39.4257C25.7965 37.29 22.4068 33.8684 20.2234 30.089H20.2034Z" fill="white"/>
+          <path d="M54.1035 18.6161C53.8685 16.9366 53.1428 15.4239 52.0901 14.1782C49.9029 11.609 46.5915 10.6524 43.5151 11.6201C40.3365 12.6211 37.9347 15.3906 36.8616 18.7162C35.8804 16.336 34.1838 14.3784 31.9557 13.2884C29.5744 12.1206 26.774 11.8981 24.2904 12.7991C21.9192 13.6555 19.9262 15.6019 19.3028 18.2935C18.4647 21.9528 20.1613 25.7344 22.0623 28.6485C23.6874 31.1288 25.6701 33.3311 27.7551 35.3553C30.7088 38.2138 33.9385 40.7386 37.25 43.0743C38.2107 43.7528 39.1714 44.409 40.1423 45.0541C40.3774 45.2098 40.6023 45.1208 40.7454 44.9429C40.776 44.9095 40.8067 44.8761 40.8271 44.8316C43.1369 41.1946 45.733 37.7911 48.1348 34.2208C50.3322 30.9509 52.55 27.4695 53.6436 23.5544C54.0933 21.9639 54.3182 20.2622 54.0831 18.605L54.1035 18.6161Z" fill="white"/>
+        </svg>
+      ),
+      label: 'Personal stuff to you',
+      desc: 'I know when to step aside',
+    },
+  ];
 
-      <div style={{ flex:1, display:'flex', flexDirection:'column', padding:'100px 28px 0' }}>
+  return (
+    <div style={{ background:'#6830c8', height:'100%', display:'flex', flexDirection:'column', position:'relative', overflow:'hidden' }}>
+      <PurpleBg animate={false} />
+      <div style={{ position:'relative', zIndex:1, flex:1, display:'flex', flexDirection:'column', padding:'72px 32px 0' }}>
         <div style={{ marginBottom:20, ...show(1) }}>
-          <h1 style={{ fontSize:34, fontWeight:900, color:'#fff', letterSpacing:'-0.04em', lineHeight:1.12, WebkitTextStroke:'0.5px #fff' }}>
-            Hi Sofia.
+          <h1 style={{ fontSize:36, fontWeight:900, color:'#fff', letterSpacing:'-0.03em', lineHeight:1.1 }}>
+            Sofia, you've got DMs waiting
           </h1>
         </div>
-
-        <div style={{ ...show(2) }}>
-          <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:12 }}>
-            You've got DMs waiting.
+        <div style={{ marginBottom:28, ...show(2) }}>
+          <p style={{ fontSize:20, fontWeight:700, color:'#fff', lineHeight:1.4, letterSpacing:'-0.02em' }}>
+            I'll read them all, bring the ones that matter, and have replies ready
           </p>
         </div>
-
-        <div style={{ ...show(3) }}>
-          <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:12 }}>
-            The leads, the quick replies, the noise. I'll go through all of it and have the good ones ready for you.
-          </p>
-        </div>
-
-        <div style={{ ...show(4) }}>
-          <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6 }}>
-            Want me to get started?
-          </p>
+        <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
+          {features.map((f, i) => (
+            <div key={i} style={{ display:'flex', alignItems:'center', gap:16, ...show(i + 3) }}>
+              <div style={{ width:60, height:60, borderRadius:14, background:'rgba(0,0,0,0.22)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                {f.icon}
+              </div>
+              <div>
+                <div style={{ fontSize:20, fontWeight:700, color:'#fff', letterSpacing:'-0.02em', lineHeight:1.2, marginBottom:2 }}>{f.label}</div>
+                <div style={{ fontSize:16, fontWeight:400, color:'rgba(255,255,255,0.75)', lineHeight:1.4 }}>{f.desc}</div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
-
-      <div style={{ padding:'0 28px 90px', ...show(5) }}>
+      <div style={{ position:'relative', zIndex:1, padding:'0 32px 56px', ...show(6) }}>
         <button onClick={onNext}
-          style={{ width:'100%', padding:'16px', background:'transparent', color:'rgba(255,255,255,0.8)', border:'1.5px solid rgba(255,255,255,0.18)', borderRadius:50, fontSize:16, fontWeight:500, cursor:'pointer', letterSpacing:'-0.01em' }}>
+          style={{ width:'100%', height:48, background:'#292929', color:'#fff', border:'none', borderRadius:24, fontSize:17, fontWeight:500, cursor:'pointer', letterSpacing:'-0.01em' }}>
           Let's do it
         </button>
       </div>
@@ -2416,61 +2409,80 @@ function ObWelcomeV2b({ onNext }) {
   );
 }
 
+function useCountUp(target, duration, active) {
+  const [val, setVal] = useState(0);
+  useEffect(() => {
+    if (!active) return;
+    const start = Date.now();
+    const timer = setInterval(() => {
+      const elapsed = Date.now() - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setVal(Math.round(eased * target));
+      if (progress >= 1) clearInterval(timer);
+    }, 16);
+    return () => clearInterval(timer);
+  }, [active]);
+  return val;
+}
+
 function ObResultsV2b({ onOpenInbox }) {
   const [vis, setVis] = useState(0);
-  const total = 6; // title, stat1, stat2, stat3, stat4, btn
 
   useEffect(() => {
     const timers = [];
-    for (let i = 1; i <= total; i++) {
-      timers.push(setTimeout(() => setVis(i), i * 400 + 300));
+    for (let i = 1; i <= 6; i++) {
+      timers.push(setTimeout(() => setVis(i), i * 300 + 300));
     }
     return () => timers.forEach(t => clearTimeout(t));
   }, []);
 
   const show = (i) => ({
     opacity: vis >= i ? 1 : 0,
-    transform: vis >= i ? 'translateY(0)' : 'translateY(8px)',
-    transition: 'opacity .45s ease, transform .45s ease',
+    transform: vis >= i ? 'translateY(0)' : 'translateY(10px)',
+    transition: 'opacity .5s ease, transform .5s ease',
   });
 
+  const n1 = useCountUp(20, 700, vis >= 2);
+  const n2 = useCountUp(8,  700, vis >= 3);
+  const n3 = useCountUp(4,  700, vis >= 4);
+  const n4 = useCountUp(12, 700, vis >= 5);
+
+  const stats = [
+    { num: n1, label: 'conversations for your attention',      visIdx: 2 },
+    { num: n2, label: 'people interested in your services',    visIdx: 3 },
+    { num: n3, label: 'engaged followers',                     visIdx: 4 },
+    { num: n4, label: 'replies ready to send',                 visIdx: 5 },
+  ];
+
   return (
-    <div style={{ background:'#151515', height:'100%', display:'flex', flexDirection:'column', position:'relative', overflow:'hidden' }}>
-
-      <div style={{ flex:1, display:'flex', flexDirection:'column', padding:'100px 28px 0' }}>
-        <div style={{ marginBottom:16, ...show(1) }}>
-          <h1 style={{ fontSize:34, fontWeight:900, color:'#fff', letterSpacing:'-0.04em', lineHeight:1.12, WebkitTextStroke:'0.5px #fff' }}>Went through 35 messages overnight. Here's what matters:</h1>
+    <div style={{ background:'#6830c8', height:'100%', display:'flex', flexDirection:'column', position:'relative', overflow:'hidden' }}>
+      <PurpleBg animate={false} />
+      <div style={{ position:'relative', zIndex:1, flex:1, display:'flex', flexDirection:'column', padding:'72px 32px 0' }}>
+        <div style={{ marginBottom:8, ...show(1) }}>
+          <h1 style={{ fontSize:32, fontWeight:900, color:'#fff', letterSpacing:'-0.03em', lineHeight:1.15 }}>
+            Went through 35 messages overnight.
+          </h1>
         </div>
-
-        <div style={{ ...show(2) }}>
-          <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:16 }}>
-            <span style={{ fontWeight:700 }}>20</span> messages for your attention
+        <div style={{ marginBottom:28, ...show(1) }}>
+          <p style={{ fontSize:20, fontWeight:700, color:'#fff', letterSpacing:'-0.02em', lineHeight:1.4 }}>
+            Here's what matters:
           </p>
         </div>
-
-        <div style={{ ...show(3) }}>
-          <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:16 }}>
-            <span style={{ fontWeight:700 }}>8</span> people interested in your 12-week course
-          </p>
-        </div>
-        <div style={{ ...show(4) }}>
-          <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6, marginBottom:16 }}>
-            <span style={{ fontWeight:700 }}>2</span> shared something personal (worth reading yourself)
-          </p>
-        </div>
-        <div style={{ ...show(5) }}>
-          <p style={{ fontSize:16, fontWeight:400, color:'#fff', lineHeight:1.6 }}>
-            <span style={{ fontWeight:700 }}>12</span> replies ready to send
-          </p>
+        <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
+          {stats.map((s, i) => (
+            <div key={i} style={{ display:'flex', alignItems:'baseline', gap:12, ...show(s.visIdx) }}>
+              <span style={{ fontSize:28, fontWeight:900, color:'#fff', letterSpacing:'-0.03em', lineHeight:1, minWidth:32, display:'inline-block' }}>{s.num}</span>
+              <span style={{ fontSize:16, fontWeight:400, color:'rgba(255,255,255,0.85)', lineHeight:1.4 }}>{s.label}</span>
+            </div>
+          ))}
         </div>
       </div>
-
-      <div style={{ padding:'0 28px 90px' }}>
-        <div style={{ ...show(6) }}>
-          <button onClick={onOpenInbox} style={{ width:'100%', padding:'16px', background:'#fff', color:'#151515', border:'none', borderRadius:50, fontSize:16, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em' }}>
-            Open Inbox
-          </button>
-        </div>
+      <div style={{ position:'relative', zIndex:1, padding:'0 32px 56px', ...show(6) }}>
+        <button onClick={onOpenInbox}
+          style={{ width:'100%', height:48, background:'#292929', color:'#fff', border:'none', borderRadius:24, fontSize:17, fontWeight:500, cursor:'pointer', letterSpacing:'-0.01em' }}>
+          Open Inbox
+        </button>
       </div>
     </div>
   );
