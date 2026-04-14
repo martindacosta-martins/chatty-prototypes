@@ -308,17 +308,89 @@ function PurpleBg({ animate }) {
   );
 }
 
-/* ─── Step 2: Loading — Reading DMs ─── */
+/* ─── Step 2: Loading — Matrix animation + cycling messages ─── */
 function ObSorting({ onNext }) {
+  const canvasRef = useRef(null);
+  const [msgIdx, setMsgIdx] = useState(0);
+  const [msgVis, setMsgVis] = useState(true);
+
+  const messages = [
+    'Reading your DMs...',
+    'Sorting what matters...',
+    'Drafting replies...',
+    'Almost ready...',
+  ];
+
+  // Cycle messages with a fade cross-dissolve
   useEffect(() => {
-    const t = setTimeout(onNext, 3500);
+    const iv = setInterval(() => {
+      setMsgVis(false);
+      setTimeout(() => { setMsgIdx(i => (i + 1) % messages.length); setMsgVis(true); }, 280);
+    }, 1100);
+    return () => clearInterval(iv);
+  }, []);
+
+  // Auto-advance after 4s
+  useEffect(() => {
+    const t = setTimeout(onNext, 4000);
     return () => clearTimeout(t);
+  }, []);
+
+  // Matrix: short vertical + horizontal line segments drifting across the screen
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    canvas.width = 393;
+    canvas.height = 852;
+
+    const vSegs = Array.from({ length: 40 }, () => ({
+      x: Math.random() * 393,
+      y: Math.random() * 852,
+      speed: 0.35 + Math.random() * 0.65,
+      len: 12 + Math.random() * 42,
+      opacity: 0.07 + Math.random() * 0.17,
+    }));
+    const hSegs = Array.from({ length: 22 }, () => ({
+      x: Math.random() * 393,
+      y: Math.random() * 852,
+      speed: 0.2 + Math.random() * 0.45,
+      len: 18 + Math.random() * 52,
+      opacity: 0.05 + Math.random() * 0.12,
+    }));
+
+    let id;
+    function draw() {
+      ctx.clearRect(0, 0, 393, 852);
+      ctx.lineWidth = 1;
+
+      vSegs.forEach(s => {
+        s.y += s.speed;
+        if (s.y > 852 + s.len) { s.y = -s.len; s.x = Math.random() * 393; s.speed = 0.35 + Math.random() * 0.65; s.len = 12 + Math.random() * 42; s.opacity = 0.07 + Math.random() * 0.17; }
+        ctx.strokeStyle = `rgba(255,255,255,${s.opacity})`;
+        ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(s.x, s.y + s.len); ctx.stroke();
+      });
+
+      hSegs.forEach(s => {
+        s.x -= s.speed;
+        if (s.x < -s.len) { s.x = 393 + s.len; s.y = Math.random() * 852; s.speed = 0.2 + Math.random() * 0.45; s.len = 18 + Math.random() * 52; s.opacity = 0.05 + Math.random() * 0.12; }
+        ctx.strokeStyle = `rgba(255,255,255,${s.opacity})`;
+        ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(s.x + s.len, s.y); ctx.stroke();
+      });
+
+      id = requestAnimationFrame(draw);
+    }
+    draw();
+    return () => cancelAnimationFrame(id);
   }, []);
 
   return (
     <div style={{ background:'#6830c8', height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', position:'relative', overflow:'hidden' }}>
-      <PurpleBg animate={true} />
-      <div style={{ position:'relative', zIndex:1 }}>
+      <PurpleBg animate={false} />
+      {/* Matrix segments layer */}
+      <canvas ref={canvasRef} style={{ position:'absolute', inset:0, width:'100%', height:'100%', zIndex:1 }} />
+      {/* Cycling shimmer message */}
+      <div style={{ position:'relative', zIndex:2, opacity: msgVis ? 1 : 0, transition:'opacity 0.28s ease' }}>
         <span style={{
           fontSize:16, fontWeight:400,
           background:'linear-gradient(90deg, rgba(255,255,255,0.65) 0%, rgba(255,255,255,1) 40%, rgba(255,255,255,0.65) 60%, rgba(255,255,255,0.65) 100%)',
@@ -327,7 +399,7 @@ function ObSorting({ onNext }) {
           WebkitTextFillColor:'transparent',
           backgroundClip:'text',
           animation:'textShimmer 2.5s linear infinite',
-        }}>Reading your DMs...</span>
+        }}>{messages[msgIdx]}</span>
       </div>
     </div>
   );
@@ -2399,7 +2471,7 @@ function ObWelcomeV2b({ onNext }) {
           ))}
         </div>
       </div>
-      <div style={{ position:'relative', zIndex:1, padding:'0 32px 56px', ...show(6) }}>
+      <div style={{ position:'relative', zIndex:1, padding:'0 32px 92px', ...show(6) }}>
         <button onClick={onNext}
           style={{ width:'100%', height:48, background:'#292929', color:'#fff', border:'none', borderRadius:24, fontSize:17, fontWeight:500, cursor:'pointer', letterSpacing:'-0.01em' }}>
           Let's do it
