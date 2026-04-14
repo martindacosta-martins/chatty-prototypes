@@ -78,14 +78,15 @@
     100% { transform: translateY(0)    scaleX(1);    filter: blur(0px);   opacity: 1;   }
   }
 
-  @keyframes gridDrift {
-    from { background-position: -42px 0px, -42px 0px; }
-    to   { background-position: -42px -87px, -42px -87px; }
+  /* ── Rainbow screen transitions ── */
+  @keyframes curtainDown {
+    from { transform: translateY(-100%); }
+    to   { transform: translateY(0); }
   }
-  @keyframes textShimmer {
-    0%   { background-position: 200% center; }
-    100% { background-position: -100% center; }
-  }
+  @keyframes toCornerTL { to { transform: translate(-52%,-52%); opacity:0; } }
+  @keyframes toCornerTR { to { transform: translate( 52%,-52%); opacity:0; } }
+  @keyframes toCornerBL { to { transform: translate(-52%, 52%); opacity:0; } }
+  @keyframes toCornerBR { to { transform: translate( 52%, 52%); opacity:0; } }
 
   /* Scrollbar hide */
   ::-webkit-scrollbar { display:none; }
@@ -288,135 +289,132 @@ function BlackBtn({ label, onClick, disabled }) {
 
 /* ═══ ONBOARDING ═══ */
 
-/* ─── Shared purple background with optional animated grid ─── */
-function PurpleBg({ animate }) {
+/* ─── Lavender grid (used on white screens) ─── */
+const RAINBOW = 'conic-gradient(from 22deg at 42% 73%, rgba(0,107,226,1) 5%, rgba(119,202,223,1) 15%, rgba(12,129,67,1) 25%, rgba(165,202,102,1) 35%, rgba(246,190,111,1) 45%, rgba(241,136,84,1) 55%, rgba(213,43,13,1) 65%, rgba(246,204,255,1) 75%, rgba(127,83,224,1) 85%, rgba(197,93,218,1) 95%, rgba(0,107,226,1) 100%)';
+const GRID_IMG = 'linear-gradient(rgba(195,179,255,0.55) 1px, transparent 1px), linear-gradient(90deg, rgba(195,179,255,0.55) 1px, transparent 1px)';
+const CORNER_CLIPS = [
+  'polygon(0 0, 50% 0, 50% 50%, 0 50%)',
+  'polygon(50% 0, 100% 0, 100% 50%, 50% 50%)',
+  'polygon(0 50%, 50% 50%, 50% 100%, 0 100%)',
+  'polygon(50% 50%, 100% 50%, 100% 100%, 50% 100%)',
+];
+const CORNER_ANIMS = ['toCornerTL','toCornerTR','toCornerBL','toCornerBR'];
+
+function RainbowGrid({ extraStyle }) {
   return (
-    <div style={{ position:'absolute', inset:0, overflow:'hidden', zIndex:0 }}>
-      <div style={{
-        position:'absolute', inset:'-20%',
-        background:'conic-gradient(from 0deg at 50% 50%, #6e30d4 0%, #c3b3ff 37%, #966efa 64%, #7f53e0 100%)',
-        filter:'blur(80px)',
-      }} />
-      <div style={{
-        position:'absolute', inset:0,
-        backgroundImage:'linear-gradient(rgba(255,255,255,0.18) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.18) 1px, transparent 1px)',
-        backgroundSize:'84px 87px',
-        backgroundPosition:'-42px 0px',
-        animation: animate ? 'gridDrift 6s linear infinite' : 'none',
-        maskImage:'radial-gradient(ellipse 85% 70% at 52% 48%, black 10%, rgba(0,0,0,0.45) 52%, transparent 82%)',
-        WebkitMaskImage:'radial-gradient(ellipse 85% 70% at 52% 48%, black 10%, rgba(0,0,0,0.45) 52%, transparent 82%)',
-      }} />
-    </div>
+    <div style={{
+      position:'absolute', inset:0, zIndex:0, pointerEvents:'none',
+      backgroundImage: GRID_IMG,
+      backgroundSize:'60px 60px',
+      backgroundPosition:'23px 0px',
+      ...extraStyle,
+    }} />
   );
 }
 
-/* ─── Step 2: Loading — Matrix animation + cycling messages ─── */
-function ObSorting({ onNext }) {
+/* ─── Step 2: Loading — Snake game on rainbow background ─── */
+function RainbowLoading({ onNext }) {
   const canvasRef = useRef(null);
+  const gameRef = useRef(null);
   const [msgIdx, setMsgIdx] = useState(0);
   const [msgVis, setMsgVis] = useState(true);
 
-  const messages = [
-    'Reading your DMs...',
-    'Sorting what matters...',
-    'Drafting replies...',
-    'Almost ready...',
-  ];
+  const messages = ['Reading your DMs...','Sorting what matters...','Drafting replies...','Almost ready...'];
+  const CELL = 16, COLS = 24, ROWS = 53; // 24×16=384 ≈393, 53×16=848 ≈852
 
-  // Cycle messages with a fade cross-dissolve
+  // Cycle status messages
   useEffect(() => {
     const iv = setInterval(() => {
       setMsgVis(false);
-      setTimeout(() => { setMsgIdx(i => (i + 1) % messages.length); setMsgVis(true); }, 280);
-    }, 1100);
+      setTimeout(() => { setMsgIdx(i => (i + 1) % messages.length); setMsgVis(true); }, 260);
+    }, 2400);
     return () => clearInterval(iv);
   }, []);
 
-  // Auto-advance after 4s
+  // Auto-advance after 10s
   useEffect(() => {
-    const t = setTimeout(onNext, 4000);
+    const t = setTimeout(onNext, 10000);
     return () => clearTimeout(t);
   }, []);
 
-  // Segments travel along grid paths, disappear between passes — building the matrix
+  // Snake game
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    const W = canvas.width = 393;
-    const H = canvas.height = 852;
-    const CW = 84, CH = 87;
+    canvas.width = 393; canvas.height = 852;
 
-    // Grid line positions (matching PurpleBg offset -42px)
-    const vXs = []; for (let x = CW - 42; x < W; x += CW) vXs.push(x);
-    const hYs = []; for (let y = 0; y <= H; y += CH) hYs.push(y);
+    gameRef.current = {
+      snake: [{x:12,y:26},{x:11,y:26},{x:10,y:26},{x:9,y:26},{x:8,y:26}],
+      dir: {x:1,y:0}, nextDir: {x:1,y:0},
+      food: {x:18,y:20},
+    };
 
-    // One worm per line; each starts at a different random point so they're staggered
-    // 'pause' is a frame countdown — line is invisible during the pause
-    function mkV(x) { return { x, y: Math.random() * H, speed: 0.8 + Math.random() * 1.2, len: 40 + Math.random() * 80, op: 0.45 + Math.random() * 0.35, pause: 0 }; }
-    function mkH(y) { return { x: Math.random() * W, y, speed: 0.6 + Math.random() * 0.9, len: 50 + Math.random() * 90, op: 0.35 + Math.random() * 0.3, pause: 0 }; }
-
-    const vWorms = vXs.map(x => mkV(x));
-    const hWorms = hYs.map(y => mkH(y));
-
-    // Softer opacity — gradient peaks in the middle, fades at both ends
-    function resetV(w) { w.pause = 50 + Math.floor(Math.random() * 120); w.y = -(w.len); w.speed = 0.6 + Math.random() * 0.9; w.len = 35 + Math.random() * 70; w.op = 0.22 + Math.random() * 0.22; }
-    function resetH(w) { w.pause = 50 + Math.floor(Math.random() * 120); w.x = -(w.len); w.speed = 0.4 + Math.random() * 0.7; w.len = 45 + Math.random() * 80; w.op = 0.18 + Math.random() * 0.18; }
-
-    let id;
-    function draw() {
-      ctx.clearRect(0, 0, W, H);
-      ctx.lineWidth = 1;
-
-      vWorms.forEach(w => {
-        if (w.pause > 0) { w.pause--; return; }
-        w.y += w.speed;
-        if (w.y > H + w.len) resetV(w);
-        // Fade in from tail, peak ~40%, fade out at head — segment "floats" along the line
-        const g = ctx.createLinearGradient(0, w.y, 0, w.y + w.len);
-        g.addColorStop(0,   'rgba(255,255,255,0)');
-        g.addColorStop(0.3, `rgba(255,255,255,${w.op})`);
-        g.addColorStop(0.7, `rgba(255,255,255,${w.op * 0.8})`);
-        g.addColorStop(1,   'rgba(255,255,255,0)');
-        ctx.strokeStyle = g;
-        ctx.beginPath(); ctx.moveTo(w.x, w.y); ctx.lineTo(w.x, w.y + w.len); ctx.stroke();
-      });
-
-      hWorms.forEach(w => {
-        if (w.pause > 0) { w.pause--; return; }
-        w.x += w.speed;
-        if (w.x > W + w.len) resetH(w);
-        const g = ctx.createLinearGradient(w.x, 0, w.x + w.len, 0);
-        g.addColorStop(0,   'rgba(255,255,255,0)');
-        g.addColorStop(0.3, `rgba(255,255,255,${w.op})`);
-        g.addColorStop(0.7, `rgba(255,255,255,${w.op * 0.8})`);
-        g.addColorStop(1,   'rgba(255,255,255,0)');
-        ctx.strokeStyle = g;
-        ctx.beginPath(); ctx.moveTo(w.x, w.y); ctx.lineTo(w.x + w.len, w.y); ctx.stroke();
-      });
-
-      id = requestAnimationFrame(draw);
+    function placeFood(snake) {
+      let nx, ny;
+      do { nx = Math.floor(Math.random()*COLS); ny = Math.floor(Math.random()*ROWS); }
+      while (snake.some(s => s.x===nx && s.y===ny));
+      return {x:nx,y:ny};
     }
-    draw();
-    return () => cancelAnimationFrame(id);
+
+    const loop = setInterval(() => {
+      const g = gameRef.current;
+      g.dir = {...g.nextDir};
+      const head = g.snake[0];
+      const nh = { x:(head.x+g.dir.x+COLS)%COLS, y:(head.y+g.dir.y+ROWS)%ROWS };
+      const ate = nh.x===g.food.x && nh.y===g.food.y;
+      g.snake = [nh, ...g.snake];
+      if (!ate) g.snake.pop();
+      else g.food = placeFood(g.snake);
+
+      ctx.clearRect(0,0,393,852);
+
+      // Food — white glow dot
+      ctx.shadowColor='rgba(255,255,255,0.8)'; ctx.shadowBlur=8;
+      ctx.fillStyle='rgba(255,255,255,0.95)';
+      ctx.beginPath();
+      ctx.arc(g.food.x*CELL+CELL/2, g.food.y*CELL+CELL/2, CELL/3, 0, Math.PI*2);
+      ctx.fill();
+      ctx.shadowBlur=0;
+
+      // Snake body — white segments fading tail
+      g.snake.forEach((seg,i) => {
+        const alpha = (1 - i/g.snake.length) * 0.92 + 0.08;
+        ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+        ctx.beginPath();
+        ctx.roundRect(seg.x*CELL+2, seg.y*CELL+2, CELL-4, CELL-4, 4);
+        ctx.fill();
+      });
+    }, 130);
+
+    return () => clearInterval(loop);
   }, []);
 
+  function handleTap(e) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const tx = e.clientX - rect.left - rect.width/2;
+    const ty = e.clientY - rect.top  - rect.height/2;
+    const g = gameRef.current; if (!g) return;
+    if (Math.abs(tx) > Math.abs(ty)) {
+      if (tx > 0 && g.dir.x !== -1) g.nextDir={x:1,y:0};
+      else if (tx < 0 && g.dir.x !== 1) g.nextDir={x:-1,y:0};
+    } else {
+      if (ty > 0 && g.dir.y !== -1) g.nextDir={x:0,y:1};
+      else if (ty < 0 && g.dir.y !== 1) g.nextDir={x:0,y:-1};
+    }
+  }
+
   return (
-    <div style={{ background:'#6830c8', height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', position:'relative', overflow:'hidden' }}>
-      <PurpleBg animate={false} />
-      {/* Matrix segments layer */}
+    <div onClick={handleTap} style={{ background:RAINBOW, height:'100%', position:'relative', overflow:'hidden', cursor:'pointer', WebkitUserSelect:'none', userSelect:'none' }}>
+      <RainbowGrid />
       <canvas ref={canvasRef} style={{ position:'absolute', inset:0, width:'100%', height:'100%', zIndex:1 }} />
-      {/* Cycling shimmer message */}
-      <div style={{ position:'relative', zIndex:2, opacity: msgVis ? 1 : 0, transition:'opacity 0.28s ease' }}>
-        <span style={{
-          fontSize:16, fontWeight:400,
-          background:'linear-gradient(90deg, rgba(255,255,255,0.65) 0%, rgba(255,255,255,1) 40%, rgba(255,255,255,0.65) 60%, rgba(255,255,255,0.65) 100%)',
-          backgroundSize:'200% auto',
-          WebkitBackgroundClip:'text',
-          WebkitTextFillColor:'transparent',
-          backgroundClip:'text',
-          animation:'textShimmer 2.5s linear infinite',
-        }}>{messages[msgIdx]}</span>
+      {/* Status pill */}
+      <div style={{ position:'absolute', bottom:136, left:'50%', transform:'translateX(-50%)', zIndex:2, background:'#fff', borderRadius:20, padding:'10px 22px', boxShadow:'0 2px 16px rgba(0,0,0,0.18)', whiteSpace:'nowrap', opacity:msgVis?1:0, transition:'opacity 0.26s ease' }}>
+        <span style={{ fontSize:15, fontWeight:500, color:'#292929' }}>{messages[msgIdx]}</span>
+      </div>
+      {/* Tap hint */}
+      <div style={{ position:'absolute', bottom:96, left:0, right:0, zIndex:2, textAlign:'center' }}>
+        <span style={{ fontSize:14, fontWeight:400, color:'rgba(255,255,255,0.88)' }}>While waiting, tap to make the snake turn</span>
       </div>
     </div>
   );
@@ -2408,91 +2406,92 @@ function BottomNav({ hidden }) {
 }
 
 /* ─── Onboarding screens: Welcome + Results ─── */
-function ObWelcomeV2b({ onNext }) {
+function RainbowWelcome({ onNext }) {
   const [vis, setVis] = useState(0);
 
   useEffect(() => {
     const timers = [];
-    for (let i = 1; i <= 6; i++) {
-      timers.push(setTimeout(() => setVis(i), i * 280 + 300));
+    for (let i = 1; i <= 4; i++) {
+      timers.push(setTimeout(() => setVis(i), i * 220 + 300));
     }
     return () => timers.forEach(t => clearTimeout(t));
   }, []);
 
   const show = (i) => ({
     opacity: vis >= i ? 1 : 0,
-    transform: vis >= i ? 'translateY(0)' : 'translateY(10px)',
+    transform: vis >= i ? 'translateY(0)' : 'translateY(8px)',
     transition: 'opacity .5s ease, transform .5s ease',
   });
 
-  const features = [
-    {
-      icon: (
-        <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
-          <path d="M38.1933 31.212C35.9737 29.4494 32.8663 29.5277 30.5944 31.1859L34.9422 36.526C34.8247 37.6749 33.7672 37.4921 33.7672 37.4921L29.0538 32.7527C27.0692 35.5467 27.487 39.3592 30.0852 41.4091C32.7749 43.5373 36.7701 42.9889 39.0028 40.1687C41.2354 37.3485 40.8829 33.3402 38.1933 31.1989V31.212Z" fill="white"/>
-          <path d="M25.1367 24.4879L27.2387 17.6463L19.4049 6L17.1592 14.8131L25.1367 24.4879Z" fill="white"/>
-          <path d="M22.7473 26.4333L13.5295 17.2155L4.57275 18.9781L16.6238 27.7781L22.7473 26.4333Z" fill="white"/>
-          <path d="M16.0998 18.1609C17.7031 17.7969 18.8177 16.6867 18.5895 15.6811C18.3612 14.6756 16.8764 14.1554 15.2731 14.5194C13.6698 14.8834 12.5552 15.9936 12.7834 16.9992C13.0117 18.0047 14.4965 18.5248 16.0998 18.1609Z" fill="white"/>
-          <path d="M51.0405 41.5788C53.0773 35.2595 51.4453 28.1698 46.288 23.587C40.0209 18.025 30.6725 18.0903 24.1704 23.2998L27.1472 26.9556C31.4428 23.587 37.4749 23.352 41.7443 26.7467C46.7711 30.7419 47.45 38.2755 43.2589 43.5503C39.0547 48.8382 31.5734 49.8696 26.5466 45.8743C21.5199 41.8791 20.841 34.3455 25.0321 29.0707C25.0843 29.0054 25.1365 28.9401 25.2018 28.8749L21.8724 25.5324C15.5531 32.7787 16.0623 43.6156 23.0606 49.8174C30.0066 55.98 40.739 55.2358 47.1889 48.2245L55.4275 49.9088L51.0666 41.5918L51.0405 41.5788Z" fill="white"/>
-        </svg>
-      ),
-      label: 'Only what matters',
-      desc: 'Real conversations, not noise',
-    },
-    {
-      icon: (
-        <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
-          <path d="M13.158 11.596L9.3418 37.6374L18.0223 37.2914L16.2822 48.75C24.6166 45.9719 26.6928 37.6374 26.6928 37.6374L46.8319 36.9454L50.658 11.25L13.158 11.596ZM27.3058 33.0698C20.9289 26.1393 18.2299 23.9642 18.2299 23.9642L25.0121 19.7723L27.0784 26.5051C27.0784 26.5051 30.9144 18.3881 38.2108 15.4024C40.7615 19.1 43.0354 23.6478 43.0354 23.6478C43.0354 23.6478 33.1488 23.4106 27.3058 33.0797V33.0698Z" fill="white"/>
-        </svg>
-      ),
-      label: 'Replies in your voice',
-      desc: 'Draft first. You approve.',
-    },
-    {
-      icon: (
-        <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
-          <path d="M20.2034 30.089C19.7947 29.3846 19.4158 28.7137 19.0569 28.0763C19.0569 28.0763 19.0569 28.0763 19.0569 28.0875C19.037 28.0428 19.017 27.9981 18.9971 27.9533C18.7578 27.5284 18.5285 27.1147 18.3092 26.7234C17.5814 25.6387 16.6442 24.7442 15.5076 24.1739C13.7131 23.2571 11.5995 23.0781 9.71516 23.7826C7.93055 24.4535 6.42511 25.9518 5.94655 28.0428C5.29851 30.8718 6.55471 33.8125 7.99037 36.0712C10.8816 40.6333 15.1188 44.0997 19.2563 47.1187C19.9841 47.6554 20.7219 48.1698 21.4696 48.6841C21.6989 48.8407 21.9282 48.7512 22.0578 48.5723C22.0877 48.5388 22.1177 48.5052 22.1376 48.4605C23.8524 45.6763 25.7866 43.0598 27.5712 40.3314C27.7706 40.0295 27.96 39.7276 28.1594 39.4257C25.7965 37.29 22.4068 33.8684 20.2234 30.089H20.2034Z" fill="white"/>
-          <path d="M54.1035 18.6161C53.8685 16.9366 53.1428 15.4239 52.0901 14.1782C49.9029 11.609 46.5915 10.6524 43.5151 11.6201C40.3365 12.6211 37.9347 15.3906 36.8616 18.7162C35.8804 16.336 34.1838 14.3784 31.9557 13.2884C29.5744 12.1206 26.774 11.8981 24.2904 12.7991C21.9192 13.6555 19.9262 15.6019 19.3028 18.2935C18.4647 21.9528 20.1613 25.7344 22.0623 28.6485C23.6874 31.1288 25.6701 33.3311 27.7551 35.3553C30.7088 38.2138 33.9385 40.7386 37.25 43.0743C38.2107 43.7528 39.1714 44.409 40.1423 45.0541C40.3774 45.2098 40.6023 45.1208 40.7454 44.9429C40.776 44.9095 40.8067 44.8761 40.8271 44.8316C43.1369 41.1946 45.733 37.7911 48.1348 34.2208C50.3322 30.9509 52.55 27.4695 53.6436 23.5544C54.0933 21.9639 54.3182 20.2622 54.0831 18.605L54.1035 18.6161Z" fill="white"/>
-        </svg>
-      ),
-      label: 'Personal stuff to you',
-      desc: 'I know when to step aside',
-    },
+  // Inbox preview cards (stacked perspective, front card topmost/rightmost)
+  const cards = [
+    { initials:'JR', bg:'#E6F0FF', name:'jayrunz', time:'2m', snippet:'Is it too late to start?', badge:null },
+    { initials:'LF', bg:'#FFE8F4', name:'lena.fit', time:'5m', snippet:"I've tried everything, nothing works", badge:{text:'AI ready', bg:'rgba(245,243,255,1)', color:'rgba(84,0,175,1)'} },
+    { initials:'MR', bg:'#E6FFE6', name:'mike_r', time:'12m', snippet:"What's in the premium program?", badge:{text:'Draft reply', bg:'rgba(255,242,239,1)', color:'rgba(195,70,30,1)'} },
   ];
 
   return (
-    <div style={{ background:'#6830c8', height:'100%', display:'flex', flexDirection:'column', position:'relative', overflow:'hidden' }}>
-      <PurpleBg animate={false} />
-      <div style={{ position:'relative', zIndex:1, flex:1, display:'flex', flexDirection:'column', padding:'72px 32px 0' }}>
-        <div style={{ marginBottom:20, ...show(1) }}>
-          <h1 style={{ fontSize:36, fontWeight:900, color:'#fff', letterSpacing:'-0.03em', lineHeight:1.1 }}>
-            Sofia, you've got DMs waiting
+    <div style={{ background:'#fff', height:'100%', display:'flex', flexDirection:'column', position:'relative', overflow:'hidden' }}>
+      <RainbowGrid />
+
+      {/* Stacked inbox preview — cards at top, perspective offset */}
+      <div style={{ position:'absolute', top:72, left:0, right:0, zIndex:1 }}>
+        {[...cards].reverse().map((card, ri) => {
+          const i = cards.length - 1 - ri; // front=0, back=2
+          return (
+            <div key={i} style={{
+              position:'absolute',
+              left: 61 - i*12,
+              top: i*52,
+              width: 280,
+              background:'#fff',
+              borderRadius:12,
+              border:'1px solid rgba(214,214,214,1)',
+              padding:'12px 14px',
+              boxShadow:'0 2px 10px rgba(0,0,0,0.07)',
+              opacity: 1 - i*0.18,
+            }}>
+              <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                <div style={{ width:38, height:38, borderRadius:19, background:card.bg, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:12, fontWeight:700, color:'#555' }}>{card.initials}</div>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', marginBottom:3 }}>
+                    <span style={{ fontSize:13, fontWeight:600, color:'#1a1a1a' }}>{card.name}</span>
+                    <span style={{ fontSize:11, color:'#aaa' }}>{card.time}</span>
+                  </div>
+                  <div style={{ fontSize:12, color:'#666', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', marginBottom: card.badge ? 4 : 0 }}>{card.snippet}</div>
+                  {card.badge && <span style={{ display:'inline-block', fontSize:11, fontWeight:500, padding:'2px 7px', borderRadius:5, background:card.badge.bg, color:card.badge.color }}>{card.badge.text}</span>}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Gradient: transparent → white — fades cards into content */}
+      <div style={{ position:'absolute', inset:0, zIndex:2, pointerEvents:'none', background:'linear-gradient(to bottom, transparent 36%, white 62%)' }} />
+
+      {/* Content */}
+      <div style={{ position:'absolute', bottom:0, left:0, right:0, zIndex:3 }}>
+        <div style={{ padding:'0 32px', marginBottom:14, ...show(1) }}>
+          <h1 style={{ fontSize:36, fontWeight:900, color:'#292929', letterSpacing:'-0.03em', lineHeight:1.1 }}>
+            Sofia, you've got<br/>DMs waiting
           </h1>
         </div>
-        <div style={{ marginBottom:28, ...show(2) }}>
-          <p style={{ fontSize:20, fontWeight:700, color:'#fff', lineHeight:1.4, letterSpacing:'-0.02em' }}>
+        <div style={{ padding:'0 32px', marginBottom:10, ...show(2) }}>
+          <p style={{ fontSize:20, fontWeight:700, color:'#292929', lineHeight:1.4, letterSpacing:'-0.02em' }}>
             I'll read them all, bring the ones that matter, and have replies ready
           </p>
         </div>
-        <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
-          {features.map((f, i) => (
-            <div key={i} style={{ display:'flex', alignItems:'center', gap:16, ...show(i + 3) }}>
-              <div style={{ width:60, height:60, borderRadius:14, background:'rgba(0,0,0,0.22)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                {f.icon}
-              </div>
-              <div>
-                <div style={{ fontSize:20, fontWeight:700, color:'#fff', letterSpacing:'-0.02em', lineHeight:1.2, marginBottom:2 }}>{f.label}</div>
-                <div style={{ fontSize:16, fontWeight:400, color:'rgba(255,255,255,0.75)', lineHeight:1.4 }}>{f.desc}</div>
-              </div>
-            </div>
-          ))}
+        <div style={{ padding:'0 32px', marginBottom:24, ...show(2) }}>
+          <p style={{ fontSize:16, fontWeight:500, color:'rgba(41,41,41,0.7)', lineHeight:1.4 }}>
+            Want me to get started?
+          </p>
         </div>
-      </div>
-      <div style={{ position:'relative', zIndex:1, padding:'0 32px 92px', ...show(6) }}>
-        <button onClick={onNext}
-          style={{ width:'100%', height:48, background:'#292929', color:'#fff', border:'none', borderRadius:24, fontSize:17, fontWeight:500, cursor:'pointer', letterSpacing:'-0.01em' }}>
-          Let's do it
-        </button>
+        <div style={{ padding:'0 32px 92px', ...show(3) }}>
+          <button onClick={onNext} style={{ width:'100%', height:48, background:'#292929', color:'#fff', border:'none', borderRadius:12, fontSize:17, fontWeight:500, cursor:'pointer', letterSpacing:'-0.01em' }}>
+            Let's do it
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -2515,7 +2514,7 @@ function useCountUp(target, duration, active) {
   return val;
 }
 
-function ObResultsV2b({ onOpenInbox }) {
+function RainbowResults({ onOpenInbox }) {
   const [vis, setVis] = useState(0);
   const [closing, setClosing] = useState(false);
 
@@ -2544,38 +2543,41 @@ function ObResultsV2b({ onOpenInbox }) {
   const n4 = useCountUp(12, 700, vis >= 5);
 
   const stats = [
-    { num: n1, label: 'conversations for your attention',      visIdx: 2 },
-    { num: n2, label: 'people interested in your services',    visIdx: 3 },
-    { num: n3, label: 'engaged followers',                     visIdx: 4 },
-    { num: n4, label: 'replies ready to send',                 visIdx: 5 },
+    { num: n1, label: 'conversations for your attention',   visIdx: 2 },
+    { num: n2, label: 'people interested in your services', visIdx: 3 },
+    { num: n3, label: 'engaged followers',                  visIdx: 4 },
+    { num: n4, label: 'replies ready to send',              visIdx: 5 },
   ];
 
   return (
-    <div style={{ background:'#6830c8', height:'100%', display:'flex', flexDirection:'column', position:'relative', overflow:'hidden' }}>
-      <PurpleBg animate={false} />
-      <div style={{ position:'relative', zIndex:1, flex:1, display:'flex', flexDirection:'column', padding:'72px 32px 0' }}>
+    <div style={{ background:'#fff', height:'100%', display:'flex', flexDirection:'column', position:'relative', overflow:'hidden' }}>
+      <RainbowGrid />
+      {/* Gradient overlay — grid fades out toward bottom */}
+      <div style={{ position:'absolute', inset:0, zIndex:1, pointerEvents:'none',
+        background:'linear-gradient(to bottom, transparent 40%, #fff 70%)' }} />
+      <div style={{ position:'relative', zIndex:2, flex:1, display:'flex', flexDirection:'column', padding:'72px 32px 0' }}>
         <div style={{ marginBottom:8, ...show(1) }}>
-          <h1 style={{ fontSize:32, fontWeight:900, color:'#fff', letterSpacing:'-0.03em', lineHeight:1.15 }}>
+          <h1 style={{ fontSize:32, fontWeight:900, color:'#292929', letterSpacing:'-0.03em', lineHeight:1.15 }}>
             Went through 35 messages overnight.
           </h1>
         </div>
         <div style={{ marginBottom:28, ...show(1) }}>
-          <p style={{ fontSize:20, fontWeight:700, color:'#fff', letterSpacing:'-0.02em', lineHeight:1.4 }}>
+          <p style={{ fontSize:20, fontWeight:700, color:'#292929', letterSpacing:'-0.02em', lineHeight:1.4 }}>
             Here's what matters:
           </p>
         </div>
         <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
           {stats.map((s, i) => (
             <div key={i} style={{ display:'flex', alignItems:'baseline', gap:12, ...show(s.visIdx) }}>
-              <span style={{ fontSize:28, fontWeight:900, color:'#fff', letterSpacing:'-0.03em', lineHeight:1, minWidth:32, display:'inline-block' }}>{s.num}</span>
-              <span style={{ fontSize:16, fontWeight:400, color:'rgba(255,255,255,0.85)', lineHeight:1.4 }}>{s.label}</span>
+              <span style={{ fontSize:28, fontWeight:900, color:'#292929', letterSpacing:'-0.03em', lineHeight:1, minWidth:32, display:'inline-block' }}>{s.num}</span>
+              <span style={{ fontSize:16, fontWeight:400, color:'rgba(41,41,41,0.6)', lineHeight:1.4 }}>{s.label}</span>
             </div>
           ))}
         </div>
       </div>
-      <div style={{ position:'relative', zIndex:1, padding:'0 32px 56px', ...show(6) }}>
+      <div style={{ position:'relative', zIndex:2, padding:'0 32px 92px', ...show(6) }}>
         <button onClick={handleOpen}
-          style={{ width:'100%', height:48, background:'#292929', color:'#fff', border:'none', borderRadius:24, fontSize:17, fontWeight:500, cursor:'pointer', letterSpacing:'-0.01em' }}>
+          style={{ width:'100%', height:48, background:'#292929', color:'#fff', border:'none', borderRadius:12, fontSize:16, fontWeight:500, cursor:'pointer', letterSpacing:'-0.01em' }}>
           Open Inbox
         </button>
       </div>
@@ -2591,14 +2593,28 @@ function ObResultsV2b({ onOpenInbox }) {
 
 function App() {
   const [screen, setScreen] = useState(window.location.hash === '#inbox' ? 'main' : 'ob-welcome');
+  const [trans, setTrans]   = useState(null); // 'to-loading' | 'to-results' | null
   const [hideNav, setHideNav] = useState(false);
+
+  // Screen 1 → 2: rainbow curtain slides down, then swap
+  function goToLoading() {
+    setTrans('to-loading');
+    setTimeout(() => { setScreen('ob-loading'); setTrans(null); }, 750);
+  }
+
+  // Screen 2 → 3: 4 quadrants scatter to corners, then swap
+  function goToResults() {
+    setTrans('to-results');
+    setTimeout(() => { setScreen('ob-results'); setTrans(null); }, 900);
+  }
+
   return (
     <div style={{ width:'100%', height:'100%', position:'relative', overflow:'hidden' }}>
 
-      {/* ─── Onboarding (3-screen flow: welcome → analyzing → results) ─── */}
-      {screen === 'ob-welcome' && <ObWelcomeV2b onNext={() => setScreen('ob-loading')} />}
-      {screen === 'ob-loading' && <ObSorting onNext={() => setScreen('ob-results')} />}
-      {screen === 'ob-results' && <ObResultsV2b onOpenInbox={() => setScreen('main')} />}
+      {/* ─── Onboarding screens ─── */}
+      {screen === 'ob-welcome' && <RainbowWelcome onNext={goToLoading} />}
+      {screen === 'ob-loading' && <RainbowLoading onNext={goToResults} />}
+      {screen === 'ob-results' && <RainbowResults onOpenInbox={() => setScreen('main')} />}
 
       {/* ─── Inbox ─── */}
       {screen === 'main' && (
@@ -2607,7 +2623,34 @@ function App() {
         </div>
       )}
 
-      {/* Bottom Nav — visible on welcome + main inbox, hidden on loading/results/overlays */}
+      {/* ─── Transition: curtain slides DOWN (welcome → loading) ─── */}
+      {trans === 'to-loading' && (
+        <div style={{
+          position:'absolute', inset:0, zIndex:50, overflow:'hidden',
+          background: RAINBOW,
+          animation: 'curtainDown 0.65s cubic-bezier(.4,0,.2,1) both',
+        }}>
+          <RainbowGrid />
+        </div>
+      )}
+
+      {/* ─── Transition: 4 quadrants scatter to corners (loading → results) ─── */}
+      {trans === 'to-results' && CORNER_CLIPS.map((clip, i) => (
+        <div key={i} style={{
+          position:'absolute', inset:0, zIndex:50,
+          background: RAINBOW,
+          clipPath: clip,
+          animationName: CORNER_ANIMS[i],
+          animationDuration: '0.8s',
+          animationTimingFunction: 'cubic-bezier(.4,0,.6,1)',
+          animationFillMode: 'both',
+          animationDelay: `${i * 30}ms`,
+        }}>
+          <RainbowGrid />
+        </div>
+      ))}
+
+      {/* Bottom Nav — visible on welcome + main inbox */}
       {(screen === 'ob-welcome' || screen === 'main') && <BottomNav hidden={hideNav} />}
     </div>
   );
