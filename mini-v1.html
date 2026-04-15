@@ -78,9 +78,12 @@
     100% { transform: translateY(0)    scaleX(1);    filter: blur(0px);   opacity: 1;   }
   }
 
-  @keyframes gridDrift {
-    from { background-position: -42px 0px, -42px 0px; }
-    to   { background-position: -42px -87px, -42px -87px; }
+  .ob-step-layer {
+    animation: obStepEnter 0.36s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  }
+  @keyframes obStepEnter {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
   }
   @keyframes textShimmer {
     0%   { background-position: 200% center; }
@@ -288,31 +291,142 @@ function BlackBtn({ label, onClick, disabled }) {
 
 /* ═══ ONBOARDING ═══ */
 
-/* ─── Shared purple background with optional animated grid ─── */
-function PurpleBg({ animate }) {
+/* Figma: node 1085:62016 "purple background" — exact conic + blur from Figma variables */
+const OB_PURPLE = {
+  base: '#5400AF',       /* purple.700 — darkest stop */
+  blurConic: 'conic-gradient(from 90deg at 50% 50%, #5400AF 0%, #590AB5 4.57%, #5F15BB 9.13%, #6A2AC8 18.27%, #7F53E0 36.54%, #6E30D4 63.94%, #6118C2 81.97%, #5B0CB8 90.99%, #5400AF 100%)',
+  blur: 50,              /* Figma: blur(50px) */
+};
+const OB_GRID_ACCENT = '#00F6FF'; /* Electric Cyan — traveling highlight on rails */
+const OB_GRID_MASK = 'radial-gradient(ellipse 85% 70% at 52% 48%, black 10%, rgba(0,0,0,0.45) 52%, transparent 82%)';
+
+const OB_ICON = {
+  onlyMatters: '#77CADF',
+  repliesVoice: '#A5CA66',
+  personalStuff: '#F14D33',
+};
+
+/* ─── Shared purple background + fixed grid; loading = pulses on rails (Tron-style) ─── */
+function PurpleBg({ gridMode = 'idle' }) {
+  const canvasRef = useRef(null);
+  const loading = gridMode === 'loading';
+  const lineH = loading ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.17)';
+  const lineV = loading ? 'rgba(255,255,255,0.17)' : 'rgba(255,255,255,0.15)';
+
+  useEffect(() => {
+    if (!loading) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const W = 393;
+    const H = 852;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.floor(W * dpr);
+    canvas.height = Math.floor(H * dpr);
+    canvas.style.width = `${W}px`;
+    canvas.style.height = `${H}px`;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    const CW = 84;
+    const CH = 87;
+    const vXs = [];
+    for (let x = CW - 42; x < W; x += CW) vXs.push(x);
+    const hYs = [];
+    for (let y = 0; y <= H; y += CH) hYs.push(y);
+
+    /* Electric Cyan — OB_GRID_ACCENT */
+    const cyan = 'rgba(0,246,255,0.55)';
+
+    function mkV(x) {
+      return { x, y: Math.random() * H, speed: 0.9 + Math.random() * 1.4, len: 32 + Math.random() * 44 };
+    }
+    function mkH(y) {
+      return { x: Math.random() * W, y, speed: 0.75 + Math.random() * 1.2, len: 36 + Math.random() * 50 };
+    }
+    const vSegs = vXs.map(mkV);
+    const hSegs = hYs.map(mkH);
+
+    let id;
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      ctx.lineWidth = 1.25;
+
+      vSegs.forEach((w) => {
+        w.y += w.speed;
+        if (w.y > H + w.len) w.y = -w.len;
+        const g = ctx.createLinearGradient(0, w.y, 0, w.y + w.len);
+        g.addColorStop(0, 'rgba(255,255,255,0)');
+        g.addColorStop(0.35, 'rgba(255,255,255,0.5)');
+        g.addColorStop(0.52, cyan);
+        g.addColorStop(0.7, 'rgba(255,255,255,0.4)');
+        g.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.strokeStyle = g;
+        ctx.beginPath();
+        ctx.moveTo(w.x, w.y);
+        ctx.lineTo(w.x, w.y + w.len);
+        ctx.stroke();
+      });
+
+      hSegs.forEach((w) => {
+        w.x += w.speed;
+        if (w.x > W + w.len) w.x = -w.len;
+        const g = ctx.createLinearGradient(w.x, 0, w.x + w.len, 0);
+        g.addColorStop(0, 'rgba(255,255,255,0)');
+        g.addColorStop(0.35, 'rgba(255,255,255,0.4)');
+        g.addColorStop(0.52, cyan);
+        g.addColorStop(0.7, 'rgba(255,255,255,0.32)');
+        g.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.strokeStyle = g;
+        ctx.beginPath();
+        ctx.moveTo(w.x, w.y);
+        ctx.lineTo(w.x + w.len, w.y);
+        ctx.stroke();
+      });
+
+      id = requestAnimationFrame(draw);
+    }
+    draw();
+    return () => cancelAnimationFrame(id);
+  }, [loading]);
+
   return (
-    <div style={{ position:'absolute', inset:0, overflow:'hidden', zIndex:0 }}>
+    <div style={{ position:'absolute', inset:0, overflow:'hidden', zIndex:0, pointerEvents:'none' }}>
       <div style={{
         position:'absolute', inset:'-20%',
-        background:'conic-gradient(from 0deg at 50% 50%, #6e30d4 0%, #c3b3ff 37%, #966efa 64%, #7f53e0 100%)',
-        filter:'blur(80px)',
+        background: OB_PURPLE.blurConic,
+        filter:`blur(${OB_PURPLE.blur}px)`,
       }} />
       <div style={{
         position:'absolute', inset:0,
-        backgroundImage:'linear-gradient(rgba(255,255,255,0.18) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.18) 1px, transparent 1px)',
+        backgroundImage: `linear-gradient(${lineH} 1px, transparent 1px)`,
         backgroundSize:'84px 87px',
-        backgroundPosition:'-42px 0px',
-        animation: animate ? 'gridDrift 6s linear infinite' : 'none',
-        maskImage:'radial-gradient(ellipse 85% 70% at 52% 48%, black 10%, rgba(0,0,0,0.45) 52%, transparent 82%)',
-        WebkitMaskImage:'radial-gradient(ellipse 85% 70% at 52% 48%, black 10%, rgba(0,0,0,0.45) 52%, transparent 82%)',
+        backgroundPosition:'-42px 0',
+        maskImage: OB_GRID_MASK,
+        WebkitMaskImage: OB_GRID_MASK,
       }} />
+      <div style={{
+        position:'absolute', inset:0,
+        backgroundImage: `linear-gradient(90deg, ${lineV} 1px, transparent 1px)`,
+        backgroundSize:'84px 87px',
+        backgroundPosition:'-42px 0',
+        maskImage: OB_GRID_MASK,
+        WebkitMaskImage: OB_GRID_MASK,
+      }} />
+      {loading && (
+        <canvas
+          ref={canvasRef}
+          style={{
+            position:'absolute', inset:0, zIndex:1, pointerEvents:'none',
+            maskImage: OB_GRID_MASK, WebkitMaskImage: OB_GRID_MASK,
+          }}
+        />
+      )}
     </div>
   );
 }
 
-/* ─── Step 2: Loading — Matrix animation + cycling messages ─── */
+/* ─── Step 2: Loading — grid motion via PurpleBg + cycling messages ─── */
 function ObSorting({ onNext }) {
-  const canvasRef = useRef(null);
   const [msgIdx, setMsgIdx] = useState(0);
   const [msgVis, setMsgVis] = useState(true);
 
@@ -338,75 +452,8 @@ function ObSorting({ onNext }) {
     return () => clearTimeout(t);
   }, []);
 
-  // Segments travel along grid paths, disappear between passes — building the matrix
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const W = canvas.width = 393;
-    const H = canvas.height = 852;
-    const CW = 84, CH = 87;
-
-    // Grid line positions (matching PurpleBg offset -42px)
-    const vXs = []; for (let x = CW - 42; x < W; x += CW) vXs.push(x);
-    const hYs = []; for (let y = 0; y <= H; y += CH) hYs.push(y);
-
-    // One worm per line; each starts at a different random point so they're staggered
-    // 'pause' is a frame countdown — line is invisible during the pause
-    function mkV(x) { return { x, y: Math.random() * H, speed: 0.8 + Math.random() * 1.2, len: 40 + Math.random() * 80, op: 0.45 + Math.random() * 0.35, pause: 0 }; }
-    function mkH(y) { return { x: Math.random() * W, y, speed: 0.6 + Math.random() * 0.9, len: 50 + Math.random() * 90, op: 0.35 + Math.random() * 0.3, pause: 0 }; }
-
-    const vWorms = vXs.map(x => mkV(x));
-    const hWorms = hYs.map(y => mkH(y));
-
-    // Softer opacity — gradient peaks in the middle, fades at both ends
-    function resetV(w) { w.pause = 50 + Math.floor(Math.random() * 120); w.y = -(w.len); w.speed = 0.6 + Math.random() * 0.9; w.len = 35 + Math.random() * 70; w.op = 0.22 + Math.random() * 0.22; }
-    function resetH(w) { w.pause = 50 + Math.floor(Math.random() * 120); w.x = -(w.len); w.speed = 0.4 + Math.random() * 0.7; w.len = 45 + Math.random() * 80; w.op = 0.18 + Math.random() * 0.18; }
-
-    let id;
-    function draw() {
-      ctx.clearRect(0, 0, W, H);
-      ctx.lineWidth = 1;
-
-      vWorms.forEach(w => {
-        if (w.pause > 0) { w.pause--; return; }
-        w.y += w.speed;
-        if (w.y > H + w.len) resetV(w);
-        // Fade in from tail, peak ~40%, fade out at head — segment "floats" along the line
-        const g = ctx.createLinearGradient(0, w.y, 0, w.y + w.len);
-        g.addColorStop(0,   'rgba(255,255,255,0)');
-        g.addColorStop(0.3, `rgba(255,255,255,${w.op})`);
-        g.addColorStop(0.7, `rgba(255,255,255,${w.op * 0.8})`);
-        g.addColorStop(1,   'rgba(255,255,255,0)');
-        ctx.strokeStyle = g;
-        ctx.beginPath(); ctx.moveTo(w.x, w.y); ctx.lineTo(w.x, w.y + w.len); ctx.stroke();
-      });
-
-      hWorms.forEach(w => {
-        if (w.pause > 0) { w.pause--; return; }
-        w.x += w.speed;
-        if (w.x > W + w.len) resetH(w);
-        const g = ctx.createLinearGradient(w.x, 0, w.x + w.len, 0);
-        g.addColorStop(0,   'rgba(255,255,255,0)');
-        g.addColorStop(0.3, `rgba(255,255,255,${w.op})`);
-        g.addColorStop(0.7, `rgba(255,255,255,${w.op * 0.8})`);
-        g.addColorStop(1,   'rgba(255,255,255,0)');
-        ctx.strokeStyle = g;
-        ctx.beginPath(); ctx.moveTo(w.x, w.y); ctx.lineTo(w.x + w.len, w.y); ctx.stroke();
-      });
-
-      id = requestAnimationFrame(draw);
-    }
-    draw();
-    return () => cancelAnimationFrame(id);
-  }, []);
-
   return (
-    <div style={{ background:'#6830c8', height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', position:'relative', overflow:'hidden' }}>
-      <PurpleBg animate={false} />
-      {/* Matrix segments layer */}
-      <canvas ref={canvasRef} style={{ position:'absolute', inset:0, width:'100%', height:'100%', zIndex:1 }} />
-      {/* Cycling shimmer message */}
+    <div style={{ height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', position:'relative' }}>
       <div style={{ position:'relative', zIndex:2, opacity: msgVis ? 1 : 0, transition:'opacity 0.28s ease' }}>
         <span style={{
           fontSize:16, fontWeight:400,
@@ -1649,8 +1696,23 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
             <div style={{ display:'flex', gap:8 }}>
               <button onClick={() => { setCustomFeedback('done'); triggerToast('Got it — glad it helped.'); }}
                 style={{ padding:'8px 16px', border:'none', borderRadius:12, background:'#F0F0F0', fontSize:13, fontWeight:500, color:'#292929', cursor:'pointer', letterSpacing:'-0.104px', lineHeight:'18px' }}>Yes</button>
-              <button onClick={() => { setCustomFeedback('done'); triggerToast('Noted — I\'ll adjust next time.'); }}
-                style={{ padding:'8px 16px', border:'none', borderRadius:12, background:'#F0F0F0', fontSize:13, fontWeight:500, color:'#292929', cursor:'pointer', letterSpacing:'-0.104px', lineHeight:'18px', width:54 }}>No</button>
+              <button onClick={() => setCustomFeedback('why')}
+                style={{ padding:'8px 16px', border:'none', borderRadius:12, background:'#F0F0F0', fontSize:13, fontWeight:500, color:'#292929', cursor:'pointer', letterSpacing:'-0.104px', lineHeight:'18px' }}>No</button>
+            </div>
+          </div>
+        )}
+
+        {/* Why feedback — shown after user taps No */}
+        {mode === 'custom' && customFeedback === 'why' && (
+          <div style={{ background:'#fff', border:'1px solid #D6D6D6', borderRadius:12, boxShadow:'0 8px 16px rgba(132,146,166,0.12)', padding:16, marginBottom:8, display:'flex', flexDirection:'column', gap:16, animation:'slideInRight .4s cubic-bezier(.25,.46,.45,.94) both' }}>
+            <div style={{ fontSize:14, fontWeight:400, color:'#292929', lineHeight:'20px' }}>What wasn't right?</div>
+            <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
+              {['Tone was off', 'Wrong info', 'Too long', 'I wrote my own'].map(reason => (
+                <button key={reason} onClick={() => { setCustomFeedback('done'); triggerToast('Got it, I\'ll do better next time.'); }}
+                  style={{ padding:'8px 16px', border:'none', borderRadius:12, background:'#F0F0F0', fontSize:13, fontWeight:500, color:'#292929', cursor:'pointer', letterSpacing:'-0.104px', lineHeight:'18px' }}>
+                  {reason}
+                </button>
+              ))}
             </div>
           </div>
         )}
@@ -2428,12 +2490,12 @@ function ObWelcomeV2b({ onNext }) {
   const features = [
     {
       icon: (
-        <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
-          <path d="M38.1933 31.212C35.9737 29.4494 32.8663 29.5277 30.5944 31.1859L34.9422 36.526C34.8247 37.6749 33.7672 37.4921 33.7672 37.4921L29.0538 32.7527C27.0692 35.5467 27.487 39.3592 30.0852 41.4091C32.7749 43.5373 36.7701 42.9889 39.0028 40.1687C41.2354 37.3485 40.8829 33.3402 38.1933 31.1989V31.212Z" fill="white"/>
-          <path d="M25.1367 24.4879L27.2387 17.6463L19.4049 6L17.1592 14.8131L25.1367 24.4879Z" fill="white"/>
-          <path d="M22.7473 26.4333L13.5295 17.2155L4.57275 18.9781L16.6238 27.7781L22.7473 26.4333Z" fill="white"/>
-          <path d="M16.0998 18.1609C17.7031 17.7969 18.8177 16.6867 18.5895 15.6811C18.3612 14.6756 16.8764 14.1554 15.2731 14.5194C13.6698 14.8834 12.5552 15.9936 12.7834 16.9992C13.0117 18.0047 14.4965 18.5248 16.0998 18.1609Z" fill="white"/>
-          <path d="M51.0405 41.5788C53.0773 35.2595 51.4453 28.1698 46.288 23.587C40.0209 18.025 30.6725 18.0903 24.1704 23.2998L27.1472 26.9556C31.4428 23.587 37.4749 23.352 41.7443 26.7467C46.7711 30.7419 47.45 38.2755 43.2589 43.5503C39.0547 48.8382 31.5734 49.8696 26.5466 45.8743C21.5199 41.8791 20.841 34.3455 25.0321 29.0707C25.0843 29.0054 25.1365 28.9401 25.2018 28.8749L21.8724 25.5324C15.5531 32.7787 16.0623 43.6156 23.0606 49.8174C30.0066 55.98 40.739 55.2358 47.1889 48.2245L55.4275 49.9088L51.0666 41.5918L51.0405 41.5788Z" fill="white"/>
+        <svg width="52" height="52" viewBox="0 0 60 60" fill="none" aria-hidden>
+          <path d="M38.1933 31.212C35.9737 29.4494 32.8663 29.5277 30.5944 31.1859L34.9422 36.526C34.8247 37.6749 33.7672 37.4921 33.7672 37.4921L29.0538 32.7527C27.0692 35.5467 27.487 39.3592 30.0852 41.4091C32.7749 43.5373 36.7701 42.9889 39.0028 40.1687C41.2354 37.3485 40.8829 33.3402 38.1933 31.1989V31.212Z" fill={OB_ICON.onlyMatters}/>
+          <path d="M25.1367 24.4879L27.2387 17.6463L19.4049 6L17.1592 14.8131L25.1367 24.4879Z" fill={OB_ICON.onlyMatters}/>
+          <path d="M22.7473 26.4333L13.5295 17.2155L4.57275 18.9781L16.6238 27.7781L22.7473 26.4333Z" fill={OB_ICON.onlyMatters}/>
+          <path d="M16.0998 18.1609C17.7031 17.7969 18.8177 16.6867 18.5895 15.6811C18.3612 14.6756 16.8764 14.1554 15.2731 14.5194C13.6698 14.8834 12.5552 15.9936 12.7834 16.9992C13.0117 18.0047 14.4965 18.5248 16.0998 18.1609Z" fill={OB_ICON.onlyMatters}/>
+          <path d="M51.0405 41.5788C53.0773 35.2595 51.4453 28.1698 46.288 23.587C40.0209 18.025 30.6725 18.0903 24.1704 23.2998L27.1472 26.9556C31.4428 23.587 37.4749 23.352 41.7443 26.7467C46.7711 30.7419 47.45 38.2755 43.2589 43.5503C39.0547 48.8382 31.5734 49.8696 26.5466 45.8743C21.5199 41.8791 20.841 34.3455 25.0321 29.0707C25.0843 29.0054 25.1365 28.9401 25.2018 28.8749L21.8724 25.5324C15.5531 32.7787 16.0623 43.6156 23.0606 49.8174C30.0066 55.98 40.739 55.2358 47.1889 48.2245L55.4275 49.9088L51.0666 41.5918L51.0405 41.5788Z" fill={OB_ICON.onlyMatters}/>
         </svg>
       ),
       label: 'Only what matters',
@@ -2441,8 +2503,8 @@ function ObWelcomeV2b({ onNext }) {
     },
     {
       icon: (
-        <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
-          <path d="M13.158 11.596L9.3418 37.6374L18.0223 37.2914L16.2822 48.75C24.6166 45.9719 26.6928 37.6374 26.6928 37.6374L46.8319 36.9454L50.658 11.25L13.158 11.596ZM27.3058 33.0698C20.9289 26.1393 18.2299 23.9642 18.2299 23.9642L25.0121 19.7723L27.0784 26.5051C27.0784 26.5051 30.9144 18.3881 38.2108 15.4024C40.7615 19.1 43.0354 23.6478 43.0354 23.6478C43.0354 23.6478 33.1488 23.4106 27.3058 33.0797V33.0698Z" fill="white"/>
+        <svg width="52" height="52" viewBox="0 0 60 60" fill="none" aria-hidden>
+          <path d="M13.158 11.596L9.3418 37.6374L18.0223 37.2914L16.2822 48.75C24.6166 45.9719 26.6928 37.6374 26.6928 37.6374L46.8319 36.9454L50.658 11.25L13.158 11.596ZM27.3058 33.0698C20.9289 26.1393 18.2299 23.9642 18.2299 23.9642L25.0121 19.7723L27.0784 26.5051C27.0784 26.5051 30.9144 18.3881 38.2108 15.4024C40.7615 19.1 43.0354 23.6478 43.0354 23.6478C43.0354 23.6478 33.1488 23.4106 27.3058 33.0797V33.0698Z" fill={OB_ICON.repliesVoice}/>
         </svg>
       ),
       label: 'Replies in your voice',
@@ -2450,9 +2512,9 @@ function ObWelcomeV2b({ onNext }) {
     },
     {
       icon: (
-        <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
-          <path d="M20.2034 30.089C19.7947 29.3846 19.4158 28.7137 19.0569 28.0763C19.0569 28.0763 19.0569 28.0763 19.0569 28.0875C19.037 28.0428 19.017 27.9981 18.9971 27.9533C18.7578 27.5284 18.5285 27.1147 18.3092 26.7234C17.5814 25.6387 16.6442 24.7442 15.5076 24.1739C13.7131 23.2571 11.5995 23.0781 9.71516 23.7826C7.93055 24.4535 6.42511 25.9518 5.94655 28.0428C5.29851 30.8718 6.55471 33.8125 7.99037 36.0712C10.8816 40.6333 15.1188 44.0997 19.2563 47.1187C19.9841 47.6554 20.7219 48.1698 21.4696 48.6841C21.6989 48.8407 21.9282 48.7512 22.0578 48.5723C22.0877 48.5388 22.1177 48.5052 22.1376 48.4605C23.8524 45.6763 25.7866 43.0598 27.5712 40.3314C27.7706 40.0295 27.96 39.7276 28.1594 39.4257C25.7965 37.29 22.4068 33.8684 20.2234 30.089H20.2034Z" fill="white"/>
-          <path d="M54.1035 18.6161C53.8685 16.9366 53.1428 15.4239 52.0901 14.1782C49.9029 11.609 46.5915 10.6524 43.5151 11.6201C40.3365 12.6211 37.9347 15.3906 36.8616 18.7162C35.8804 16.336 34.1838 14.3784 31.9557 13.2884C29.5744 12.1206 26.774 11.8981 24.2904 12.7991C21.9192 13.6555 19.9262 15.6019 19.3028 18.2935C18.4647 21.9528 20.1613 25.7344 22.0623 28.6485C23.6874 31.1288 25.6701 33.3311 27.7551 35.3553C30.7088 38.2138 33.9385 40.7386 37.25 43.0743C38.2107 43.7528 39.1714 44.409 40.1423 45.0541C40.3774 45.2098 40.6023 45.1208 40.7454 44.9429C40.776 44.9095 40.8067 44.8761 40.8271 44.8316C43.1369 41.1946 45.733 37.7911 48.1348 34.2208C50.3322 30.9509 52.55 27.4695 53.6436 23.5544C54.0933 21.9639 54.3182 20.2622 54.0831 18.605L54.1035 18.6161Z" fill="white"/>
+        <svg width="52" height="52" viewBox="0 0 60 60" fill="none" aria-hidden>
+          <path d="M20.2034 30.089C19.7947 29.3846 19.4158 28.7137 19.0569 28.0763C19.0569 28.0763 19.0569 28.0763 19.0569 28.0875C19.037 28.0428 19.017 27.9981 18.9971 27.9533C18.7578 27.5284 18.5285 27.1147 18.3092 26.7234C17.5814 25.6387 16.6442 24.7442 15.5076 24.1739C13.7131 23.2571 11.5995 23.0781 9.71516 23.7826C7.93055 24.4535 6.42511 25.9518 5.94655 28.0428C5.29851 30.8718 6.55471 33.8125 7.99037 36.0712C10.8816 40.6333 15.1188 44.0997 19.2563 47.1187C19.9841 47.6554 20.7219 48.1698 21.4696 48.6841C21.6989 48.8407 21.9282 48.7512 22.0578 48.5723C22.0877 48.5388 22.1177 48.5052 22.1376 48.4605C23.8524 45.6763 25.7866 43.0598 27.5712 40.3314C27.7706 40.0295 27.96 39.7276 28.1594 39.4257C25.7965 37.29 22.4068 33.8684 20.2234 30.089H20.2034Z" fill={OB_ICON.personalStuff}/>
+          <path d="M54.1035 18.6161C53.8685 16.9366 53.1428 15.4239 52.0901 14.1782C49.9029 11.609 46.5915 10.6524 43.5151 11.6201C40.3365 12.6211 37.9347 15.3906 36.8616 18.7162C35.8804 16.336 34.1838 14.3784 31.9557 13.2884C29.5744 12.1206 26.774 11.8981 24.2904 12.7991C21.9192 13.6555 19.9262 15.6019 19.3028 18.2935C18.4647 21.9528 20.1613 25.7344 22.0623 28.6485C23.6874 31.1288 25.6701 33.3311 27.7551 35.3553C30.7088 38.2138 33.9385 40.7386 37.25 43.0743C38.2107 43.7528 39.1714 44.409 40.1423 45.0541C40.3774 45.2098 40.6023 45.1208 40.7454 44.9429C40.776 44.9095 40.8067 44.8761 40.8271 44.8316C43.1369 41.1946 45.733 37.7911 48.1348 34.2208C50.3322 30.9509 52.55 27.4695 53.6436 23.5544C54.0933 21.9639 54.3182 20.2622 54.0831 18.605L54.1035 18.6161Z" fill={OB_ICON.personalStuff}/>
         </svg>
       ),
       label: 'Personal stuff to you',
@@ -2461,25 +2523,22 @@ function ObWelcomeV2b({ onNext }) {
   ];
 
   return (
-    <div style={{ background:'#6830c8', height:'100%', display:'flex', flexDirection:'column', position:'relative', overflow:'hidden' }}>
-      <PurpleBg animate={false} />
+    <div style={{ height:'100%', display:'flex', flexDirection:'column', position:'relative', overflow:'hidden' }}>
       <div style={{ position:'relative', zIndex:1, flex:1, display:'flex', flexDirection:'column', padding:'72px 32px 0' }}>
-        <div style={{ marginBottom:20, ...show(1) }}>
+        <div style={{ marginBottom:24, ...show(1) }}>
           <h1 style={{ fontSize:36, fontWeight:900, color:'#fff', letterSpacing:'-0.03em', lineHeight:1.1 }}>
             Sofia, you've got DMs waiting
           </h1>
         </div>
-        <div style={{ marginBottom:28, ...show(2) }}>
+        <div style={{ marginBottom:56, ...show(2) }}>
           <p style={{ fontSize:20, fontWeight:700, color:'#fff', lineHeight:1.4, letterSpacing:'-0.02em' }}>
             I'll read them all, bring the ones that matter, and have replies ready
           </p>
         </div>
-        <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
+        <div style={{ display:'flex', flexDirection:'column', gap:24 }}>
           {features.map((f, i) => (
             <div key={i} style={{ display:'flex', alignItems:'center', gap:16, ...show(i + 3) }}>
-              <div style={{ width:60, height:60, borderRadius:14, background:'rgba(0,0,0,0.22)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                {f.icon}
-              </div>
+              <div style={{ flexShrink:0, width:56, display:'flex', alignItems:'center', justifyContent:'flex-start', lineHeight:0 }}>{f.icon}</div>
               <div>
                 <div style={{ fontSize:20, fontWeight:700, color:'#fff', letterSpacing:'-0.02em', lineHeight:1.2, marginBottom:2 }}>{f.label}</div>
                 <div style={{ fontSize:16, fontWeight:400, color:'rgba(255,255,255,0.75)', lineHeight:1.4 }}>{f.desc}</div>
@@ -2551,8 +2610,7 @@ function ObResultsV2b({ onOpenInbox }) {
   ];
 
   return (
-    <div style={{ background:'#6830c8', height:'100%', display:'flex', flexDirection:'column', position:'relative', overflow:'hidden' }}>
-      <PurpleBg animate={false} />
+    <div style={{ height:'100%', display:'flex', flexDirection:'column', position:'relative', overflow:'hidden' }}>
       <div style={{ position:'relative', zIndex:1, flex:1, display:'flex', flexDirection:'column', padding:'72px 32px 0' }}>
         <div style={{ marginBottom:8, ...show(1) }}>
           <h1 style={{ fontSize:32, fontWeight:900, color:'#fff', letterSpacing:'-0.03em', lineHeight:1.15 }}>
@@ -2592,13 +2650,25 @@ function ObResultsV2b({ onOpenInbox }) {
 function App() {
   const [screen, setScreen] = useState(window.location.hash === '#inbox' ? 'main' : 'ob-welcome');
   const [hideNav, setHideNav] = useState(false);
+  const onOnboarding = screen === 'ob-welcome' || screen === 'ob-loading' || screen === 'ob-results';
   return (
     <div style={{ width:'100%', height:'100%', position:'relative', overflow:'hidden' }}>
 
-      {/* ─── Onboarding (3-screen flow: welcome → analyzing → results) ─── */}
-      {screen === 'ob-welcome' && <ObWelcomeV2b onNext={() => setScreen('ob-loading')} />}
-      {screen === 'ob-loading' && <ObSorting onNext={() => setScreen('ob-results')} />}
-      {screen === 'ob-results' && <ObResultsV2b onOpenInbox={() => setScreen('main')} />}
+      {/* ─── Onboarding: persistent purple + grid; step content fades in ─── */}
+      {onOnboarding && (
+        <div style={{ position:'absolute', inset:0, background: OB_PURPLE.base, zIndex:0 }}>
+          <PurpleBg gridMode={screen === 'ob-loading' ? 'loading' : 'idle'} />
+          <div
+            key={screen}
+            className="ob-step-layer"
+            style={{ position:'absolute', inset:0, zIndex:1 }}
+          >
+            {screen === 'ob-welcome' && <ObWelcomeV2b onNext={() => setScreen('ob-loading')} />}
+            {screen === 'ob-loading' && <ObSorting onNext={() => setScreen('ob-results')} />}
+            {screen === 'ob-results' && <ObResultsV2b onOpenInbox={() => setScreen('main')} />}
+          </div>
+        </div>
+      )}
 
       {/* ─── Inbox ─── */}
       {screen === 'main' && (
