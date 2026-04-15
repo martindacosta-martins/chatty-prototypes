@@ -1130,27 +1130,30 @@ function AgentSheetShell({ children, onDismiss }) {
 
   return (
     <SheetWrap>
-      <div style={{
-        background:'#fff', borderRadius:24,
-        border:'1px solid #D6D6D6',
-        boxShadow:'0 8px 16px rgba(132,146,166,0.12)',
-        padding:'0 24px 32px', margin:'0 16px 32px',
-        display:'flex', flexDirection:'column', gap:16,
-        transform:`translateY(${dragY}px)`,
-        transition: dragging ? 'none' : 'transform .3s ease',
-        opacity: dragging ? Math.max(0.5, 1 - dragY / 300) : 1,
-      }}
-        onTouchMove={e => handleMove(e.touches[0].clientY)}
-        onMouseMove={e => { if (dragging) handleMove(e.clientY); }}
-        onTouchEnd={handleEnd}
-        onMouseUp={handleEnd}
-        onMouseLeave={() => { if (dragging) handleEnd(); }}
-      >
-        <div onTouchStart={handleTouchStart} onMouseDown={handleMouseDown}
-          style={{ padding:'14px 0 4px', cursor:'grab', flexShrink:0 }}>
-          <div style={{ width:36, height:4, background:'rgba(0,0,0,0.12)', borderRadius:2, margin:'0 auto' }} />
+      {/* Padding wrapper — paddingBottom is included in scrollHeight (unlike margin) so the 32px gap renders correctly */}
+      <div style={{ padding:'0 16px 32px' }}>
+        <div style={{
+          background:'#fff', borderRadius:24,
+          border:'1px solid #D6D6D6',
+          boxShadow:'0 8px 16px rgba(132,146,166,0.12)',
+          padding:'0 24px 32px',
+          display:'flex', flexDirection:'column', gap:16,
+          transform:`translateY(${dragY}px)`,
+          transition: dragging ? 'none' : 'transform .3s ease',
+          opacity: dragging ? Math.max(0.5, 1 - dragY / 300) : 1,
+        }}
+          onTouchMove={e => handleMove(e.touches[0].clientY)}
+          onMouseMove={e => { if (dragging) handleMove(e.clientY); }}
+          onTouchEnd={handleEnd}
+          onMouseUp={handleEnd}
+          onMouseLeave={() => { if (dragging) handleEnd(); }}
+        >
+          <div onTouchStart={handleTouchStart} onMouseDown={handleMouseDown}
+            style={{ padding:'14px 0 4px', cursor:'grab', flexShrink:0 }}>
+            <div style={{ width:36, height:4, background:'rgba(0,0,0,0.12)', borderRadius:2, margin:'0 auto' }} />
+          </div>
+          {children}
         </div>
-        {children}
       </div>
     </SheetWrap>
   );
