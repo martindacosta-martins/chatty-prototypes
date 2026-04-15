@@ -1131,8 +1131,8 @@ function AgentSheetShell({ children, onDismiss }) {
   return (
     <SheetWrap>
       <div style={{
-        background:'#fff', borderRadius:'24px 24px 0 0',
-        padding:'0 24px 54px',
+        background:'#fff', borderRadius:24,
+        padding:'0 24px 32px', margin:'0 16px 32px',
         display:'flex', flexDirection:'column', gap:16,
         transform:`translateY(${dragY}px)`,
         transition: dragging ? 'none' : 'transform .3s ease',
@@ -1669,7 +1669,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
 
     {/* ═══ Message Input — hidden during suggest mode, slides up when agent card dismissed ═══ */}
     {mode !== 'suggest' && (
-      <div style={{ margin:'0 16px 16px', flexShrink:0, animation:'toastUp .4s cubic-bezier(.25,.46,.45,.94) both' }}>
+      <div style={{ margin:'0 16px 32px', flexShrink:0, animation:'toastUp .4s cubic-bezier(.25,.46,.45,.94) both' }}>
         {/* Follow-up question — shows after user edits/dismisses/types instead of sending directly */}
         {/* Edit feedback — same style as follow-up card */}
         {editFeedback === 'asking' && (
