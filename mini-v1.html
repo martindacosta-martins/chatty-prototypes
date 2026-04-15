@@ -1133,7 +1133,7 @@ function AgentSheetShell({ children, onDismiss }) {
       {/* Padding wrapper — paddingBottom is included in scrollHeight (unlike margin) so the 32px gap renders correctly */}
       <div style={{ padding:'0 16px 32px' }}>
         <div style={{
-          background:'#fff', borderRadius:24,
+          background:'#fff', borderRadius:12,
           border:'1px solid #D6D6D6',
           boxShadow:'0 8px 16px rgba(132,146,166,0.12)',
           padding:'0 24px 32px',
@@ -1267,13 +1267,13 @@ function AgentSheet({ item, onSend, onEdit, onSkip, onWhy }) {
         return (
           <div style={{ display:'flex', flexDirection:'column', gap:8, alignItems:'flex-end' }}>
             {msg1 && (
-              <div style={{ background:'#EFF6FF', border:'1.5px dashed #65A4FF', borderRadius:'12px 12px 12px 12px', padding:16 }}>
-                <div style={{ fontSize:16, fontWeight:400, fontStyle:'italic', color:'#292929', lineHeight:'24px' }}>{msg1}</div>
+              <div style={{ background:'transparent', border:'1.5px dashed #292929', borderRadius:12, padding:12 }}>
+                <div style={{ fontSize:14, fontWeight:400, color:'#292929', lineHeight:'20px' }}>{msg1}</div>
               </div>
             )}
             {msg2 && (
-              <div style={{ background:'#EFF6FF', border:'1.5px dashed #65A4FF', borderRadius:'12px 12px 2px 12px', padding:16 }}>
-                <div style={{ fontSize:16, fontWeight:400, fontStyle:'italic', color:'#292929', lineHeight:'24px' }}>{msg2}</div>
+              <div style={{ background:'transparent', border:'1.5px dashed #292929', borderRadius:12, padding:12 }}>
+                <div style={{ fontSize:14, fontWeight:400, color:'#292929', lineHeight:'20px' }}>{msg2}</div>
               </div>
             )}
           </div>
