@@ -141,144 +141,270 @@ const AGENT_PROMPT = `You are an AI inbox manager for a creator's Instagram acco
 
 6. REMIND — Flag conversations where the contact hasn't received a reply in 5+ days. The creator should follow up before the lead goes cold.`;
 
-/* ═══ DATA ═══ */
-const IMPORTANT_GROUPS = [
-  {
-    intention: 'Interested in your services',
-    icon: 'fire',
-    desc: 'People asking about your course or services.',
-    items: [
-      { user:'@saydinbergfalk', name:'saydinbergfalk', avatar:'https://i.pravatar.cc/88?u=saydinbergfalk', msg:"Course?", source:'DM', time:'Apr 10', unread:1, intent:'Interested', mode:'confident',
-        summary:'Direct course inquiry — high intent', status:'Reply ready',
-        chatHistory: [
-          { from:'them', text:"Course?", time:'10:54 AM' },
-        ],
-        context:"One word, high intent. No preamble — they know what they want. Fastest to convert if replied quickly.",
-        draft:"Yes! 🙌 My course is called Lili Dog — 3 levels at 50€ each, all online at your own pace. Want me to send you the link?",
-        styleReason:"Matched their directness. Short, clear answer + link offer.",
-        agentRead:'High intent · Reply drafted' },
-      { user:'@ice178', name:'ice178', avatar:'https://i.pravatar.cc/88?u=ice178', msg:"hello! are you selling courses?", source:'DM', time:'Apr 10', unread:1, intent:'Interested', mode:'confident',
-        summary:'First contact, asking about courses', status:'Reply ready',
-        chatHistory: [
-          { from:'them', text:"hello! are you selling courses?", time:'10:15 AM' },
-        ],
-        context:"English-speaking, first contact. Warm and curious. Found the account on their own. Reply fast while the interest is fresh.",
-        draft:"Hey! Yes 👋 My course is called Lili Dog — 3 levels at 50€ each, all online at your own pace. Want to know more about what's included?",
-        styleReason:"Matched their casual English tone. Confirm + key info + soft invitation.",
-        agentRead:'First contact · Reply drafted' },
-      { user:'@okhristuk', name:'okhristuk', avatar:'https://i.pravatar.cc/88?u=okhristuk', msg:"What about the course?", source:'DM', time:'Apr 10', unread:2, intent:'Interested', mode:'confident',
-        summary:'Two messages, asking about the course', status:'Reply ready',
-        chatHistory: [
-          { from:'them', text:"Hellew", time:'8:58 AM' },
-          { from:'them', text:"What about the course?", time:'8:59 AM' },
-        ],
-        context:"Opened with a playful misspelling, then went straight to the course. Two messages in 1 minute — active right now.",
-        draft:"Heyy! 👋 So the course is called Lili Dog — 3 levels, 50€ each, 100% online at your own pace. Want me to drop the link?",
-        styleReason:"Matched their playful tone. Short and warm. Link offer at the end.",
-        agentRead:'Active now · Reply drafted' },
-      { user:'@dacos.t.a', name:'dacos.t.a', avatar:'https://i.pravatar.cc/88?u=dacosta2', msg:"Cuál es el horario? Es online?", source:'DM', time:'Apr 10', unread:1, intent:'Interested', mode:'confident',
-        summary:'3 product questions in 3 minutes', status:'Reply ready',
-        chatHistory: [
-          { from:'them', text:"Hola! Cuánto cuesta el curso?", time:'8:23 AM' },
-          { from:'automation', text:"El curso cuesta 50€.", time:'8:23 AM' },
-          { from:'them', text:"Que ofreces?", time:'8:26 AM' },
-          { from:'automation', text:"Ofrecemos un curso llamado Lili dog, que cuesta 50€. Hay niveles 1, 2 y 3 disponibles.", time:'8:26 AM' },
-          { from:'them', text:"Cuál es el horario? Es online?", time:'8:26 AM' },
-        ],
-        context:"Three product questions in three minutes — price, what's offered, format. Actively deciding. Last question still unanswered.",
-        draft:"Es 100% online, sin horarios fijos — lo haces a tu ritmo desde donde quieras 📲 Los materiales están disponibles siempre. ¿Te interesa algún nivel en concreto?",
-        styleReason:"Answered both questions directly. Soft question to keep momentum.",
-        agentRead:'Actively deciding · Reply drafted' },
-      { user:'@jolato82', name:'jolato82', avatar:'https://i.pravatar.cc/88?u=jolato82', msg:"Vale", source:'DM', time:'Mar 22', unread:0, intent:'Interested', mode:'confident',
-        summary:'Warm lead gone cold — follow-up reminder', status:'Reply ready',
-        chatHistory: [
-          { from:'them', text:"Cuánto cuesta tu curso?", time:'Mar 22' },
-          { from:'automation', text:"El curso se llama Lili dog y cuesta 50€.", time:'Mar 22' },
-          { from:'them', text:"Me interesa", time:'Mar 22' },
-          { from:'automation', text:"¿Qué nivel te interesa? Hay niveles 1, 2 y 3.", time:'Mar 22' },
-          { from:'them', text:"Envíame el link a tu web", time:'Mar 22' },
-          { from:'them', text:"Y el Link????", time:'Mar 22' },
-          { from:'them', text:"Ya no hablas?", time:'Mar 22' },
-          { from:'them', text:"Vale", time:'Mar 22' },
-        ],
-        context:"22 days without contact. Said 'me interesa', asked for a link 3 times, the AI never sent it. The interest was real — a short recovery is worth it.",
-        draft:"¡Hola! Perdona el retraso — aquí tienes el link 👉 [tu-web.com] ¿Te interesa algún nivel en concreto o empezamos por el 1?",
-        styleReason:"Opens with the link directly — the one thing they asked for and never got.",
-        agentRead:'22d no reply · Follow-up drafted' },
+/* ═══ ASPIRATIONAL DATA ═══ */
+const CREATOR = { name: 'Sofia Reyes', handle: '@sofia.reyes.coach', avatar: 'https://i.pravatar.cc/88?u=sofiar' };
+
+const STATS = {
+  totalHandled: 641,
+  interested: 14,
+  attention: 6,
+  community: 28,
+  repliesReady: 19,
+  score: 78,
+  spamFiltered: 94,
+  timeSaved: 47,
+};
+
+const INTERESTED_ITEMS = [
+  { user:'@lauragomez.fit', name:'Laura Gómez', avatar:'https://i.pravatar.cc/88?u=lauragomezfit', msg:"Hola! Vi tu reel de transformación y quiero saber más del programa de 12 semanas", source:'DM', time:'just now', unread:1, intent:'Opportunities', mode:'confident',
+    summary:'Hot lead, wants 12-week details', status:'Reply ready',
+    contactBio:'Follower since 14 months · 🇪🇸 Spain · Engages regularly with your reels and stories',
+    contactBioExpanded:'Follows you for 14 months and reacts to almost every story. Commented on 3 posts in the last month — always about your transformation content. Completed the 4-week Kickstart in April. No complaints, no refunds. High engagement, high intent — upgrade candidate.',
+    chatHistory:[],
+    context:"Came in from a transformation reel — highest-converting content type. Asking about price and start date. Active right now, reply while intent is hot.",
+    draft:"Hola Laura! 🙌 Me alegra que hayas llegado por el reel. El programa de 12 semanas incluye llamadas 1-a-1 semanales, plan de alimentación personalizado y acceso a la comunidad privada. La inversión es $597 o 3 cuotas de $197. Puedes empezar cuando quieras — es completamente a tu ritmo. ¿Te mando más info?",
+    styleReason:"Matched her warm Spanish tone. Answered both questions (price + start) up front, soft CTA at the end.",
+    agentRead:'Hot lead · Reply ready',
+    timeline:[
+      { type:'comment', date:'6 weeks ago', postLabel:'Motivational post',
+        comment:'Esto me llega al alma... llevas meses diciéndome exactamente lo que necesito oír 💛',
+        creatorReply:'Gracias Laura! Ese comentario hace el día 💛' },
+      { type:'comment', date:'4 weeks ago', postLabel:'6-month transformation post',
+        comment:'Dios mío... ¿realmente funciona para alguien sin ninguna experiencia previa en gym?',
+        creatorReply:'¡Funciona! Muchas empezaron exactamente desde cero. Si quieres te cuento más por DM 😊' },
+      { type:'bridge' },
+      { type:'session', date:'Mar 19', messages:[
+        { from:'them', text:'Hola Sofia! Me animé a escribirte. No tengo experiencia en gym pero quiero cambiar. ¿Por dónde empezaría?', time:'4:12 PM' },
+        { from:'you', text:'Hola Laura! 🙌 Para empezar desde cero el Kickstart de 4 semanas es perfecto. Está diseñado exactamente para eso — sin experiencia previa necesaria.', time:'4:18 PM' },
+        { from:'them', text:'¿Y es muy intenso?', time:'4:20 PM' },
+        { from:'you', text:'Para nada. Es progresivo y a tu ritmo. La primera semana es suave para que el cuerpo se adapte. Lo importante es la constancia, no la intensidad.', time:'4:25 PM' },
+        { from:'them', text:'¿Cuánto cuesta?', time:'4:27 PM' },
+        { from:'you', text:'Son $197. Incluye plan de entrenamiento, guía de nutrición y acceso a la comunidad privada.', time:'4:30 PM' },
+        { from:'them', text:'Voy a pensarlo, ¡gracias!', time:'4:32 PM' },
+      ]},
+      { type:'session', date:'Mar 26', messages:[
+        { from:'them', text:'Hola! Sigo pensando en el programa. ¿El plan de alimentación es muy estricto?', time:'10:15 AM' },
+        { from:'you', text:'No es estricto — es adaptado a ti. Te pregunto tus gustos, intolerancias y rutina y lo construyo en base a eso 🙌', time:'10:22 AM' },
+        { from:'them', text:'Ah, eso está mucho mejor. Y si viajo seguido, ¿puedo seguirlo igual?', time:'10:24 AM' },
+        { from:'you', text:'Sí, totalmente. Tengo opciones de entreno sin material y comidas para aeropuerto y hoteles para las clientas que viajan 🙌', time:'10:28 AM' },
+        { from:'them', text:'Perfecto. Creo que me animo. Solo necesito un poco más de tiempo para decidirme 🙏', time:'10:30 AM' },
+      ]},
+      { type:'comment', date:'2 weeks ago', postLabel:'Transformation reel',
+        comment:'Esto es exactamente lo que necesitaba ver 🙌 llevo meses buscando algo así de honesto',
+        creatorReply:'¡Gracias! Si tienes alguna duda me escribes 😊' },
+      { type:'bridge' },
+      { type:'session', date:'Apr 2', messages:[
+        { from:'them', text:'Okay, ya me decidí 🙌 Quiero hacer el Kickstart. ¿Cómo me apunto?', time:'9:05 AM' },
+        { from:'you', text:'¡Qué emoción!! 🥳 Te mando el link ahora mismo. Cuando completes el pago te llega acceso a todo y coordinamos tu primera llamada.', time:'9:10 AM' },
+        { from:'them', text:'¡Ya pagué! Qué emoción 🙌', time:'9:22 AM' },
+        { from:'you', text:'¡BIENVENIDA LAURA! 🎉 Ya eres parte de la familia. Te mandé el email de bienvenida. Esta semana coordinamos tu primera llamada.', time:'9:25 AM' },
+      ]},
+      { type:'session', date:'Apr 9', messages:[
+        { from:'them', text:'Hola Sofia! Terminé la semana 3 y me siento increíble. Tengo una duda sobre los carbohidratos...', time:'7:50 PM' },
+        { from:'you', text:'¡Me alegra tanto leer eso!! 🙌 Cuéntame la duda.', time:'8:02 PM' },
+        { from:'them', text:'El plan dice evitar carbos después de las 6pm pero ayer cené tarde y comí arroz. ¿Lo arruiné todo?', time:'8:05 PM' },
+        { from:'you', text:'Para nada 😊 Una comida no arruina el proceso. Lo que importa es el patrón general. Esa regla además es mucho más flexible de lo que parece — depende del contexto.', time:'8:09 PM' },
+        { from:'them', text:'Qué alivio! Gracias Sofia 🙏', time:'8:11 PM' },
+      ]},
+      { type:'session', date:'Today', messages:[
+        { from:'them', text:'Hola! Vi tu reel de transformación y quiero saber más del programa de 12 semanas. Cuánto cuesta y cuándo empieza?', time:'8:47 AM' },
+      ]},
+    ]},
+  { user:'@jenna.transforms', name:'Jenna Walsh', avatar:'https://i.pravatar.cc/88?u=jennatransforms', msg:"Is the 12 week program still open? I've been following you for 2 years", source:'DM', time:'1h ago', unread:1, intent:'Opportunities', mode:'confident',
+    summary:'Long-time follower, ready to buy', status:'Reply ready',
+    chatHistory:[
+      { from:'them', text:"Is the 12 week program still open? I've been following you for 2 years and I think I'm finally ready", time:'7:30 AM' }
     ],
-  },
-  {
-    intention: 'Engaged',
-    icon: 'star',
-    desc: 'Fans and people connecting with you genuinely.',
-    items: [
-      { user:'@julschands', name:'julschands', avatar:'https://i.pravatar.cc/88?u=julschands', msg:"Hola buenas Dacos! Me gusta mucho lo que haces!", source:'DM', time:'just now', unread:1, intent:'Engaged', mode:'confident',
-        summary:'Collaboration inquiry — found you on Instagram', status:'',
-        chatHistory: [
-          { from:'them', text:"Hola buenas Dacos! He llegado a tu Instagram y quería decirte que me gusta mucho lo que haces! No sé si estás abierto a la posibilidad de hacer colaboraciones? ❣️", time:'8:23 AM' },
-        ],
-        context:"Came across your account, likes what you do, asking about collaborations. Warm and genuine — worth a reply.",
-        draft:"",
-        styleReason:"",
-        agentRead:'Collaboration ask · No draft' },
-      { user:'@agoslotierzo', name:'agoslotierzo', avatar:'https://i.pravatar.cc/88?u=agoslotierzo', msg:"Hello Martin! ❤️ missed you!", source:'DM', time:'Apr 10', unread:0, intent:'Engaged', mode:'confident',
-        summary:'Personal contact reaching out warmly', status:'',
-        chatHistory: [
-          { from:'them', text:"Hello Martin! <3 How's everything going? ❤️ missed you!", time:'8:52 AM' },
-        ],
-        context:"Personal contact, genuine warm message. Worth acknowledging when you have a moment.",
-        draft:"",
-        styleReason:"",
-        agentRead:'Personal · No draft' },
+    context:"Two-year follower, high trust already established. 'Finally ready' signals she's been on the fence — this is a conversion moment. Reply personally.",
+    draft:"Jenna! 2 years — that means so much 🥹 Yes, the 12-week Reboot is open and I'd love to have you in the next cohort. It's fully personalized — weekly 1-on-1s, custom nutrition, private community. The investment is $597 or 3x $197. Want me to send you the full breakdown?",
+    styleReason:"Acknowledged her loyalty directly — that's what closes this one. Warm, personal, no hard sell.",
+    agentRead:'Loyal follower · Reply ready' },
+  { user:'@carlosfit24', name:'Carlos M.', avatar:'https://i.pravatar.cc/88?u=carlosfit24', msg:"Cuánto cuesta el programa? Vi que tienes algo de 4 semanas también", source:'DM', time:'2h ago', unread:1, intent:'Opportunities', mode:'confident',
+    summary:'Comparing programs, price-sensitive', status:'Reply ready',
+    chatHistory:[
+      { from:'them', text:"Cuánto cuesta el programa? Vi que tienes algo de 4 semanas también", time:'6:45 AM' },
     ],
-  },
-  {
-    intention: 'Questions',
-    icon: 'question',
-    desc: 'Questions that need your direct answer.',
-    items: [
-      { user:'@test_parkhomenko.mixtape', name:'test_parkhomenko', avatar:'https://i.pravatar.cc/88?u=parkhomenko', msg:"When does course start?", source:'DM', time:'Apr 10', unread:1, intent:'Question', mode:'confident',
-        summary:"Asking about course start date", status:'',
-        chatHistory: [
-          { from:'them', text:"When does course start?", time:'9:04 AM' },
-        ],
-        context:"Asking about a fixed start date. If the course is self-paced they can start anytime — answer this one yourself.",
-        draft:"",
-        styleReason:"",
-        agentRead:"Start date question · No draft" },
-    ],
-  },
-  {
-    intention: 'Filtered out',
-    icon: 'urgent',
-    desc: 'Greetings, bots, spam. Nothing to act on.',
-    items: [
-      { user:'@nklmkln', name:'nklmkln', avatar:'https://i.pravatar.cc/88?u=nklmkln', msg:"Hello", source:'DM', time:'Apr 10', unread:0, intent:'Personal', mode:'confident',
-        summary:'Greeting only', status:'',
-        chatHistory: [
-          { from:'them', text:"Hello", time:'9:12 AM' },
-        ],
-        context:"Single 'Hello', no context. No action until they say more.",
-        draft:"", styleReason:"", agentRead:'Greeting · Filtered' },
-      { user:'@unlikemenow', name:'unlikemenow', avatar:'https://i.pravatar.cc/88?u=unlikemenow', msg:"Bon día!", source:'DM', time:'Apr 10', unread:0, intent:'Personal', mode:'confident',
-        summary:'Greeting only — no intent signal', status:'',
-        chatHistory: [
-          { from:'them', text:"Bon día!", time:'8:53 AM' },
-        ],
-        context:"Single greeting, no follow-up. No product question, no signal of intent.",
-        draft:"", styleReason:"", agentRead:'Greeting · Filtered' },
-      { user:'@dmtrackerbot', name:'DM Tracker', avatar:'https://i.pravatar.cc/88?u=dmtracker', msg:"Hey Martin, I've sent you an email :)", source:'DM', time:'Mar 16', unread:0, intent:'Spam', mode:'confident',
-        summary:'Unsolicited sales outreach', status:'',
-        chatHistory: [
-          { from:'them', text:"Test message #1\n\nSent by DM Tracker", time:'Mar 16' },
-          { from:'them', text:"Test message #2\n\nSent by DM Tracker", time:'Mar 16' },
-          { from:'them', text:"Hey Martin, Serdar here, founder of DM Tracker. Just a quick note that I've sent you an email :)", time:'Mar 16' },
-        ],
-        context:"Automated sales outreach. No response needed.",
-        draft:"", styleReason:"", agentRead:'Spam · Filtered' },
-    ],
-  },
+    context:"Comparing both programs — likely cost-conscious. The 4-Week Kickstart is a good entry point if budget is a concern. Give him clear options.",
+    draft:"Hola Carlos! 💪 Tengo dos opciones: el Kickstart de 4 semanas ($197) es perfecto para arrancar y ver resultados rápido. El Reboot de 12 semanas ($597 o 3x $197) es para transformación completa con llamadas 1-a-1 semanales y plan personalizado. ¿Qué resultado estás buscando? Te ayudo a elegir el que más te conviene.",
+    styleReason:"Presented both options clearly with prices. Question at end guides him toward the right fit without pushing.",
+    agentRead:'Comparing options · Reply ready' },
+  { user:'@mia.wellness', name:'Mia Fernández', avatar:'https://i.pravatar.cc/88?u=miawellness', msg:"Do you do 1 on 1 coaching or is it group?", source:'DM', time:'3h ago', unread:1, intent:'Opportunities', mode:'confident',
+    summary:'Asking about 1-on-1 vs group', status:'Reply ready',
+    chatHistory:[{ from:'them', text:"Do you do 1 on 1 coaching or is it group?", time:'5:52 AM' }],
+    context:"Format question suggests she's had a bad group experience before. The 12-Week Reboot's 1-on-1 element is a strong selling point here.",
+    draft:"Both, actually! The 12-Week Reboot has weekly 1-on-1 calls with me personally, plus access to the community group. So you get both the personal attention AND the support network. The 4-Week Kickstart is more self-paced with group check-ins. Which sounds more like what you're looking for?",
+    styleReason:"Answered directly, highlighted the 1-on-1 angle of the flagship program since that's what she's asking about.",
+    agentRead:'Format question · Reply ready' },
+  { user:'@paolaruiz.mx', name:'Paola Ruiz', avatar:'https://i.pravatar.cc/88?u=paolaruizmx', msg:"Hola Sofia, me recomiendas el Kickstart para alguien que nunca ha hecho nada de gym?", source:'DM', time:'4h ago', unread:1, intent:'Opportunities', mode:'confident',
+    summary:'Beginner, needs program guidance', status:'Reply ready',
+    chatHistory:[{ from:'them', text:"Hola Sofia, me recomiendas el Kickstart para alguien que nunca ha hecho nada de gym?", time:'4:30 AM' }],
+    context:"Complete beginner, asking for your recommendation directly — she trusts your judgment. The Kickstart is perfect for her situation.",
+    draft:"¡Hola Paola! Sí, el Kickstart de 4 semanas es exactamente para ti 🙌 Está diseñado para empezar desde cero, sin experiencia previa. Todo va a tu ritmo y yo te explico cada paso. Además es la forma perfecta de ver si el método te funciona antes de comprometerte con las 12 semanas. ¿Te mando los detalles?",
+    styleReason:"Validated her choice, reassured about the beginner-friendly approach, left the door open for the 12-week.",
+    agentRead:'Beginner inquiry · Reply ready' },
+  { user:'@rebecajones', name:'Rebeca Jones', avatar:'https://i.pravatar.cc/88?u=rebecajones', msg:"What's included in the 12 week program exactly?", source:'DM', time:'5h ago', unread:1, intent:'Opportunities', mode:'confident',
+    summary:'Wants full breakdown before deciding', status:'Reply ready',
+    chatHistory:[{ from:'them', text:"What's included in the 12 week program exactly?", time:'3:15 AM' }],
+    context:"Wants specifics before deciding — probably comparing options. Full breakdown will help close.",
+    draft:"Great question! The 12-Week Reboot includes: weekly 1-on-1 video calls with me, a fully custom nutrition plan updated every 2 weeks, daily check-ins via the app, access to the private community, and all workout plans included. Investment is $597 or 3x $197. Want me to send the full program guide?",
+    styleReason:"Gave the complete breakdown she asked for. Professional but warm, no filler.",
+    agentRead:'Evaluation stage · Reply ready' },
+  { user:'@daniela.v.fit', name:'Daniela V.', avatar:'https://i.pravatar.cc/88?u=danielavfit', msg:"Vi tu historia de la clienta que bajó 8kg en 3 meses. Es real eso?", source:'DM', time:'6h ago', unread:1, intent:'Opportunities', mode:'confident',
+    summary:'Skeptical, wants proof it works', status:'Reply ready',
+    chatHistory:[{ from:'them', text:"Vi tu historia de la clienta que bajó 8kg en 3 meses. Es real eso?", time:'2:10 AM' }],
+    context:"A bit skeptical, but she came to you — that's a strong signal. Validate the result and offer social proof.",
+    draft:"¡Totalmente real! Eso fue con Ana, una de mis clientas del programa de 12 semanas. No es magia — es consistencia con un plan que se adapta a ella. Tengo muchas historias así. ¿Quieres que te mande algunos testimonios? 😊",
+    styleReason:"Addressed the skepticism directly without being defensive. Offered social proof as the natural next step.",
+    agentRead:'Skeptical lead · Reply ready' },
+  { user:'@tomaszwilk', name:'Tomasz W.', avatar:'https://i.pravatar.cc/88?u=tomaszwilk', msg:"Do you work with men too or only women?", source:'DM', time:'8h ago', unread:1, intent:'Opportunities', mode:'confident',
+    summary:'Checking if program works for men', status:'Reply ready',
+    chatHistory:[{ from:'them', text:"Do you work with men too or only women?", time:'12:30 AM' }],
+    context:"Male prospect, likely saw content aimed at women and is unsure. Quick confirmation will convert him.",
+    draft:"Yes, absolutely! About 30% of my clients are men 💪 The program is fully customized regardless of gender — different nutrition targets, workout structure, everything. What's your main goal? Weight loss, muscle building, or something else?",
+    styleReason:"Removed the barrier immediately, gave a credibility stat, and opened the conversation with a qualifying question.",
+    agentRead:'Male prospect · Reply ready' },
+  { user:'@isabellav.coach', name:'Isabella V.', avatar:'https://i.pravatar.cc/88?u=isabellavcoach', msg:"Hola! Qué diferencia hay entre el Kickstart y el Reboot?", source:'DM', time:'9h ago', unread:1, intent:'Opportunities', mode:'confident',
+    summary:'Kickstart vs Reboot comparison', status:'Reply ready',
+    chatHistory:[{ from:'them', text:"Hola! Qué diferencia hay entre el Kickstart y el Reboot?", time:'11:15 PM' }],
+    context:"Comparing both programs — decision stage. A clear side-by-side will help.",
+    draft:"Hola Isabella! 😊 Kickstart (4 semanas, $197): perfecto para arrancar, rutinas + guía nutricional, ritmo propio, check-ins grupales. Reboot (12 semanas, $597): transformación completa, llamadas 1-a-1 semanales conmigo, plan de nutrición personalizado, comunidad privada. ¿Cuál es tu objetivo principal?",
+    styleReason:"Side-by-side structure makes the decision easy. Ended with a question to qualify her further.",
+    agentRead:'Comparing programs · Reply ready' },
+  { user:'@nathaliebrown', name:'Nathalie B.', avatar:'https://i.pravatar.cc/88?u=nathaliebrown', msg:"Can I pay in installments?", source:'DM', time:'10h ago', unread:1, intent:'Opportunities', mode:'confident',
+    summary:'Asking about installment options', status:'Reply ready',
+    chatHistory:[{ from:'them', text:"Can I pay in installments?", time:'10:00 PM' }],
+    context:"Asking about installments means she's interested but price-sensitive. The 3x payment option is exactly what she needs.",
+    draft:"Yes! You can pay 3x $197/month for the 12-Week Reboot — same full program, just split into 3 payments. The 4-Week Kickstart is one payment of $197. Which program were you thinking about?",
+    styleReason:"Answered directly with the numbers. No pitch, just information. Let her decide.",
+    agentRead:'Price question · Reply ready' },
+  { user:'@kristinamlk', name:'Kristina M.', avatar:'https://i.pravatar.cc/88?u=kristinamlk', msg:"Buenas! Cuando sería el próximo grupo del programa?", source:'DM', time:'12h ago', unread:1, intent:'Opportunities', mode:'confident',
+    summary:'Asking when the next group starts', status:'',
+    chatHistory:[{ from:'them', text:"Buenas! Cuando sería el próximo grupo del programa?", time:'8:00 PM' }],
+    context:"Asking about cohort timing — may think it's a group program with fixed start dates. Clarify it's self-paced.",
+    draft:"",
+    styleReason:"",
+    agentRead:'Timing question · No draft' },
+  { user:'@lenafit2024', name:'Lena H.', avatar:'https://i.pravatar.cc/88?u=lenafit2024', msg:"Do you offer nutrition coaching only without workouts?", source:'DM', time:'14h ago', unread:1, intent:'Opportunities', mode:'confident',
+    summary:'Wants nutrition coaching only', status:'',
+    chatHistory:[{ from:'them', text:"Do you offer nutrition coaching only without workouts?", time:'6:00 PM' }],
+    context:"Specific ask for nutrition-only — worth a direct answer. This isn't a standard offering so needs your input.",
+    draft:"",
+    styleReason:"",
+    agentRead:'Custom request · Needs your input' },
+  { user:'@valentinap.mx', name:'Valentina P.', avatar:'https://i.pravatar.cc/88?u=valentinapmx', msg:"Hola Sofia! Ya hice el Kickstart hace 6 meses. Puedo hacer el Reboot ahora?", source:'DM', time:'16h ago', unread:1, intent:'Opportunities', mode:'confident',
+    summary:'Returning client, ready to upgrade', status:'Reply ready',
+    chatHistory:[{ from:'them', text:"Hola Sofia! Ya hice el Kickstart hace 6 meses. Puedo hacer el Reboot ahora?", time:'4:00 PM' }],
+    context:"Returning client — already converted once. This is a VIP upgrade opportunity. Warmest possible reply.",
+    draft:"¡Valentina! Qué alegría saber de ti!! 🥹 Claro que sí, el Reboot es el siguiente paso perfecto. Además, para clientas que ya hicieron el Kickstart tengo un descuento especial. ¿Quieres que te mande los detalles?",
+    styleReason:"Extra warm for a returning client. Surprise discount creates urgency without pressure.",
+    agentRead:'Returning client · Reply ready' },
+  { user:'@amykeller.runs', name:'Amy Keller', avatar:'https://i.pravatar.cc/88?u=amykellerruns', msg:"Hi! I'm a runner, does your program work for endurance athletes?", source:'DM', time:'18h ago', unread:1, intent:'Opportunities', mode:'confident',
+    summary:'Runner, asking if program fits', status:'',
+    chatHistory:[{ from:'them', text:"Hi! I'm a runner, does your program work for endurance athletes?", time:'2:00 PM' }],
+    context:"Niche question about compatibility with endurance sports — specific enough that a custom reply from you is better than a draft.",
+    draft:"",
+    styleReason:"",
+    agentRead:'Niche question · Needs your reply' },
 ];
+
+const ATTENTION_ITEMS = [
+  { user:'@diana.client12', name:'Diana Morales', avatar:'https://i.pravatar.cc/88?u=dianaclient12', msg:"Sofia no puedo acceder al módulo 3, me sigue dando error desde ayer", source:'DM', time:'2h ago', unread:2, intent:'Support', mode:'confident',
+    summary:'Locked out of module 3 since yesterday', status:'',
+    chatHistory:[
+      { from:'them', text:"Hola Sofia, llevo desde ayer intentando entrar al módulo 3 y no puedo", time:'7:15 AM' },
+      { from:'them', text:"Sofia no puedo acceder al módulo 3, me sigue dando error desde ayer", time:'8:45 AM' },
+    ],
+    context:"Paying client blocked from course content for 24+ hours. Two messages, growing frustration. This needs your reply today — don't lose her trust over a tech issue.",
+    draft:"",
+    styleReason:"",
+    agentRead:'Urgent · Client blocked from content' },
+  { user:'@markusbauer.fit', name:'Markus Bauer', avatar:'https://i.pravatar.cc/88?u=markusbauer', msg:"I need to pause my subscription for 2 weeks, is that possible?", source:'DM', time:'3h ago', unread:1, intent:'Support', mode:'confident',
+    summary:'Wants to pause for 2 weeks', status:'',
+    chatHistory:[{ from:'them', text:"I need to pause my subscription for 2 weeks, is that possible?", time:'6:00 AM' }],
+    context:"Client asking to pause — often a sign of reduced engagement. Agreeing warmly and checking in shows you care, which keeps them in the program.",
+    draft:"",
+    styleReason:"",
+    agentRead:'Churn risk · Pause request' },
+  { user:'@camilasoto.fit', name:'Camila Soto', avatar:'https://i.pravatar.cc/88?u=camilasoto', msg:"Siento que no estoy viendo resultados después de 4 semanas 😔", source:'DM', time:'5h ago', unread:1, intent:'Support', mode:'confident',
+    summary:'Not seeing results, feeling discouraged', status:'',
+    chatHistory:[
+      { from:'them', text:"Hola Sofia, quería ser honesta contigo...", time:'3:30 AM' },
+      { from:'them', text:"Siento que no estoy viendo resultados después de 4 semanas 😔", time:'3:31 AM' },
+    ],
+    context:"Four weeks in and feeling discouraged — this is a vulnerable moment. A personal, empathetic reply now could be the thing that keeps her in the program.",
+    draft:"",
+    styleReason:"",
+    agentRead:'Emotional · Personal reply needed' },
+  { user:'@rafaelm.client', name:'Rafael M.', avatar:'https://i.pravatar.cc/88?u=rafaelm', msg:"The checkout page is broken, I can't complete my purchase", source:'DM', time:'6h ago', unread:1, intent:'Support', mode:'confident',
+    summary:'Checkout broken, tried 3 times', status:'',
+    chatHistory:[{ from:'them', text:"The checkout page is broken, I can't complete my purchase. I've tried 3 times", time:'2:00 AM' }],
+    context:"Active purchase attempt blocked by a tech issue — 3 tries means real intent. Every hour this goes unanswered is money lost.",
+    draft:"",
+    styleReason:"",
+    agentRead:'Revenue at risk · Checkout broken' },
+  { user:'@simoneb.fit', name:'Simone B.', avatar:'https://i.pravatar.cc/88?u=simonebfit', msg:"I asked for a refund 5 days ago and haven't heard back", source:'DM', time:'1d ago', unread:1, intent:'Support', mode:'confident',
+    summary:'Refund ignored for 5 days', status:'',
+    chatHistory:[
+      { from:'them', text:"Hi, I emailed about a refund 5 days ago", time:'Yesterday' },
+      { from:'them', text:"I asked for a refund 5 days ago and haven't heard back", time:'Yesterday' },
+    ],
+    context:"Refund requests left unanswered become chargebacks and public complaints. This is urgent — even a 'we're looking into it' reply buys goodwill.",
+    draft:"",
+    styleReason:"",
+    agentRead:'Escalation risk · Refund pending' },
+  { user:'@annakowalski.run', name:'Anna Kowalski', avatar:'https://i.pravatar.cc/88?u=annakowalski', msg:"My meal plan isn't loading in the app, it's been 2 days", source:'DM', time:'2d ago', unread:1, intent:'Support', mode:'confident',
+    summary:'Meal plan not loading, 2 days', status:'',
+    chatHistory:[
+      { from:'them', text:"Hey Sofia, my meal plan in the app isn't loading", time:'2 days ago' },
+      { from:'them', text:"My meal plan isn't loading in the app, it's been 2 days", time:'Yesterday' },
+    ],
+    context:"Two days without their meal plan means they can't follow the program properly. Sent two messages — patience is running out. Needs an urgent fix or workaround.",
+    draft:"",
+    styleReason:"",
+    agentRead:'2d unresolved · Urgent fix needed' },
+];
+
+const COMMUNITY_ITEMS = [
+  { user:'@mariavega.runs', name:'Maria Vega', avatar:'https://i.pravatar.cc/88?u=mariavegaruns', msg:"Your content changed how I think about fitness. 2 years and still here 🙌", source:'DM', time:'just now', unread:1, intent:'Fans', mode:'confident',
+    summary:'2-year follower, just saying thanks', status:'',
+    chatHistory:[{ from:'them', text:"Your content changed how I think about fitness goals. 2 years and still here 🙌", time:'9:00 AM' }],
+    context:"Loyal long-term follower. No ask, just appreciation. Worth a warm personal reply when you have a moment.",
+    draft:"",styleReason:"",agentRead:'Loyal fan · No action needed' },
+  { user:'@carloslopes.fit', name:'Carlos Lopes', avatar:'https://i.pravatar.cc/88?u=carloslopes', msg:"Finished week 8 and I'm down 6kg. This actually works 💪", source:'DM', time:'1h ago', unread:1, intent:'Fans', mode:'confident',
+    summary:'Down 6kg at week 8, great result', status:'',
+    chatHistory:[{ from:'them', text:"Just finished week 8 and I'm down 6kg. This actually works. Thank you Sofia!", time:'8:15 AM' }],
+    context:"Active client hit a major milestone. Great testimonial potential — ask if you can share this.",
+    draft:"",styleReason:"",agentRead:'Milestone · Ask to share' },
+  { user:'@anapaula.fit', name:'Ana Paula', avatar:'https://i.pravatar.cc/88?u=anapaulafit', msg:"Honestly the best investment I made this year. The community alone is worth it", source:'DM', time:'2h ago', unread:1, intent:'Fans', mode:'confident',
+    summary:'Loves the community, strong testimonial', status:'',
+    chatHistory:[{ from:'them', text:"Honestly the best investment I made this year. The community alone is worth it. Everyone is so supportive.", time:'7:00 AM' }],
+    context:"Powerful unprompted testimonial about community value. Perfect for social proof.",
+    draft:"",styleReason:"",agentRead:'Testimonial · High value' },
+  { user:'@sofian.collab', name:'Sofia Nunes', avatar:'https://i.pravatar.cc/88?u=sofiancollab', msg:"Hola! Soy creadora de contenido fitness, me gustaría hacer una collab contigo 🤝", source:'DM', time:'3h ago', unread:1, intent:'Fans', mode:'confident',
+    summary:'Fitness creator, collab proposal', status:'',
+    chatHistory:[{ from:'them', text:"Hola Sofia! Soy creadora de contenido fitness con 40k seguidores, me gustaría hacer una collab contigo si te interesa 🤝", time:'6:00 AM' }],
+    context:"Creator collab ask, 40k followers in fitness niche — relevant audience. Worth exploring when you have a moment.",
+    draft:"",styleReason:"",agentRead:'Collab ask · Creator match' },
+  { user:'@isabelrt', name:'Isabel R.', avatar:'https://i.pravatar.cc/88?u=isabelrt', msg:"Gracias por ayer en el live, me ayudó muchísimo el tip de las proteínas", source:'DM', time:'4h ago', unread:1, intent:'Fans', mode:'confident',
+    summary:'Tried your live tip, it worked', status:'',
+    chatHistory:[{ from:'them', text:"Gracias por ayer en el live, me ayudó muchísimo el tip de las proteínas. Lo puse en práctica hoy!", time:'5:30 AM' }],
+    context:"Immediate action taken from live content — this is high engagement. A quick reply goes a long way.",
+    draft:"",styleReason:"",agentRead:'Live follow-up · High engagement' },
+  { user:'@brendanmac', name:'Brendan M.', avatar:'https://i.pravatar.cc/88?u=brendanmac', msg:"Would you ever consider doing a podcast? Your explanations are so clear", source:'DM', time:'5h ago', unread:1, intent:'Fans', mode:'confident',
+    summary:'Suggesting you start a podcast', status:'',
+    chatHistory:[{ from:'them', text:"Would you ever consider doing a podcast? Your explanations of nutrition are so clear and I'd love to listen on my runs", time:'4:00 AM' }],
+    context:"Genuine content feedback — follower is listening closely. Good insight for your content strategy.",
+    draft:"",styleReason:"",agentRead:'Content feedback · Engaged follower' },
+];
+
+const QUOTES = [
+  { user:'@mariavega.runs', text:'Your content changed how I think about my fitness goals. 2 years and still here 🙌', avatar:'https://i.pravatar.cc/88?u=mariavegaruns' },
+  { user:'@carloslopes.fit', text:"Just finished week 8 and I'm down 6kg. This actually works.", avatar:'https://i.pravatar.cc/88?u=carloslopes' },
+  { user:'@anapaula.fit', text:"Honestly the best investment I made this year. The community alone is worth it.", avatar:'https://i.pravatar.cc/88?u=anapaulafit' },
+];
+
+/* Legacy compatibility — keep IMPORTANT_GROUPS for components that still reference it */
+const IMPORTANT_GROUPS = [];
 
 /* ═══ SHARED COMPONENTS ═══ */
 function BlackBtn({ label, onClick, disabled }) {
@@ -435,7 +561,7 @@ function ObSorting({ onNext }) {
 
   const messages = [
     'Reading your DMs...',
-    'Sorting what matters...',
+    'Finding what needs you...',
     'Drafting replies...',
     'Almost ready...',
   ];
@@ -908,7 +1034,7 @@ function AgentExpandedScreen({ onDismiss }) {
       {/* Status */}
       <div style={{ display:'flex', alignItems:'center', gap:7, marginBottom: isCompact ? 16 : 28 }}>
         <div style={{ width:7, height:7, borderRadius:4, background:'#2E86FD', flexShrink:0, animation:'pulse 1.4s ease-in-out infinite' }} />
-        <div style={{ fontSize:15, fontWeight:600, color:'#fff', letterSpacing:'-0.02em' }}>Analyzing your DMs</div>
+        <div style={{ fontSize:15, fontWeight:600, color:'#fff', letterSpacing:'-0.02em' }}>Watching your DMs</div>
       </div>
 
       {/* Checklist (full) — shown for first 3 visits */}
@@ -944,7 +1070,7 @@ function AgentExpandedScreen({ onDismiss }) {
       {/* Dynamic insight */}
       <div style={{ marginTop:'auto', borderTop:'1px solid rgba(255,255,255,0.06)', paddingTop:20 }}>
         <div style={{ fontSize:10, fontWeight:700, color:'rgba(255,255,255,0.2)', letterSpacing:'0.07em', textTransform:'uppercase', marginBottom:12 }}>
-          Regarding your messages
+          What I'm noticing
         </div>
 
         {showInsight && (
@@ -1420,6 +1546,94 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
   const [mode, setMode] = useState(getInitialMode);
   const [editVal, setEditVal] = useState(item.draft || '');
   const [customVal, setCustomVal] = useState('');
+  const [bioExpanded, setBioExpanded] = useState(false);
+
+  // DM bubble renderer — used by both legacy chatHistory and timeline sessions
+  const renderDMBubble = (m, i, arr) => {
+    const isOutgoing = m.from === 'you' || m.from === 'automation';
+    const isAutomation = m.from === 'automation';
+    const isLast = i === arr.length - 1 || arr[i+1]?.from !== m.from;
+    const radius = m.from === 'them'
+      ? (isLast ? '12px 12px 12px 2px' : '12px')
+      : (isLast ? '12px 12px 2px 12px' : '12px');
+    const bubbleBg = isAutomation ? '#FCF0FF' : (m.from === 'you' ? '#C2DBFF' : '#F5F5F5');
+    return (
+      <div key={i}>
+        {isOutgoing ? (
+          <div style={{ display:'flex', gap:4, alignItems:'flex-end', justifyContent:'flex-end', paddingLeft:50 }}>
+            <div style={{ flex:1, padding:'12px 16px', borderRadius:radius, background:bubbleBg, opacity:0.89 }}>
+              {isAutomation && <div style={{ fontSize:12, fontWeight:500, color:'#AB3EC1', lineHeight:'16px', marginBottom:2 }}>Automation</div>}
+              <div style={{ fontSize:16, fontWeight:400, lineHeight:'24px', color:'#292929' }}>{m.text}</div>
+            </div>
+            {isAutomation ? (
+              <div style={{ width:20, height:20, flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#AB3EC1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+              </div>
+            ) : (
+              <img src="https://i.pravatar.cc/40?u=sofiacoach" alt="" style={{ width:20, height:20, borderRadius:400, objectFit:'cover', flexShrink:0, border:'0.5px solid rgba(44,50,58,0.12)' }} />
+            )}
+          </div>
+        ) : (
+          <div style={{ paddingRight:50 }}>
+            <div style={{ display:'inline-block', padding:'10px 16px', borderRadius:radius, background:bubbleBg, opacity:0.89, maxWidth:288 }}>
+              <div style={{ fontSize:16, fontWeight:400, lineHeight:'24px', color:'#292929' }}>{m.text}</div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Timeline renderer — for items with item.timeline
+  const renderTimeline = (timeline, extraMsgs) => (
+    <>
+      {timeline.map((entry, ei) => {
+        if (entry.type === 'comment') return (
+          <div key={ei}>
+            <div style={{ textAlign:'center', marginBottom:8 }}>
+              <span style={{ fontSize:11, color:'#ABABAB' }}>{entry.date}</span>
+            </div>
+            <div style={{ borderLeft:'2px solid #E0E0E0', paddingLeft:10, marginBottom:5 }}>
+              <div style={{ fontSize:10, fontWeight:500, color:'#ABABAB', letterSpacing:'0.03em', textTransform:'uppercase', marginBottom:3 }}>Comment on {entry.postLabel}</div>
+              <div style={{ fontSize:12, fontWeight:400, color:'#4A4A4A', lineHeight:'17px' }}>{entry.comment}</div>
+            </div>
+            {entry.creatorReply && (
+              <div style={{ display:'flex', alignItems:'flex-start', gap:6, paddingLeft:12 }}>
+                <img src="https://i.pravatar.cc/40?u=sofiacoach" alt="" style={{ width:16, height:16, borderRadius:8, objectFit:'cover', flexShrink:0, marginTop:1, opacity:0.6 }} />
+                <div style={{ borderLeft:'2px solid #F0F0F0', paddingLeft:8 }}>
+                  <div style={{ fontSize:10, fontWeight:500, color:'#ABABAB', marginBottom:2 }}>You replied</div>
+                  <div style={{ fontSize:12, fontWeight:400, color:'#707070', lineHeight:'17px' }}>{entry.creatorReply}</div>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+        if (entry.type === 'bridge') return (
+          <div key={ei} style={{ display:'flex', alignItems:'center', gap:8, margin:'4px 0 8px' }}>
+            <div style={{ flex:1, height:1, background:'#EBEBEB' }} />
+            <span style={{ fontSize:10, fontWeight:500, color:'#ABABAB', letterSpacing:'0.02em', whiteSpace:'nowrap' }}>Followed through DM</span>
+            <div style={{ flex:1, height:1, background:'#EBEBEB' }} />
+          </div>
+        );
+        if (entry.type === 'session') return (
+          <div key={ei}>
+            <div style={{ textAlign:'center', margin:'10px 0 8px' }}>
+              <span style={{ fontSize:11, color:'#ABABAB' }}>{entry.date}</span>
+            </div>
+            <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+              {entry.messages.map((m, i) => renderDMBubble(m, i, entry.messages))}
+            </div>
+          </div>
+        );
+        return null;
+      })}
+      {extraMsgs.length > 0 && (
+        <div style={{ display:'flex', flexDirection:'column', gap:8, marginTop:8 }}>
+          {extraMsgs.map((m, i) => renderDMBubble(m, i, extraMsgs))}
+        </div>
+      )}
+    </>
+  );
   const [showToast, setShowToast] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
   const [sentMsgs, setSentMsgs] = useState([]);
@@ -1503,7 +1717,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
         setTimeout(() => setEditFeedback('asking'), 1200);
       } else {
         triggerToast(activeTone
-          ? 'Got it,' + activeTone.toLowerCase() + ' tone for similar messages.'
+          ? 'Got it, ' + activeTone.toLowerCase() + ' tone for similar messages.'
           : 'Noted. I\'ll adjust my style based on your edit.');
       }
     }
@@ -1570,12 +1784,12 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
   const handleAskSend = () => {
     setSentMsgs(prev => [...prev, generatedDraft]);
     setMode('sent');
-    triggerToast('Got it,I\'ll use this for similar questions.');
+    triggerToast('Got it, I\'ll use this for similar questions.');
     if (onSent) onSent(item.user);
   };
 
   const handleFeedbackChoice = (reason) => {
-    triggerToast('Got it,' + reason + '. I\'ll adjust.');
+    triggerToast('Got it, ' + reason + '. I\'ll adjust.');
     if (onDraftFeedback) onDraftFeedback(); // switches parent to inline mode
     setMode('custom');
     setCustomVal('');
@@ -1660,74 +1874,57 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
       overflow:'hidden',
     }}>
       {/* Header */}
-      <div style={{ padding:'48px 16px 10px', display:'flex', alignItems:'center', gap:12, borderBottom:'1px solid #D6D6D6', flexShrink:0 }}>
-        <div onClick={(e) => { e.stopPropagation(); onClose(); }} style={{ cursor:'pointer', padding:'8px', margin:'-8px' }}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-        </div>
-        {item.avatar && <img src={item.avatar} alt="" style={{ width:32, height:32, borderRadius:400, objectFit:'cover', border:'0.5px solid rgba(44,50,58,0.12)', flexShrink:0 }} />}
-        <div style={{ flex:1, minWidth:0 }}>
-          <div style={{ fontSize:14, fontWeight:500, color:'#292929', lineHeight:'20px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.name || item.user}</div>
-          <div onClick={(e) => { e.stopPropagation(); setReasoningSheet({ title: 'Why ' + (item.intent || 'this classification'), body: item.context || 'No additional context available.', intent: item.intent }); }}
-            style={{ fontSize:12, fontWeight:400, color:'#707070', lineHeight:'16px', display:'flex', alignItems:'center', gap:4, cursor:'pointer' }}>
-            <span>{item.intent || 'DM'}</span>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#707070" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
+      <div style={{ padding:'48px 16px 10px', borderBottom:'1px solid #D6D6D6', flexShrink:0 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+          <div onClick={(e) => { e.stopPropagation(); onClose(); }} style={{ cursor:'pointer', padding:'8px', margin:'-8px' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </div>
+          {item.avatar && <img src={item.avatar} alt="" style={{ width:32, height:32, borderRadius:400, objectFit:'cover', border:'0.5px solid rgba(44,50,58,0.12)', flexShrink:0 }} />}
+          <div style={{ flex:1, minWidth:0 }}>
+            <div style={{ fontSize:14, fontWeight:500, color:'#292929', lineHeight:'20px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.name || item.user}</div>
+            <div onClick={(e) => { e.stopPropagation(); setReasoningSheet({ title: 'Why ' + (item.intent || 'this classification'), body: item.context || 'No additional context available.', intent: item.intent }); }}
+              style={{ fontSize:12, fontWeight:400, color:'#707070', lineHeight:'16px', display:'flex', alignItems:'center', gap:4, cursor:'pointer' }}>
+              <span>{item.intent || 'DM'}</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#707070" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
           </div>
         </div>
+        {/* Expandable contact bio — only when data present */}
+        {item.contactBio && (
+          <div onClick={(e) => { e.stopPropagation(); setBioExpanded(b => !b); }}
+            style={{ marginTop:8, cursor:'pointer', paddingLeft:44 }}>
+            {!bioExpanded ? (
+              <div style={{ display:'flex', alignItems:'center', gap:4 }}>
+                <span style={{ fontSize:11, fontWeight:400, color:'#ABABAB', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', flex:1 }}>{item.contactBio}</span>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#ABABAB" strokeWidth="2" style={{ flexShrink:0 }}><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+            ) : (
+              <div>
+                <div style={{ display:'flex', alignItems:'center', gap:4, marginBottom:4 }}>
+                  <span style={{ fontSize:11, fontWeight:500, color:'#707070' }}>About Laura</span>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#707070" strokeWidth="2" style={{ flexShrink:0, transform:'rotate(180deg)' }}><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+                <div style={{ fontSize:11, fontWeight:400, color:'#707070', lineHeight:'16px' }}>{item.contactBioExpanded}</div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Chat body */}
       <div ref={chatBodyRef} style={{ flex:1, minHeight:0, overflowY:'auto', padding:'12px 16px 12px', display:'flex', flexDirection:'column', gap:12 }}>
-        {/* Timestamp marker */}
-        <div style={{ textAlign:'center' }}>
-          <span style={{ fontSize:12, color:'#707070', lineHeight:'16px' }}>Today {item.time || '8:10 AM'}</span>
-        </div>
 
-        <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-        {chatHistory.map((m, i) => {
-          const isOutgoing = m.from === 'you' || m.from === 'automation';
-          const isAutomation = m.from === 'automation';
-          const isLast = i === chatHistory.length - 1 || chatHistory[i+1]?.from !== m.from;
-
-          // Airbnb corners: 12px all, 2px on tail corner for last in group
-          const radius = m.from === 'them'
-            ? (isLast ? '12px 12px 12px 2px' : '12px')
-            : (isLast ? '12px 12px 2px 12px' : '12px');
-
-          // Colors per type
-          const bubbleBg = isAutomation ? '#FCF0FF' : (m.from === 'you' ? '#C2DBFF' : '#F5F5F5');
-
-          return (
-            <div key={i}>
-              {/* Outgoing: bubble + small avatar/icon row */}
-              {isOutgoing ? (
-                <div style={{ display:'flex', gap:4, alignItems:'flex-end', justifyContent:'flex-end', paddingLeft:50 }}>
-                  <div style={{ flex:1, padding:'12px 16px', borderRadius:radius, background:bubbleBg, opacity:0.89 }}>
-                    {isAutomation && (
-                      <div style={{ fontSize:12, fontWeight:500, color:'#AB3EC1', lineHeight:'16px', marginBottom:2 }}>Automation</div>
-                    )}
-                    <div style={{ fontSize:16, fontWeight:400, lineHeight:'24px', color:'#292929' }}>{m.text}</div>
-                  </div>
-                  {/* 20px avatar/icon */}
-                  {isAutomation ? (
-                    <div style={{ width:20, height:20, flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#AB3EC1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-                    </div>
-                  ) : (
-                    <img src="https://i.pravatar.cc/40?u=sofiacoach" alt="" style={{ width:20, height:20, borderRadius:400, objectFit:'cover', flexShrink:0, border:'0.5px solid rgba(44,50,58,0.12)' }} />
-                  )}
-                </div>
-              ) : (
-                /* Incoming: left-aligned contact bubble */
-                <div style={{ paddingRight:50 }}>
-                  <div style={{ display:'inline-block', padding:'10px 16px', borderRadius:radius, background:bubbleBg, opacity:0.89, maxWidth:288 }}>
-                    <div style={{ fontSize:16, fontWeight:400, lineHeight:'24px', color:'#292929' }}>{m.text}</div>
-                  </div>
-                </div>
-              )}
+        {/* Timeline renderer (rich history) or legacy flat chatHistory */}
+        {item.timeline ? renderTimeline(item.timeline, sentMsgs) : (
+          <>
+            <div style={{ textAlign:'center' }}>
+              <span style={{ fontSize:12, color:'#707070', lineHeight:'16px' }}>Today {item.time || '8:10 AM'}</span>
             </div>
-          );
-        })}
-        </div>
+            <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+              {chatHistory.map((m, i) => renderDMBubble(m, i, chatHistory))}
+            </div>
+          </>
+        )}
 
         {/* Summary removed from chat body — agent explains in bottom sheet */}
 
@@ -1798,8 +1995,8 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
                 <button key={reason} onClick={() => {
                   setEditFeedback('done');
                   triggerToast(reason === 'I just wanted to personalize'
-                    ? 'Got it — draft was fine, you wanted your touch.'
-                    : 'Got it — ' + reason.toLowerCase() + '. I\'ll adjust.');
+                    ? 'Got it, draft was fine, you wanted your touch.'
+                    : 'Got it, ' + reason.toLowerCase() + '. I\'ll adjust.');
                 }}
                   style={{ padding:'8px 16px', border:'none', borderRadius:12, background:'#F0F0F0', fontSize:13, fontWeight:500, color:'#292929', cursor:'pointer', letterSpacing:'-0.104px', lineHeight:'18px' }}>{reason}</button>
               ))}
@@ -1812,7 +2009,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
           <div style={{ background:'#fff', border:'1px solid #D6D6D6', borderRadius:12, boxShadow:'0 8px 16px rgba(132,146,166,0.12)', padding:16, marginBottom:8, display:'flex', flexDirection:'column', gap:16, animation:'slideInRight .4s cubic-bezier(.25,.46,.45,.94) both' }}>
             <div style={{ fontSize:14, fontWeight:400, color:'#292929', lineHeight:'20px' }}>Was my reply helpful as a starting point?</div>
             <div style={{ display:'flex', gap:8 }}>
-              <button onClick={() => { setCustomFeedback('done'); triggerToast('Got it — glad it helped.'); }}
+              <button onClick={() => { setCustomFeedback('done'); triggerToast('Got it, glad it helped.'); }}
                 style={{ padding:'8px 16px', border:'none', borderRadius:12, background:'#F0F0F0', fontSize:13, fontWeight:500, color:'#292929', cursor:'pointer', letterSpacing:'-0.104px', lineHeight:'18px' }}>Yes</button>
               <button onClick={() => setCustomFeedback('why')}
                 style={{ padding:'8px 16px', border:'none', borderRadius:12, background:'#F0F0F0', fontSize:13, fontWeight:500, color:'#292929', cursor:'pointer', letterSpacing:'-0.104px', lineHeight:'18px' }}>No</button>
@@ -2030,7 +2227,7 @@ function ImportantTab({ onOpenChat, answeredChats, hiddenItems = new Set(), view
                     'People interested in your products or services',
                     'True fans engaging meaningfully with your content',
                     'Urgent matters that need your attention',
-                    'Questions my agent cannot answer alone',
+                    'Questions only you can answer',
                   ].map((item, i) => (
                     <div key={i} style={{ display:'flex', alignItems:'flex-start', gap:12 }}>
                       <div style={{ width:4, height:4, borderRadius:2, background:'rgba(255,255,255,0.25)', flexShrink:0, marginTop:9 }} />
@@ -2114,7 +2311,7 @@ function ImportantTab({ onOpenChat, answeredChats, hiddenItems = new Set(), view
 
       {priorityFeedbackDone && (
         <div className="fade-in" style={{ padding:'20px 0 16px', textAlign:'center' }}>
-          <span style={{ fontSize:12, color:T.gray }}>Thanks. I'll keep learning from how you use your inbox.</span>
+          <span style={{ fontSize:12, color:T.gray }}>Thanks. I'll keep adjusting as we work together.</span>
         </div>
       )}
 
@@ -2225,23 +2422,259 @@ function PrioritiesOverlay({ onDismiss }) {
   );
 }
 
+/* ═══ ASPIRATIONAL COMPONENTS ═══ */
+
+function CirclePill({ icon, count, label, subLabel, color, onTap, active }) {
+  const bg = active ? '#292929' : '#fff';
+  const textColor = active ? '#fff' : '#292929';
+  const labelColor = active ? 'rgba(255,255,255,0.7)' : '#707070';
+  return (
+    <div onClick={onTap} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:6, cursor:'pointer', flexShrink:0 }}>
+      <div style={{ width:68, background:bg, border:'1px solid #D6D6D6', borderRadius:16, padding:'12px 8px 10px', display:'flex', flexDirection:'column', alignItems:'center', gap:3, boxShadow:'0 2px 8px rgba(0,0,0,0.06)', transition:'all .15s ease' }}>
+        <div style={{ color: active ? '#fff' : (color || '#292929'), lineHeight:0, height:16, display:'flex', alignItems:'center', justifyContent:'center' }}>{icon}</div>
+        <div style={{ fontSize:20, fontWeight:700, color:textColor, lineHeight:1.1, minHeight:22 }}>{count !== null && count !== undefined ? count : ''}</div>
+      </div>
+      <div style={{ fontSize:10, fontWeight:500, color:'#707070', textAlign:'center', lineHeight:1.2, maxWidth:72 }}>{subLabel || label}</div>
+    </div>
+  );
+}
+
+function OptimizationCard({ onInfo }) {
+  const pct = STATS.score;
+  return (
+    <div style={{ background:'#fff', border:'1px solid #D6D6D6', borderRadius:16, boxShadow:'0 8px 16px rgba(132,146,166,0.12)', padding:16, margin:'0 16px 12px' }}>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
+        <span style={{ fontSize:12, fontWeight:500, color:'#707070' }}>Inbox score</span>
+        <div onClick={onInfo} style={{ cursor:'pointer', color:'#707070', fontSize:15, width:20, height:20, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:10, background:'#F5F5F5' }}>ⓘ</div>
+      </div>
+      <div style={{ display:'flex', alignItems:'baseline', gap:6, marginBottom:10 }}>
+        <span style={{ fontSize:32, fontWeight:700, color:'#292929', lineHeight:1 }}>{pct}</span>
+        <span style={{ fontSize:14, fontWeight:400, color:'#707070' }}>out of 100</span>
+      </div>
+      <div style={{ height:3, background:'#F0F0F0', borderRadius:100, marginBottom:12, overflow:'hidden' }}>
+        <div style={{ width:`${pct}%`, height:'100%', background:'#292929', borderRadius:100 }} />
+      </div>
+      <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+        {[`${STATS.spamFiltered}% spam filtered`, `${STATS.repliesReady} drafts ready`, `${STATS.timeSaved} min saved today`].map(chip => (
+          <div key={chip} style={{ background:'#F5F5F5', borderRadius:8, padding:'4px 10px', fontSize:12, fontWeight:500, color:'#292929' }}>{chip}</div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AgentOvernightCard({ onShowMore }) {
+  return (
+    <div style={{ background:'#fff', border:'1px solid #D6D6D6', borderRadius:16, boxShadow:'0 8px 16px rgba(132,146,166,0.12)', padding:16, margin:'0 16px 16px' }}>
+      <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:8 }}>
+        <div style={{ width:22, height:22, borderRadius:11, background:'#F5F5F5', display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#707070" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 3l1.45 3.04L17 7.27l-2.5 2.43.59 3.43L12 11.23l-3.09 1.9.59-3.43L7 7.27l3.55-.23z"/>
+            <path d="M5 12.5A7 7 0 0 0 12 19.5"/>
+          </svg>
+        </div>
+        <span style={{ fontSize:11, fontWeight:500, color:'#707070', letterSpacing:'0.02em', textTransform:'uppercase' }}>Overnight</span>
+      </div>
+      <div style={{ fontSize:14, fontWeight:400, color:'#292929', lineHeight:'20px', marginBottom:10 }}>
+        3 new leads came in overnight — including a warm follow-up from last week. One client can't access module 3, needs your reply.
+      </div>
+      <span onClick={onShowMore} style={{ fontSize:12, fontWeight:500, color:'#2952CC', cursor:'pointer' }}>Show more →</span>
+    </div>
+  );
+}
+
+function MsgRowAsp({ item, onTap, inRepliesView, homeView }) {
+  const [replyExpanded, setReplyExpanded] = React.useState(false);
+  const hasDraft = !!item.draft;
+  return (
+    <div onClick={() => onTap(item)} style={{ display:'flex', alignItems:'flex-start', gap:12, padding:'12px 0', cursor:'pointer', borderBottom:'1px solid #F0F0F0' }}>
+      <img src={item.avatar} alt="" style={{ width:48, height:48, borderRadius:400, objectFit:'cover', flexShrink:0, border:'0.5px solid rgba(44,50,58,0.1)', marginTop:2 }} />
+      <div style={{ flex:1, minWidth:0 }}>
+        {/* Name + time */}
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:2 }}>
+          <span style={{ fontSize:14, fontWeight:500, color:'#292929' }}>{item.name}</span>
+          <span style={{ fontSize:12, fontWeight:400, color:'#707070', flexShrink:0, marginLeft:8 }}>{item.time}</span>
+        </div>
+        {/* Home view: summary only. Other views: message + green square, then summary */}
+        {homeView ? (
+          <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+            <span style={{ fontSize:13, fontWeight:400, color:'#707070', flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.summary}</span>
+            {hasDraft && <div style={{ width:8, height:8, borderRadius:2, background:'#1E7A3C', flexShrink:0 }} />}
+          </div>
+        ) : (
+          <>
+            <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:2 }}>
+              <span style={{ fontSize:13, fontWeight:400, color:'#707070', flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.msg}</span>
+              {hasDraft && <div style={{ width:8, height:8, borderRadius:2, background:'#1E7A3C', flexShrink:0 }} />}
+            </div>
+            {item.summary && (
+              <div style={{ fontSize:12, color:'#ABABAB', lineHeight:'16px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.summary}</div>
+            )}
+          </>
+        )}
+        {/* Replies view only: intent badge + expandable reply */}
+        {inRepliesView && (
+          <div style={{ marginTop:6 }}>
+            <span style={{ background:'#F5F5F5', borderRadius:4, padding:'2px 8px', fontSize:10, fontWeight:500, color:'#707070' }}>{item.intent}</span>
+            {hasDraft && (
+              <div style={{ marginTop:6 }}>
+                <div onClick={(e) => { e.stopPropagation(); setReplyExpanded(r => !r); }}
+                  style={{ display:'flex', alignItems:'center', gap:4, cursor:'pointer' }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1E7A3C" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                    style={{ transform: replyExpanded ? 'rotate(90deg)' : 'rotate(0deg)', transition:'transform .18s ease', flexShrink:0 }}>
+                    <path d="M9 18l6-6-6-6"/>
+                  </svg>
+                  <span style={{ fontSize:12, fontWeight:600, color:'#1E7A3C', flexShrink:0 }}>Reply:</span>
+                  {!replyExpanded && (
+                    <span style={{ fontSize:12, fontWeight:400, color:'#ABABAB', flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                      {item.draft}
+                    </span>
+                  )}
+                </div>
+                {replyExpanded && (
+                  <div style={{ fontSize:12, fontWeight:400, color:'#707070', lineHeight:'17px', marginTop:4, paddingLeft:16 }}>
+                    {item.draft}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function FeedSection({ title, count, items, onSeeAll, onOpenChat, answeredChats, hiddenItems }) {
+  const visible = items.filter(it => !hiddenItems.has(it.user));
+  if (visible.length === 0) return null;
+  return (
+    <div style={{ margin:'0 16px 20px' }}>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+          <span style={{ fontSize:16, fontWeight:600, color:'#292929' }}>{title}</span>
+          <span style={{ background:'#F5F5F5', borderRadius:20, padding:'2px 8px', fontSize:12, fontWeight:500, color:'#707070' }}>{count}</span>
+        </div>
+        <span onClick={onSeeAll} style={{ fontSize:13, fontWeight:500, color:'#2952CC', cursor:'pointer' }}>See all →</span>
+      </div>
+      <div style={{ background:'#fff', border:'1px solid #D6D6D6', borderRadius:16, padding:'0 16px', boxShadow:'0 4px 12px rgba(132,146,166,0.08)' }}>
+        {visible.map((item, i) => (
+          <MsgRowAsp key={item.user} item={item} homeView onTap={(it) => onOpenChat(it, '', '#707070', false)} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function QuotesSection({ quotes }) {
+  return (
+    <div style={{ padding:'0 16px 20px' }}>
+      <div style={{ fontSize:11, fontWeight:500, color:'#ABABAB', letterSpacing:'0.04em', textTransform:'uppercase', marginBottom:14 }}>What your audience says</div>
+      <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+        {quotes.map((q, i) => (
+          <div key={i}>
+            <div style={{ fontSize:14, fontWeight:400, color:'#292929', fontStyle:'italic', lineHeight:'21px', marginBottom:8 }}>"{q.text}"</div>
+            <div style={{ display:'flex', alignItems:'center', gap:7 }}>
+              <img src={q.avatar} alt="" style={{ width:20, height:20, borderRadius:10, objectFit:'cover' }} />
+              <span style={{ fontSize:12, fontWeight:400, color:'#ABABAB' }}>{q.user}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function FilteredListView({ category, items, count, onBack, onOpenChat, answeredChats, hiddenItems }) {
+  const [allApproved, setAllApproved] = React.useState(false);
+  const titles = {
+    interested: 'Opportunities',
+    attention: 'Support',
+    community: 'Fans',
+    replies: 'Replies Ready',
+    all: 'All Messages',
+  };
+  const subtitles = {
+    interested: 'These people are interested in what you offer — reply fast to turn curiosity into clients.',
+    attention: 'Existing clients or urgent situations that need your personal touch. Don\'t leave them waiting.',
+    community: 'Your biggest fans took the time to reach out. A quick reply goes a long way.',
+  };
+  const title = titles[category] || category;
+  const subtitle = subtitles[category];
+  const isReplies = category === 'replies';
+  const visible = items.filter(it => !hiddenItems.has(it.user));
+  const readyCount = visible.filter(it => !!it.draft).length;
+
+  return (
+    <div style={{ position:'absolute', inset:0, zIndex:200, background:'#F7F7F7', display:'flex', flexDirection:'column' }} className="screen-slide-in">
+      {/* Header */}
+      <div style={{ padding:'52px 16px 14px', background:'#fff', borderBottom:'1px solid #E0E0E0', flexShrink:0 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom: subtitle ? 6 : 0 }}>
+          <div onClick={onBack} style={{ cursor:'pointer', padding:8, margin:-8, marginRight:0 }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </div>
+          <span style={{ fontSize:20, fontWeight:700, color:'#292929' }}>{title} · {count}</span>
+        </div>
+        {subtitle && (
+          <div style={{ fontSize:13, fontWeight:400, color:'#707070', lineHeight:'18px', paddingLeft:36 }}>{subtitle}</div>
+        )}
+      </div>
+
+      <div style={{ flex:1, overflowY:'auto', padding:'12px 16px' }}>
+        {/* Agent approve-all banner — replies view only */}
+        {isReplies && !allApproved && readyCount > 0 && (
+          <div style={{ background:'#fff', border:'1px solid #D6D6D6', borderRadius:14, padding:'12px 14px', marginBottom:12, display:'flex', alignItems:'center', gap:10, boxShadow:'0 2px 8px rgba(132,146,166,0.1)' }}>
+            <div style={{ width:28, height:28, borderRadius:14, background:'#F5F5F5', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                <path d="M8 1L9.3 5.7L14 7L9.3 8.3L8 13L6.7 8.3L2 7L6.7 5.7L8 1Z" fill="#707070"/>
+              </svg>
+            </div>
+            <span style={{ flex:1, fontSize:13, fontWeight:400, color:'#292929', lineHeight:'18px' }}>
+              {readyCount} replies drafted and ready. Want to approve and send all at once?
+            </span>
+            <button onClick={() => setAllApproved(true)} style={{ background:'#292929', border:'none', borderRadius:10, padding:'7px 12px', fontSize:13, fontWeight:500, color:'#fff', cursor:'pointer', whiteSpace:'nowrap', fontFamily:'Inter, system-ui, sans-serif' }}>
+              Send all
+            </button>
+          </div>
+        )}
+        {isReplies && allApproved && (
+          <div style={{ background:'#F5F5F5', borderRadius:14, padding:'10px 14px', marginBottom:12, display:'flex', alignItems:'center', gap:8 }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span style={{ fontSize:13, fontWeight:400, color:'#707070' }}>All {readyCount} replies sent.</span>
+          </div>
+        )}
+
+        {visible.map(item => (
+          <div key={item.user} style={{ background:'#fff', borderRadius:12, marginBottom:8, padding:'0 12px', border:'1px solid #E0E0E0' }}>
+            <MsgRowAsp item={item} inRepliesView={isReplies} onTap={(it) => onOpenChat(it, '', '#707070', false)} />
+          </div>
+        ))}
+        {visible.length === 0 && (
+          <div style={{ textAlign:'center', padding:'40px 20px', color:'#707070', fontSize:14 }}>No messages in this category</div>
+        )}
+        <div style={{ height:80 }} />
+      </div>
+    </div>
+  );
+}
+
 /* ═══ INBOX MAIN ═══ */
 
 function InboxV2({ onOverlayChange, openChatOnLoad }) {
-  const [reportCollapsed, setReportCollapsed] = useState(true);
-  const [morningReportVisible, setMorningReportVisible] = useState(false);
-  const [showClearedSheet, setShowClearedSheet] = useState(false);
-  const [chatInteractions, setChatInteractions] = useState(0);
-  const [summaryOpen, setSummaryOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('important');
-  const [reasoningSheet, setReasoningSheet] = useState(null); // { title, body, children }
-  const [showFilteredList, setShowFilteredList] = useState(false);
+  const [activeView, setActiveView] = useState('home'); // 'home'|'interested'|'attention'|'community'|'replies'|'all'
   const [openChat, setOpenChat] = useState(null);
   const [answeredChats, setAnsweredChats] = useState(new Set());
   const [hiddenItems, setHiddenItems] = useState(new Set());
   const [isDismissingChat, setIsDismissingChat] = useState(false);
   const [inboxToast, setInboxToast] = useState('');
   const [inboxSystemToast, setInboxSystemToast] = useState('');
+  const [sentMessages, setSentMessages] = useState({});
+  const [draftMode, setDraftMode] = useState('suggest');
+  const [firstSendDone, setFirstSendDone] = useState(false);
+  const [skipDraftCount, setSkipDraftCount] = useState(0);
+  const [showScoreInfo, setShowScoreInfo] = useState(false);
+  const [showAgentDetail, setShowAgentDetail] = useState(false);
+
   const triggerInboxToast = (msg) => {
     setInboxToast(msg);
     setTimeout(() => setInboxToast(''), 3000);
@@ -2250,17 +2683,8 @@ function InboxV2({ onOverlayChange, openChatOnLoad }) {
     setInboxSystemToast(msg);
     setTimeout(() => setInboxSystemToast(''), 3000);
   };
-  const [headerHidden, setHeaderHidden] = useState(false);
-  const [showPriorities, setShowPriorities] = useState(false);
-  const [priorityFeedbackDone, setPriorityFeedbackDone] = useState(false);
-  const [skipDraftCount, setSkipDraftCount] = useState(0);
-  const [draftMode, setDraftMode] = useState('suggest'); // 'suggest' | 'inline'
-  const [firstSendDone, setFirstSendDone] = useState(false);
-  const [showModeChangeNotif, setShowModeChangeNotif] = useState(false);
-  const scrollRef = useRef(null);
-  const lastScrollTop = useRef(0);
 
-  // Auto-open a chat if passed from onboarding "Reply now"
+  // Auto-open a chat if passed from onboarding
   useEffect(() => {
     if (openChatOnLoad) {
       setTimeout(() => {
@@ -2269,305 +2693,76 @@ function InboxV2({ onOverlayChange, openChatOnLoad }) {
     }
   }, []);
 
-  // Report overlay state AND scroll-hide to parent for nav visibility
+  // Notify parent of overlay state
   useEffect(() => {
-    const anyOverlay = !!openChat || summaryOpen || showPriorities;
-    if (onOverlayChange) onOverlayChange(anyOverlay || headerHidden);
-  }, [openChat, summaryOpen, showPriorities, headerHidden]);
-
-  const handleScroll = () => {
-    if (!scrollRef.current) return;
-    const st = scrollRef.current.scrollTop;
-    const delta = st - lastScrollTop.current;
-
-    if (delta > 5 && st > 40) {
-      // Scrolling down
-      setHeaderHidden(true);
-    } else if (delta < -5) {
-      // Scrolling up
-      setHeaderHidden(false);
-    }
-    lastScrollTop.current = st;
-  };
-
-  const [showFeedbackSheet, setShowFeedbackSheet] = useState(false);
-  const [feedbackCustomText, setFeedbackCustomText] = useState('');
-
-  const [viewedChats, setViewedChats] = useState([]);
-  const [sentMessages, setSentMessages] = useState({});
+    const anyOverlay = !!openChat || activeView !== 'home';
+    if (onOverlayChange) onOverlayChange(anyOverlay);
+  }, [openChat, activeView]);
 
   const handleOpenChat = (item, label, labelColor, isSensitive) => {
-    setOpenChat({ item, label, labelColor, isSensitive });
-    setViewedChats(prev => [item, ...prev.filter(v => v.user !== item.user)]);
+    setOpenChat({ item, label: label || '', labelColor: labelColor || T.gray, isSensitive: !!isSensitive });
   };
 
-  const handleFeedbackReason = (reason) => {
-    setShowFeedbackSheet(false);
-    setPriorityFeedbackDone(true);
+  // All items merged for "all" view
+  const ALL_ITEMS = [...INTERESTED_ITEMS, ...ATTENTION_ITEMS, ...COMMUNITY_ITEMS];
+  const REPLIES_ITEMS = ALL_ITEMS.filter(it => !!it.draft);
+
+  const getCategoryItems = (cat) => {
+    if (cat === 'interested') return INTERESTED_ITEMS;
+    if (cat === 'attention') return ATTENTION_ITEMS;
+    if (cat === 'community') return COMMUNITY_ITEMS;
+    if (cat === 'replies') return REPLIES_ITEMS;
+    return ALL_ITEMS;
   };
 
-  const handleFeedbackCustom = () => {
-    if (!feedbackCustomText.trim()) return;
-    setShowFeedbackSheet(false);
-    setPriorityFeedbackDone(true);
+  const getCategoryCount = (cat) => {
+    if (cat === 'interested') return STATS.interested;
+    if (cat === 'attention') return STATS.attention;
+    if (cat === 'community') return STATS.community;
+    if (cat === 'replies') return STATS.repliesReady;
+    return STATS.totalHandled;
   };
 
-  const counts = {
-    important: IMPORTANT_GROUPS.reduce((sum, g) => sum + g.items.length, 0),
-  };
+  // Icon helpers
+  const IconInterested = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+    </svg>
+  );
+  const IconAttention = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+    </svg>
+  );
+  const IconCommunity = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+    </svg>
+  );
+  const IconReplies = () => (
+    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+      <rect width="10" height="10" rx="2.5" fill="#1E7A3C"/>
+    </svg>
+  );
+  const IconAll = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+    </svg>
+  );
 
-  return (
-    <div style={{ background:T.paper, height:'100%', display:'flex', flexDirection:'column', position:'relative' }}>
-
-      {showPriorities && (
-        <PrioritiesOverlay onDismiss={() => setShowPriorities(false)} />
-      )}
-
-      {/* Top spacing */}
-      <div style={{ paddingTop:52, flexShrink:0 }} />
-
-      {/* Scrollable content */}
-      <div ref={scrollRef} onScroll={handleScroll}
-        style={{ flex:1, overflowY:'auto', overflowX:'hidden', padding:'0 16px 100px 16px' }}>
-        {showModeChangeNotif && (
-          <div className="fade-up" style={{ marginBottom:16, padding:'14px 16px', background:'#F5F5F7', borderRadius:14, display:'flex', gap:12, alignItems:'flex-start' }}>
-            <div style={{ flex:1 }}>
-              <div style={{ fontSize:11, color:T.gray, marginBottom:4, fontWeight:500 }}>Inbox Agent</div>
-              <div style={{ fontSize:13, color:T.ink, lineHeight:1.5, letterSpacing:'-0.01em' }}>I noticed you've been writing your own replies. I'll put my drafts in the conversation from now on. Easier to compare.</div>
-            </div>
-            <div onClick={() => setShowModeChangeNotif(false)} style={{ cursor:'pointer', color:T.gray, fontSize:18, lineHeight:1, paddingTop:1 }}>×</div>
-          </div>
-        )}
-        {/* ═══ Morning Report ═══ */}
-        {morningReportVisible && (
-          <div className="fade-up" style={{ marginBottom:16 }}>
-            {/* Greeting */}
-            <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:4 }}>
-              <h2 style={{ fontSize:22, fontWeight:700, color:T.ink, letterSpacing:'-0.03em', lineHeight:1.2, margin:0 }}>
-                Good morning, Sofia ☀️
-              </h2>
-              <div onClick={() => setMorningReportVisible(false)}
-                style={{ cursor:'pointer', color:T.gray, fontSize:16, lineHeight:1, padding:'4px', flexShrink:0, marginTop:2 }}>✕</div>
-            </div>
-            <div style={{ fontSize:13, color:T.gray, marginBottom:16, letterSpacing:'-0.01em' }}>
-              8 messages need you · 12 replies ready
-            </div>
-
-            {/* Data card */}
-            <div style={{ background:'#fff', borderRadius:16, border:`1px solid ${T.lightGray}`, padding:'16px 18px' }}>
-              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
-                <span style={{ fontSize:15, fontWeight:600, color:T.ink, letterSpacing:'-0.02em' }}>Handled overnight</span>
-                <span onClick={() => setShowClearedSheet(true)}
-                  style={{ fontSize:13, color:'#2952CC', cursor:'pointer', letterSpacing:'-0.01em', fontWeight:500 }}>
-                  15 cleared ›
-                </span>
-              </div>
-
-              {/* Segmented progress bar */}
-              <div style={{ display:'flex', gap:3, height:7, borderRadius:4, overflow:'hidden', marginBottom:12 }}>
-                <div style={{ width:'9%', background:'#34C759', borderRadius:4 }} />
-                <div style={{ width:'48%', background:'#2952CC', borderRadius:4 }} />
-                <div style={{ width:'43%', background:T.lightGray, borderRadius:4 }} />
-              </div>
-
-              {/* Stats row */}
-              <div style={{ display:'flex', gap:0, fontSize:13, color:T.gray, letterSpacing:'-0.01em' }}>
-                <span><strong style={{ color:T.ink, fontWeight:600 }}>3</strong> leads</span>
-                <span style={{ margin:'0 8px', color:T.lightGray }}>·</span>
-                <span><strong style={{ color:T.ink, fontWeight:600 }}>20</strong> ready</span>
-                <span style={{ margin:'0 8px', color:T.lightGray }}>·</span>
-                <span><strong style={{ color:T.ink, fontWeight:600 }}>~5 min</strong> to review</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <ImportantTab onOpenChat={handleOpenChat} answeredChats={answeredChats}
-          hiddenItems={hiddenItems}
-          viewedChats={viewedChats}
-          priorityFeedbackDone={priorityFeedbackDone}
-          onFeedbackGood={() => setPriorityFeedbackDone(true)}
-          onFeedbackBad={() => setShowFeedbackSheet(true)}
-          headerHidden={headerHidden}
-          onShowReasoning={() => setReasoningSheet({ title:'How I prioritized', useChildren:true })} />
-      </div>
-
-      {/* ═══ Floating agent pill — hidden ═══ */}
-
-      {/* ═══ Expanded agent screen ═══ */}
-      {summaryOpen && <AgentExpandedScreen onDismiss={() => setSummaryOpen(false)} />}
-
-      {/* ═══ Reasoning Bottom Sheet (Home context) ═══ */}
-      {reasoningSheet && (
-        <ReasoningSheet
-          title={reasoningSheet.title}
-          body={reasoningSheet.body}
-          onClose={() => setReasoningSheet(null)}
-          showSources={!reasoningSheet.useChildren}
-          showFeedback={true}
-        >
-          {reasoningSheet.useChildren && (
-            <>
-              <ul style={{ fontSize:16, fontWeight:400, color:'#292929', lineHeight:'24px', margin:0, paddingLeft:24, listStyleType:'disc' }}>
-                <li style={{ marginBottom:0 }}>I focused on people interested in your 12-week course and those asking questions about your services.</li>
-                <li style={{ marginBottom:0 }}>I filtered out spam, empty messages, and conversations that don't need your attention right now.</li>
-                <li>The order is based on intent signals: how engaged each person is with your content and how likely they are to convert.</li>
-              </ul>
-              {/* Filtered conversations card */}
-              <div onClick={() => { setReasoningSheet(null); setShowFilteredList(true); }}
-                style={{ display:'flex', alignItems:'center', background:'#F5F5F5', border:'1px solid #D6D6D6', borderRadius:12, boxShadow:'0 8px 16px rgba(132,146,166,0.08)', padding:16, marginTop:16, cursor:'pointer' }}>
-                <div style={{ flex:1 }}>
-                  <div style={{ fontSize:14, fontWeight:400, color:'#292929', lineHeight:'20px' }}>Filtered out conversations</div>
-                  <div style={{ fontSize:12, fontWeight:400, color:'#707070', lineHeight:'16px' }}>List of DMs</div>
-                </div>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#707070" strokeWidth="2" style={{ transform:'rotate(-90deg)', flexShrink:0 }}><polyline points="6 9 12 15 18 9"/></svg>
-              </div>
-            </>
-          )}
-        </ReasoningSheet>
-      )}
-
-      {/* ═══ Filtered List Full Screen ═══ */}
-      {showFilteredList && (() => {
-        const filteredGroup = IMPORTANT_GROUPS.find(g => g.icon === 'urgent');
-        if (!filteredGroup) return null;
-        return (
-          <div style={{ position:'absolute', inset:0, zIndex:210, background:'#F5F5F5', display:'flex', flexDirection:'column' }}>
-            {/* Header */}
-            <div style={{ padding:'52px 16px 12px', background:'#fff', borderBottom:'1px solid #D6D6D6', display:'flex', alignItems:'center', gap:12, flexShrink:0 }}>
-              <div onClick={() => setShowFilteredList(false)} style={{ cursor:'pointer', padding:8, margin:-8 }}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
-              </div>
-              <span style={{ fontSize:20, fontWeight:700, color:'#292929', lineHeight:'28px' }}>Filtered out</span>
-            </div>
-            {/* List */}
-            <div style={{ flex:1, overflowY:'auto', padding:'8px 0' }}>
-              {filteredGroup.items.map((item, i) => (
-                <div key={item.user} style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 16px', background:'#fff', marginBottom:1 }}>
-                  <img src={item.avatar} alt="" style={{ width:44, height:44, borderRadius:400, objectFit:'cover', flexShrink:0, border:'0.5px solid rgba(44,50,58,0.12)' }} />
-                  <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                      <span style={{ fontSize:14, fontWeight:500, color:'#292929', lineHeight:'20px' }}>{item.name || item.user}</span>
-                      <span style={{ fontSize:12, fontWeight:400, color:'#707070', lineHeight:'16px' }}>{item.time}</span>
-                    </div>
-                    <div style={{ fontSize:14, fontWeight:400, color:'#707070', lineHeight:'20px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.msg}</div>
-                    <div style={{ fontSize:12, fontWeight:400, color:'#707070', lineHeight:'16px', marginTop:2 }}>{item.summary}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-      })()}
-
-      {/* ═══ What I cleared full screen ═══ */}
-      {showClearedSheet && (
-        <div style={{ position:'absolute', inset:0, zIndex:80 }}>
-          <div className="sheet-up" style={{
-            position:'absolute', inset:0,
-            background:'#151515',
-            padding:'60px 24px 48px',
-            display:'flex', flexDirection:'column', gap:0,
-            overflowY:'auto',
-          }}>
-            <div style={{ fontSize:22, fontWeight:700, color:'#fff', letterSpacing:'-0.03em', marginBottom:8 }}>What I cleared</div>
-            <div style={{ fontSize:14, color:'rgba(255,255,255,0.5)', lineHeight:1.55, marginBottom:24 }}>These didn't need your time. Here's why I skipped them.</div>
-            {[
-              { user:'@carlos_99',   reason:'Spam / no clear intent' },
-              { user:'@promo.deals', reason:'Promotional account' },
-              { user:'@random.user', reason:'Already answered by automation' },
-              { user:'@throwaway22', reason:'No reply to follow-up after 7 days' },
-              { user:'@sales.bot',   reason:'Bot-like pattern detected' },
-              { user:'@lurker.44',   reason:'Commented on old post, no DM intent' },
-            ].map((item, i) => (
-              <div key={i} style={{ display:'flex', alignItems:'center', gap:12, paddingBottom:14, marginBottom:14, borderBottom: i < 5 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
-                <div style={{ width:36, height:36, borderRadius:18, background:'rgba(255,255,255,0.08)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:14, color:'rgba(255,255,255,0.3)' }}>
-                  {item.user[1].toUpperCase()}
-                </div>
-                <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontSize:13, fontWeight:600, color:'#fff', letterSpacing:'-0.01em' }}>{item.user}</div>
-                  <div style={{ fontSize:12, color:'rgba(255,255,255,0.35)', marginTop:2 }}>{item.reason}</div>
-                </div>
-              </div>
-            ))}
-            <button onClick={() => setShowClearedSheet(false)}
-              style={{ width:'100%', padding:'14px 0', background:'#fff', color:'#151515', border:'none', borderRadius:12, fontSize:15, fontWeight:600, cursor:'pointer', marginTop:8, letterSpacing:'-0.01em' }}>
-              Got it
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ═══ Feedback bottom sheet ═══ */}
-      {showFeedbackSheet && (
-        <div style={{ position:'absolute', inset:0, zIndex:80 }}>
-          {/* Dim backdrop */}
-          <div onClick={() => setShowFeedbackSheet(false)} style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.25)' }} />
-          {/* Sheet */}
-          <div className="sheet-up" style={{
-            position:'absolute', bottom:0, left:0, right:0,
-            background:'#151515', borderRadius:'22px 22px 0 0',
-            padding:'10px 22px 48px',
-          }}>
-            <div style={{ width:36, height:4, background:'rgba(255,255,255,0.14)', borderRadius:2, margin:'0 auto 20px' }} />
-            <div style={{ fontSize:15, fontWeight:500, color:'#fff', marginBottom:14, letterSpacing:'-0.01em' }}>What feels off?</div>
-            <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-              {[
-                'Some of these aren\'t important to me',
-                'Missing messages I care about',
-                'Groups don\'t match how I think',
-                'Too many categories',
-                'The order feels wrong',
-              ].map(reason => (
-                <div key={reason} onClick={() => handleFeedbackReason(reason)}
-                  style={{ padding:'13px 16px', background:'rgba(255,255,255,0.06)', borderRadius:12, cursor:'pointer', fontSize:14, color:'rgba(255,255,255,0.8)', letterSpacing:'-0.01em', transition:'background .15s ease', border:'1px solid rgba(255,255,255,0.06)' }}>
-                  {reason}
-                </div>
-              ))}
-            </div>
-            <div style={{ display:'flex', gap:8, marginTop:12, alignItems:'center' }}>
-              <div style={{ flex:1, padding:'13px 16px', background:'rgba(255,255,255,0.06)', borderRadius:12, border:'1px solid rgba(255,255,255,0.06)' }}>
-                <input value={feedbackCustomText} onChange={e => setFeedbackCustomText(e.target.value)}
-                  placeholder="Something else..."
-                  onKeyDown={e => { if (e.key === 'Enter') handleFeedbackCustom(); }}
-                  style={{ border:'none', outline:'none', fontSize:14, color:'#fff', width:'100%', background:'transparent', fontFamily:'Inter, system-ui, sans-serif', letterSpacing:'-0.01em' }} />
-              </div>
-              {feedbackCustomText.trim() && (
-                <div onClick={handleFeedbackCustom}
-                  style={{ width:36, height:36, borderRadius:18, background:'#fff', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0 }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#151515" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Stacked inbox snackbars — agent above, system below — sit above bottom nav */}
-      {(inboxToast || inboxSystemToast) && (
-        <div style={{ position:'absolute', bottom:80, left:0, right:0, zIndex:300, pointerEvents:'none', display:'flex', flexDirection:'column' }}>
-          {inboxToast && <AgentSnackbar message={inboxToast} />}
-          {inboxSystemToast && <SystemSnackbar message={inboxSystemToast} />}
-        </div>
-      )}
-
-      {/* Chat Detail Overlay */}
-      {openChat && (
+  if (openChat) {
+    return (
+      <div style={{ position:'absolute', inset:0, zIndex:300 }}>
         <ChatDetail
           item={openChat.item}
           label={openChat.label}
           labelColor={openChat.labelColor}
           isSensitive={openChat.isSensitive}
           draftMode={draftMode}
-          onClose={() => {
-            setOpenChat(null);
-          }}
+          onClose={() => setOpenChat(null)}
           onSent={(user, text) => {
             setAnsweredChats(prev => new Set([...prev, user]));
             setSentMessages(prev => ({ ...prev, [user]: text }));
-            const newCount = chatInteractions + 1;
-            setChatInteractions(newCount);
-            if (newCount >= 3) setMorningReportVisible(false);
           }}
           sentMessage={sentMessages[openChat?.item?.user] || ''}
           onSkipDraft={() => {
@@ -2575,7 +2770,7 @@ function InboxV2({ onOverlayChange, openChatOnLoad }) {
             setSkipDraftCount(newCount);
             return newCount;
           }}
-          onDraftFeedback={() => { setDraftMode('inline'); setShowModeChangeNotif(true); }}
+          onDraftFeedback={() => setDraftMode('inline')}
           isFirstSend={!firstSendDone}
           onFirstSend={() => setFirstSendDone(true)}
           isDismissing={isDismissingChat}
@@ -2584,15 +2779,177 @@ function InboxV2({ onOverlayChange, openChatOnLoad }) {
               setHiddenItems(prev => new Set([...prev, openChat.item.user]));
             }
             setIsDismissingChat(true);
-            triggerInboxToast('Got it — I\'m learning.');
-            triggerInboxSystemToast('DM removed from your important list');
+            triggerInboxToast("Got it, I'm learning.");
+            triggerInboxSystemToast('DM removed from your list');
             setTimeout(() => {
               setOpenChat(null);
               setIsDismissingChat(false);
             }, 380);
           }}
         />
+      </div>
+    );
+  }
+
+  if (activeView !== 'home') {
+    return (
+      <div style={{ position:'absolute', inset:0 }}>
+        <FilteredListView
+          category={activeView}
+          items={getCategoryItems(activeView)}
+          count={getCategoryCount(activeView)}
+          onBack={() => setActiveView('home')}
+          onOpenChat={handleOpenChat}
+          answeredChats={answeredChats}
+          hiddenItems={hiddenItems}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ height:'100%', display:'flex', flexDirection:'column', background:'#F7F7F7', position:'relative' }}>
+      {/* Status bar space */}
+      <div style={{ paddingTop:52, flexShrink:0 }} />
+
+      {/* Header */}
+      <div style={{ padding:'0 16px 12px', flexShrink:0, background:'#F7F7F7' }}>
+        <div style={{ fontSize:22, fontWeight:700, color:'#292929', letterSpacing:'-0.03em' }}>Good morning, Sofia</div>
+        <div style={{ fontSize:13, color:'#707070', marginTop:2 }}>Wednesday, Apr 16</div>
+      </div>
+
+      {/* Scrollable content */}
+      <div style={{ flex:1, overflowY:'auto', overflowX:'hidden' }}>
+
+        {/* Agent overnight card */}
+        <AgentOvernightCard onShowMore={() => setShowAgentDetail(true)} />
+
+        {/* Pills row — horizontal scroll */}
+        <div style={{ display:'flex', gap:10, overflowX:'auto', padding:'0 16px 20px', scrollbarWidth:'none', WebkitOverflowScrolling:'touch' }}>
+          <CirclePill
+            icon={<IconInterested />}
+            count={STATS.interested}
+            label="Opportunities"
+            color="#E8710A"
+            onTap={() => setActiveView('interested')}
+          />
+          <CirclePill
+            icon={<IconAttention />}
+            count={STATS.attention}
+            label="Support"
+            color="#D52D14"
+            onTap={() => setActiveView('attention')}
+          />
+          <CirclePill
+            icon={<IconCommunity />}
+            count={STATS.community}
+            label="Fans"
+            color="#7627BB"
+            onTap={() => setActiveView('community')}
+          />
+          <CirclePill
+            icon={<IconReplies />}
+            count={STATS.repliesReady}
+            label="Replies ready"
+            color="#2952CC"
+            onTap={() => setActiveView('replies')}
+          />
+          <CirclePill
+            icon={<IconAll />}
+            count={null}
+            label="All"
+            subLabel={null}
+            color="#292929"
+            onTap={() => setActiveView('all')}
+          />
+        </div>
+
+        {/* Optimization Card — hidden for now */}
+
+        {/* Feed: Opportunities */}
+        <FeedSection
+          title="Opportunities"
+          count={STATS.interested}
+          items={INTERESTED_ITEMS.slice(0, 3)}
+          onSeeAll={() => setActiveView('interested')}
+          onOpenChat={handleOpenChat}
+          answeredChats={answeredChats}
+          hiddenItems={hiddenItems}
+        />
+
+        {/* Feed: Support */}
+        <FeedSection
+          title="Support"
+          count={STATS.attention}
+          items={ATTENTION_ITEMS.slice(0, 3)}
+          onSeeAll={() => setActiveView('attention')}
+          onOpenChat={handleOpenChat}
+          answeredChats={answeredChats}
+          hiddenItems={hiddenItems}
+        />
+
+        {/* Feed: Fans */}
+        <FeedSection
+          title="Fans"
+          count={STATS.community}
+          items={COMMUNITY_ITEMS.slice(0, 2)}
+          onSeeAll={() => setActiveView('community')}
+          onOpenChat={handleOpenChat}
+          answeredChats={answeredChats}
+          hiddenItems={hiddenItems}
+        />
+
+        {/* Quotes */}
+        <QuotesSection quotes={QUOTES} />
+
+        {/* Bottom padding for nav */}
+        <div style={{ height:90 }} />
+      </div>
+
+      {/* Score info bottom sheet */}
+      {showScoreInfo && (
+        <ReasoningSheet
+          title="What is Inbox Score?"
+          body="Your Inbox Score reflects how well your inbox is optimized. It's based on reply coverage (are important messages getting answered?), automation efficiency (how much is handled without you?), spam filtering accuracy, and response time on high-priority threads. A score of 78 means you're doing well — there's still room to improve reply speed on Needs Attention threads."
+          onClose={() => setShowScoreInfo(false)}
+          showSources={false}
+          showFeedback={false}
+        />
       )}
+
+      {/* Agent detail bottom sheet */}
+      {showAgentDetail && (
+        <ReasoningSheet
+          title="What happened overnight"
+          onClose={() => setShowAgentDetail(false)}
+          showSources={false}
+          showFeedback={false}
+        >
+          <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+            {[
+              { icon:'💰', text:'3 new leads came in — Laura, Jenna, and Carlos all asked about the 12-week program.' },
+              { icon:'🔄', text:'Warm follow-up from @jolato82 who went cold last week. Reply drafted and ready.' },
+              { icon:'⚠️', text:'Diana Morales still can\'t access module 3. Second message sent. Needs your reply today.' },
+              { icon:'🤖', text:'180 DMs handled by Manychat automations. 94% spam filtered without reaching you.' },
+              { icon:'✅', text:'19 replies drafted and waiting for your review.' },
+            ].map((item, i) => (
+              <div key={i} style={{ display:'flex', gap:12, alignItems:'flex-start' }}>
+                <span style={{ fontSize:18, flexShrink:0 }}>{item.icon}</span>
+                <span style={{ fontSize:14, fontWeight:400, color:'#292929', lineHeight:'20px' }}>{item.text}</span>
+              </div>
+            ))}
+          </div>
+        </ReasoningSheet>
+      )}
+
+      {/* Stacked snackbars */}
+      {(inboxToast || inboxSystemToast) && (
+        <div style={{ position:'absolute', bottom:80, left:0, right:0, zIndex:300, pointerEvents:'none', display:'flex', flexDirection:'column' }}>
+          {inboxToast && <AgentSnackbar message={inboxToast} />}
+          {inboxSystemToast && <SystemSnackbar message={inboxSystemToast} />}
+        </div>
+      )}
+
     </div>
   );
 }
