@@ -1677,6 +1677,8 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
 
   // Reasoning bottom sheet
   const [reasoningSheet, setReasoningSheet] = useState(null); // null or { title, body }
+  const [agentOverlayOpen, setAgentOverlayOpen] = useState(false);
+  const [currentDraft, setCurrentDraft] = useState(item.draft || '');
 
   const intentColors = {
     'Interested':'#E8710A', 'FAQ':'#2952CC', 'Collab':'#7627BB',
@@ -2024,8 +2026,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
     )}
 
     {/* ═══ Message Input — always visible ═══ */}
-    {(mode !== 'suggest' || !item.draft) && (
-      <div style={{ margin:'0 16px 8px', flexShrink:0, animation:'toastUp .4s cubic-bezier(.25,.46,.45,.94) both' }}>
+    <div style={{ margin:'0 16px 8px', flexShrink:0 }}>
         {/* Follow-up question — shows after user edits/dismisses/types instead of sending directly */}
         {/* Edit feedback — same style as follow-up card */}
         {editFeedback === 'asking' && (
@@ -2120,13 +2121,23 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
           )}
         </div>
       </div>
-    )}
+    </div>
 
     {/* Ask me about this DM — agent overlay trigger */}
-    <div style={{ margin:'0 16px 16px', background:'#fff', border:'1px solid #D6D6D6', borderRadius:12, padding:'8px 16px', display:'flex', alignItems:'center', gap:8, flexShrink:0, cursor:'pointer' }}>
+    <div onClick={() => setAgentOverlayOpen(true)} style={{ margin:'0 16px 16px', background:'#fff', border:'1px solid #D6D6D6', borderRadius:12, padding:'8px 16px', display:'flex', alignItems:'center', gap:8, flexShrink:0, cursor:'pointer' }}>
       <span style={{ fontSize:16, color:'#707070' }}>✦</span>
       <span style={{ fontSize:16, color:'#878787', lineHeight:'24px' }}>Ask me about this DM...</span>
     </div>
+
+    {/* Agent Overlay */}
+    {agentOverlayOpen && (
+      <AgentOverlay
+        item={item}
+        draft={currentDraft || item.draft}
+        onChangeDraft={(newDraft) => setCurrentDraft(newDraft)}
+        onClose={() => setAgentOverlayOpen(false)}
+      />
+    )}
 
     {/* Reasoning Bottom Sheet */}
     {reasoningSheet && (
@@ -3192,9 +3203,17 @@ function FocusMode({ title, items, onClose, onSent }) {
           item={item}
           label={item.intent || ''}
           labelColor="#707070"
-          onClose={() => setChatDetailOpen(false)}
+          onClose={() => {
+            setChatDetailOpen(false);
+            // If this contact was replied to, mark as sent and advance
+            if (sentSet.has(item.user)) {
+              setTimeout(() => {
+                if (currentIdx < items.length) goNext();
+              }, 300);
+            }
+          }}
           isSensitive={false}
-          onSent={(user, text) => {}}
+          onSent={(user, text) => { setSentSet(prev => new Set([...prev, user])); if (onSent) onSent(user); }}
           draftMode="suggest"
           isFirstSend={true}
           onFirstSend={() => {}}
