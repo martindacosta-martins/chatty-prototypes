@@ -2836,6 +2836,7 @@ function FocusMode({ title, items, onClose, onSent }) {
   const [replyMode, setReplyMode] = useState(false);
   const [replyVal, setReplyVal] = useState('');
   const [agentOverlayOpen, setAgentOverlayOpen] = useState(false);
+  const [chatDetailOpen, setChatDetailOpen] = useState(false);
   const [currentDraft, setCurrentDraft] = useState('');
   const [customSentMsg, setCustomSentMsg] = useState('');
   const replyInputRef = useRef(null);
@@ -2988,8 +2989,8 @@ function FocusMode({ title, items, onClose, onSent }) {
 
         {/* Contact card */}
         <div style={{ border:'1px solid #D6D6D6', borderRadius:16, padding:20, display:'flex', flexDirection:'column', gap:16 }}>
-          {/* Contact info */}
-          <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+          {/* Contact info — tappable to open full chat */}
+          <div onClick={() => setChatDetailOpen(true)} style={{ display:'flex', alignItems:'center', gap:12, cursor:'pointer' }}>
             <img src={item.avatar} alt="" style={{ width:44, height:44, borderRadius:400, objectFit:'cover', border:'0.5px solid rgba(44,50,58,0.12)' }} />
             <div>
               <div style={{ display:'flex', alignItems:'center', gap:4 }}>
@@ -3016,7 +3017,7 @@ function FocusMode({ title, items, onClose, onSent }) {
             }
             if (count <= 0) return null;
             return (
-              <div style={{ fontSize:12, fontWeight:400, color:'#707070', marginBottom:8, display:'flex', alignItems:'center', gap:2, cursor:'pointer' }}>
+              <div onClick={() => setChatDetailOpen(true)} style={{ fontSize:12, fontWeight:400, color:'#707070', marginBottom:8, display:'flex', alignItems:'center', gap:2, cursor:'pointer' }}>
                 <span>{count} previous messages</span>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#707070" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
               </div>
@@ -3140,6 +3141,21 @@ function FocusMode({ title, items, onClose, onSent }) {
             <button onClick={handleUndo} style={{ background:'none', border:'none', color:'#fff', fontWeight:700, cursor:'pointer', fontSize:13, textDecoration:'underline' }}>Undo</button>
           </div>
         </div>
+      )}
+
+      {/* Full Chat Detail */}
+      {chatDetailOpen && item && (
+        <ChatDetail
+          item={item}
+          label={item.intent || ''}
+          labelColor="#707070"
+          onClose={() => setChatDetailOpen(false)}
+          isSensitive={false}
+          onSent={(user, text) => {}}
+          draftMode="suggest"
+          isFirstSend={true}
+          onFirstSend={() => {}}
+        />
       )}
 
       {/* Agent Overlay */}
