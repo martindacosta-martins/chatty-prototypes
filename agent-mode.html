@@ -2953,8 +2953,10 @@ function FocusMode({ title, items, onClose, onSent }) {
 
   // Sync currentDraft when card changes
   useEffect(() => {
-    setCurrentDraft(item.draft || '');
-    setAgentOverlayOpen(false);
+    if (item) {
+      setCurrentDraft(item.draft || '');
+      setAgentOverlayOpen(false);
+    }
   }, [currentIdx]);
 
   // Touch swipe handlers
