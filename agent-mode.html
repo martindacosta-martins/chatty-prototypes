@@ -2666,31 +2666,91 @@ function AgentOverlay({ item, draft, onChangeDraft, onClose }) {
     { from:'agent', text:'Is there anything you want to know about this contact or want me to do?' }
   ]);
   const [input, setInput] = useState('');
+  const [pendingAction, setPendingAction] = useState(null); // { newDraft, closeAfter, skipContact }
   const inputRef = useRef(null);
+  const msgsEndRef = useRef(null);
 
   useEffect(() => {
     if (inputRef.current) setTimeout(() => inputRef.current.focus(), 200);
   }, []);
 
-  const getAgentResponse = (q) => {
+  // Auto-scroll to latest message
+  useEffect(() => {
+    if (msgsEndRef.current) msgsEndRef.current.scrollIntoView({ behavior:'smooth' });
+  }, [msgs.length]);
+
+  // Generate proposal based on user query
+  const getProposal = (q) => {
     const lower = q.toLowerCase();
-    if (lower.match(/warm|friend/)) { onChangeDraft('\u{1F49B} ' + draft); return 'Done \u2014 I made it warmer.'; }
-    if (lower.match(/short|concise|brief/)) { const s = draft.split(/(?<=[.!?])\s+/).slice(0,2).join(' '); onChangeDraft(s); return 'Shortened it for you.'; }
-    if (lower.match(/spanish|espa\u00f1ol/)) { onChangeDraft('[ES] ' + draft); return 'Switched to Spanish.'; }
-    if (lower.match(/ignore|skip|don't show|remove/)) { onChangeDraft(''); return 'Got it \u2014 I\'ll skip this contact.'; }
-    if (lower.match(/book|link|calendly/)) { onChangeDraft(draft + ' \u2192 calendly.com/sofia'); return 'Added your booking link.'; }
-    if (lower.match(/tell me|who is|about|more info|background/)) { return item.context || item.contactBio || 'This contact has been engaging with your content recently.'; }
-    if (lower.match(/why|reason|explain/)) { return item.styleReason || 'I based this reply on your usual tone and the context of their message.'; }
-    onChangeDraft(draft + ' \u2728');
-    return 'I\'ll keep that in mind for next time.';
+    if (lower.match(/warm|friend/)) {
+      const newDraft = '💛 ' + draft;
+      return { thinking:'Adjusting the tone...', proposal:'How about this?\n\n"' + newDraft + '"', question:'Want me to update the reply?', newDraft, closeAfter:true };
+    }
+    if (lower.match(/short|concise|brief/)) {
+      const newDraft = draft.split(/(?<=[.!?])\s+/).slice(0,2).join(' ');
+      return { thinking:'Shortening it...', proposal:'Here\'s a shorter version:\n\n"' + newDraft + '"', question:'Should I use this instead?', newDraft, closeAfter:true };
+    }
+    if (lower.match(/spanish|español/)) {
+      const newDraft = '[ES] ' + draft;
+      return { thinking:'Translating...', proposal:'Here it is in Spanish:\n\n"' + newDraft + '"', question:'Want me to switch to this?', newDraft, closeAfter:true };
+    }
+    if (lower.match(/ignore|skip|don't show|remove|archive/)) {
+      return { thinking:'Checking...', proposal:'I\'ll archive this contact and won\'t show them again.', question:'Confirm?', newDraft:'', closeAfter:true, skipContact:true };
+    }
+    if (lower.match(/book|link|calendly/)) {
+      const newDraft = draft + ' → calendly.com/sofia';
+      return { thinking:'Adding the link...', proposal:'I\'ll add your booking link at the end:\n\n"' + newDraft + '"', question:'Look good?', newDraft, closeAfter:true };
+    }
+    if (lower.match(/tell me|who is|about|more info|background/)) {
+      const info = item.contactBioExpanded || item.context || 'This contact has been engaging with your content recently.';
+      return { thinking:'Looking up...', proposal: info, question:null }; // Info only, no confirmation needed
+    }
+    if (lower.match(/why|reason|explain/)) {
+      const info = item.styleReason || 'I based this reply on your usual tone and the context of their message.';
+      return { thinking:'Let me explain...', proposal: info, question:null };
+    }
+    return { thinking:'Thinking...', proposal:'I\'ll keep that in mind for future replies.', question:null };
   };
 
   const send = () => {
     if (!input.trim()) return;
     const userMsg = input.trim();
     setInput('');
-    const agentReply = getAgentResponse(userMsg);
-    setMsgs(prev => [...prev, { from:'user', text:userMsg }, { from:'agent', text:agentReply }]);
+
+    // Add user message
+    setMsgs(prev => [...prev, { from:'user', text:userMsg }]);
+
+    // Add thinking
+    setTimeout(() => {
+      setMsgs(prev => [...prev, { from:'thinking' }]);
+    }, 200);
+
+    // Replace thinking with proposal
+    const proposal = getProposal(userMsg);
+    setTimeout(() => {
+      setMsgs(prev => {
+        const withoutThinking = prev.filter(m => m.from !== 'thinking');
+        const newMsgs = [...withoutThinking, { from:'agent', text:proposal.proposal }];
+        if (proposal.question) {
+          newMsgs.push({ from:'confirm', text:proposal.question });
+          setPendingAction({ newDraft:proposal.newDraft, closeAfter:proposal.closeAfter, skipContact:proposal.skipContact });
+        }
+        return newMsgs;
+      });
+    }, 1200);
+  };
+
+  const handleConfirm = (yes) => {
+    if (yes && pendingAction) {
+      if (pendingAction.newDraft !== undefined) onChangeDraft(pendingAction.newDraft);
+      setMsgs(prev => [...prev, { from:'user', text:'Yes' }, { from:'agent', text:'Done ✓' }]);
+      setPendingAction(null);
+      // Close overlay after a brief moment
+      if (pendingAction.closeAfter) setTimeout(onClose, 800);
+    } else {
+      setMsgs(prev => [...prev, { from:'user', text:'No' }, { from:'agent', text:'Okay, what would you prefer?' }]);
+      setPendingAction(null);
+    }
   };
 
   return (
@@ -2706,20 +2766,49 @@ function AgentOverlay({ item, draft, onChangeDraft, onClose }) {
       <div style={{ flex:1 }} />
 
       {/* Messages */}
-      <div style={{ padding:'0 20px 12px', display:'flex', flexDirection:'column', gap:8, maxHeight:'50%', overflowY:'auto' }}>
-        {msgs.map((m, i) => (
-          <div key={i} className="siri-bubble" style={{ animationDelay: i * 60 + 'ms', display:'flex', justifyContent: m.from === 'user' ? 'flex-end' : 'flex-start' }}>
-            <div style={{
-              maxWidth:'82%', fontSize:14, lineHeight:1.5,
-              background: m.from === 'user' ? '#FFFFFF' : 'rgba(255,255,255,0.16)',
-              color: m.from === 'user' ? '#292929' : '#FFFFFF',
-              border: m.from === 'user' ? 'none' : '1px solid rgba(255,255,255,0.22)',
-              padding:'10px 14px',
-              borderRadius: m.from === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-              backdropFilter: m.from === 'user' ? 'none' : 'blur(10px)',
-            }}>{m.text}</div>
-          </div>
-        ))}
+      <div style={{ padding:'0 20px 12px', display:'flex', flexDirection:'column', gap:8, maxHeight:'60%', overflowY:'auto' }}>
+        {msgs.map((m, i) => {
+          // Thinking indicator
+          if (m.from === 'thinking') {
+            return (
+              <div key={i} className="siri-bubble" style={{ display:'flex', justifyContent:'flex-start' }}>
+                <div style={{ fontSize:14, color:'rgba(255,255,255,0.5)', animation:'pulse 1.2s ease infinite' }}>Thinking...</div>
+              </div>
+            );
+          }
+          // Confirm buttons
+          if (m.from === 'confirm') {
+            return (
+              <div key={i} className="siri-bubble" style={{ animationDelay: i * 60 + 'ms', display:'flex', flexDirection:'column', gap:8 }}>
+                <div style={{ fontSize:14, lineHeight:1.5, color:'#FFFFFF', background:'rgba(255,255,255,0.16)', border:'1px solid rgba(255,255,255,0.22)', padding:'10px 14px', borderRadius:'18px 18px 18px 4px', backdropFilter:'blur(10px)', display:'inline-block' }}>
+                  {m.text}
+                </div>
+                <div style={{ display:'flex', gap:8 }}>
+                  <button onClick={() => handleConfirm(true)}
+                    style={{ padding:'8px 20px', background:'#FFFFFF', border:'none', borderRadius:100, fontSize:13, fontWeight:500, color:'#292929', cursor:'pointer' }}>Yes</button>
+                  <button onClick={() => handleConfirm(false)}
+                    style={{ padding:'8px 20px', background:'rgba(255,255,255,0.12)', border:'1px solid rgba(255,255,255,0.3)', borderRadius:100, fontSize:13, fontWeight:500, color:'#FFFFFF', cursor:'pointer', backdropFilter:'blur(10px)' }}>No</button>
+                </div>
+              </div>
+            );
+          }
+          // Regular messages
+          return (
+            <div key={i} className="siri-bubble" style={{ animationDelay: i * 60 + 'ms', display:'flex', justifyContent: m.from === 'user' ? 'flex-end' : 'flex-start' }}>
+              <div style={{
+                maxWidth:'82%', fontSize:14, lineHeight:1.5,
+                background: m.from === 'user' ? '#FFFFFF' : 'rgba(255,255,255,0.16)',
+                color: m.from === 'user' ? '#292929' : '#FFFFFF',
+                border: m.from === 'user' ? 'none' : '1px solid rgba(255,255,255,0.22)',
+                padding:'10px 14px',
+                borderRadius: m.from === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+                backdropFilter: m.from === 'user' ? 'none' : 'blur(10px)',
+                whiteSpace:'pre-line',
+              }}>{m.text}</div>
+            </div>
+          );
+        })}
+        <div ref={msgsEndRef} />
       </div>
 
       {/* Input row */}
