@@ -2956,31 +2956,27 @@ function FocusMode({ title, items, onClose, onSent }) {
   return (
     <div className="screen-slide-in" style={{ position:'absolute', inset:0, zIndex:100, background:'#fff', display:'flex', flexDirection:'column' }}>
 
-      {/* Completion state */}
-      {allDone ? (
-        <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:32 }}>
-          <div style={{ fontSize:48, marginBottom:24 }}>✅</div>
-          <div style={{ fontSize:24, fontWeight:700, color:'#292929', textAlign:'center', lineHeight:'32px', marginBottom:8 }}>All done!</div>
-          <div style={{ fontSize:16, fontWeight:400, color:'#707070', textAlign:'center', lineHeight:'24px', marginBottom:40 }}>You've covered all {items.length} conversations.</div>
-          <button onClick={onClose}
-            style={{ padding:'14px 48px', background:'#292929', border:'none', borderRadius:12, fontSize:17, fontWeight:500, color:'#fff', cursor:'pointer', lineHeight:'24px' }}>
-            Go back
-          </button>
-        </div>
-      ) : (
-      <>
-
-      {/* Header */}
+      {/* Header — always visible */}
       <div style={{ padding:'52px 16px 12px', display:'flex', alignItems:'center', gap:12, flexShrink:0 }}>
         <div onClick={onClose} style={{ cursor:'pointer', padding:8, margin:-8 }}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
         </div>
         <div style={{ flex:1, textAlign:'center' }}>
           <div style={{ fontSize:16, fontWeight:600, color:'#292929', lineHeight:'20px' }}>{title}</div>
-          <div style={{ fontSize:12, fontWeight:400, color:'#707070', lineHeight:'16px' }}>{currentIdx + 1} of {items.length}</div>
+          <div style={{ fontSize:12, fontWeight:400, color:'#707070', lineHeight:'16px' }}>{allDone ? 'Done' : (currentIdx + 1) + ' of ' + items.length}</div>
         </div>
         <div style={{ width:24 }} />
       </div>
+
+      {/* Completion state — empty state below header */}
+      {allDone ? (
+        <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:32 }}>
+          <div style={{ fontSize:48, marginBottom:24 }}>✅</div>
+          <div style={{ fontSize:20, fontWeight:600, color:'#292929', textAlign:'center', lineHeight:'28px', marginBottom:8 }}>All done!</div>
+          <div style={{ fontSize:14, fontWeight:400, color:'#707070', textAlign:'center', lineHeight:'20px' }}>You've covered all {items.length} conversations.</div>
+        </div>
+      ) : (
+      <>
 
       {/* Scrollable card area */}
       <div key={animKey} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}
