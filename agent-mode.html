@@ -2882,23 +2882,20 @@ function FocusMode({ title, items, onClose, onSent }) {
   const prevIdxRef = useRef(0);
 
   const handleSend = () => {
-    // Step 1: Drafts turn blue
+    // Step 1: Drafts turn blue + toast appears immediately
     setSentSet(prev => new Set([...prev, item.user]));
     setToastUser(item.name || item.user);
     prevIdxRef.current = currentIdx;
     if (onSent) onSent(item.user);
-    // Step 2: Wait 1.2s for the blue transition to be visible, then slide to next
+    setShowToast(true);
+    clearTimeout(undoTimerRef.current);
+    undoTimerRef.current = setTimeout(() => setShowToast(false), 5000);
+    // Step 2: After 1s, slide to next card
     setTimeout(() => {
       if (currentIdx < items.length - 1) {
         goNext();
       }
-    }, 1200);
-    // Step 3: Show toast after the slide
-    setTimeout(() => {
-      setShowToast(true);
-      clearTimeout(undoTimerRef.current);
-      undoTimerRef.current = setTimeout(() => setShowToast(false), 5000);
-    }, 1500);
+    }, 1000);
   };
 
   const handleUndo = () => {
@@ -2971,7 +2968,7 @@ function FocusMode({ title, items, onClose, onSent }) {
       {/* Scrollable card area */}
       <div key={animKey} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}
         style={{ flex:1, overflowY:'auto', padding:'0 16px 16px',
-          animation: slideDir === 'left' ? 'slideFromRight .3s ease both' : slideDir === 'right' ? 'slideFromLeft .3s ease both' : 'fadeIn .3s ease both'
+          animation: slideDir === 'left' ? 'slideFromRight .5s cubic-bezier(.25,.46,.45,.94) both' : slideDir === 'right' ? 'slideFromLeft .5s cubic-bezier(.25,.46,.45,.94) both' : 'fadeIn .3s ease both'
         }}>
 
         {/* Agent summary — 14px, 1 line, tap to expand */}
