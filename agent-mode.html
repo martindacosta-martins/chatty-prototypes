@@ -3180,82 +3180,56 @@ function ObWelcomeV2b({ onNext }) {
 
   useEffect(() => {
     const timers = [];
-    for (let i = 1; i <= 6; i++) {
-      timers.push(setTimeout(() => setVis(i), i * 280 + 300));
+    for (let i = 1; i <= 5; i++) {
+      timers.push(setTimeout(() => setVis(i), i * 400 + 200));
     }
     return () => timers.forEach(t => clearTimeout(t));
   }, []);
 
   const show = (i) => ({
     opacity: vis >= i ? 1 : 0,
-    transform: vis >= i ? 'translateY(0)' : 'translateY(10px)',
+    transform: vis >= i ? 'translateY(0)' : 'translateY(8px)',
     transition: 'opacity .5s ease, transform .5s ease',
   });
 
-  const features = [
-    {
-      icon: (
-        <svg width="52" height="52" viewBox="0 0 60 60" fill="none" aria-hidden>
-          <path d="M38.1933 31.212C35.9737 29.4494 32.8663 29.5277 30.5944 31.1859L34.9422 36.526C34.8247 37.6749 33.7672 37.4921 33.7672 37.4921L29.0538 32.7527C27.0692 35.5467 27.487 39.3592 30.0852 41.4091C32.7749 43.5373 36.7701 42.9889 39.0028 40.1687C41.2354 37.3485 40.8829 33.3402 38.1933 31.1989V31.212Z" fill={OB_ICON.onlyMatters}/>
-          <path d="M25.1367 24.4879L27.2387 17.6463L19.4049 6L17.1592 14.8131L25.1367 24.4879Z" fill={OB_ICON.onlyMatters}/>
-          <path d="M22.7473 26.4333L13.5295 17.2155L4.57275 18.9781L16.6238 27.7781L22.7473 26.4333Z" fill={OB_ICON.onlyMatters}/>
-          <path d="M16.0998 18.1609C17.7031 17.7969 18.8177 16.6867 18.5895 15.6811C18.3612 14.6756 16.8764 14.1554 15.2731 14.5194C13.6698 14.8834 12.5552 15.9936 12.7834 16.9992C13.0117 18.0047 14.4965 18.5248 16.0998 18.1609Z" fill={OB_ICON.onlyMatters}/>
-          <path d="M51.0405 41.5788C53.0773 35.2595 51.4453 28.1698 46.288 23.587C40.0209 18.025 30.6725 18.0903 24.1704 23.2998L27.1472 26.9556C31.4428 23.587 37.4749 23.352 41.7443 26.7467C46.7711 30.7419 47.45 38.2755 43.2589 43.5503C39.0547 48.8382 31.5734 49.8696 26.5466 45.8743C21.5199 41.8791 20.841 34.3455 25.0321 29.0707C25.0843 29.0054 25.1365 28.9401 25.2018 28.8749L21.8724 25.5324C15.5531 32.7787 16.0623 43.6156 23.0606 49.8174C30.0066 55.98 40.739 55.2358 47.1889 48.2245L55.4275 49.9088L51.0666 41.5918L51.0405 41.5788Z" fill={OB_ICON.onlyMatters}/>
-        </svg>
-      ),
-      label: 'Only what matters',
-      desc: 'Real conversations, not noise',
-    },
-    {
-      icon: (
-        <svg width="52" height="52" viewBox="0 0 60 60" fill="none" aria-hidden>
-          <path d="M13.158 11.596L9.3418 37.6374L18.0223 37.2914L16.2822 48.75C24.6166 45.9719 26.6928 37.6374 26.6928 37.6374L46.8319 36.9454L50.658 11.25L13.158 11.596ZM27.3058 33.0698C20.9289 26.1393 18.2299 23.9642 18.2299 23.9642L25.0121 19.7723L27.0784 26.5051C27.0784 26.5051 30.9144 18.3881 38.2108 15.4024C40.7615 19.1 43.0354 23.6478 43.0354 23.6478C43.0354 23.6478 33.1488 23.4106 27.3058 33.0797V33.0698Z" fill={OB_ICON.repliesVoice}/>
-        </svg>
-      ),
-      label: 'Replies in your voice',
-      desc: 'Draft first. You approve.',
-    },
-    {
-      icon: (
-        <svg width="52" height="52" viewBox="0 0 60 60" fill="none" aria-hidden>
-          <path d="M20.2034 30.089C19.7947 29.3846 19.4158 28.7137 19.0569 28.0763C19.0569 28.0763 19.0569 28.0763 19.0569 28.0875C19.037 28.0428 19.017 27.9981 18.9971 27.9533C18.7578 27.5284 18.5285 27.1147 18.3092 26.7234C17.5814 25.6387 16.6442 24.7442 15.5076 24.1739C13.7131 23.2571 11.5995 23.0781 9.71516 23.7826C7.93055 24.4535 6.42511 25.9518 5.94655 28.0428C5.29851 30.8718 6.55471 33.8125 7.99037 36.0712C10.8816 40.6333 15.1188 44.0997 19.2563 47.1187C19.9841 47.6554 20.7219 48.1698 21.4696 48.6841C21.6989 48.8407 21.9282 48.7512 22.0578 48.5723C22.0877 48.5388 22.1177 48.5052 22.1376 48.4605C23.8524 45.6763 25.7866 43.0598 27.5712 40.3314C27.7706 40.0295 27.96 39.7276 28.1594 39.4257C25.7965 37.29 22.4068 33.8684 20.2234 30.089H20.2034Z" fill={OB_ICON.personalStuff}/>
-          <path d="M54.1035 18.6161C53.8685 16.9366 53.1428 15.4239 52.0901 14.1782C49.9029 11.609 46.5915 10.6524 43.5151 11.6201C40.3365 12.6211 37.9347 15.3906 36.8616 18.7162C35.8804 16.336 34.1838 14.3784 31.9557 13.2884C29.5744 12.1206 26.774 11.8981 24.2904 12.7991C21.9192 13.6555 19.9262 15.6019 19.3028 18.2935C18.4647 21.9528 20.1613 25.7344 22.0623 28.6485C23.6874 31.1288 25.6701 33.3311 27.7551 35.3553C30.7088 38.2138 33.9385 40.7386 37.25 43.0743C38.2107 43.7528 39.1714 44.409 40.1423 45.0541C40.3774 45.2098 40.6023 45.1208 40.7454 44.9429C40.776 44.9095 40.8067 44.8761 40.8271 44.8316C43.1369 41.1946 45.733 37.7911 48.1348 34.2208C50.3322 30.9509 52.55 27.4695 53.6436 23.5544C54.0933 21.9639 54.3182 20.2622 54.0831 18.605L54.1035 18.6161Z" fill={OB_ICON.personalStuff}/>
-        </svg>
-      ),
-      label: 'Personal stuff to you',
-      desc: 'I know when to step aside',
-    },
-  ];
-
   return (
-    <div style={{ height:'100%', display:'flex', flexDirection:'column', position:'relative', overflow:'hidden' }}>
-      <div style={{ position:'relative', zIndex:1, flex:1, display:'flex', flexDirection:'column', padding:'72px 32px 0' }}>
-        <div style={{ marginBottom:24, ...show(1) }}>
-          <h1 style={{ fontSize:36, fontWeight:900, color:'#fff', letterSpacing:'-0.03em', lineHeight:1.1 }}>
-            Sofia, you've got DMs waiting
-          </h1>
+    <div style={{ height:'100%', display:'flex', flexDirection:'column', justifyContent:'flex-end', position:'relative', overflow:'hidden', padding:'0 24px 48px' }}>
+      {/* Chat-like messages from the agent */}
+      <div style={{ display:'flex', flexDirection:'column', gap:16, marginBottom:40 }}>
+        <div style={show(1)}>
+          <div style={{ fontSize:28, fontWeight:700, color:'#fff', letterSpacing:'-0.5px', lineHeight:'36px' }}>
+            Hey Sofia
+          </div>
         </div>
-        <div style={{ marginBottom:56, ...show(2) }}>
-          <p style={{ fontSize:20, fontWeight:700, color:'#fff', lineHeight:1.4, letterSpacing:'-0.02em' }}>
-            I'll read them all, bring the ones that matter, and have replies ready
-          </p>
+        <div style={show(2)}>
+          <div style={{ fontSize:16, fontWeight:400, color:'rgba(255,255,255,0.7)', lineHeight:'24px' }}>
+            I'm your inbox agent. I'll read every DM, find the ones that matter, and have replies ready for you.
+          </div>
         </div>
-        <div style={{ display:'flex', flexDirection:'column', gap:24 }}>
-          {features.map((f, i) => (
-            <div key={i} style={{ display:'flex', alignItems:'center', gap:16, ...show(i + 3) }}>
-              <div style={{ flexShrink:0, width:56, display:'flex', alignItems:'center', justifyContent:'flex-start', lineHeight:0 }}>{f.icon}</div>
-              <div>
-                <div style={{ fontSize:20, fontWeight:700, color:'#fff', letterSpacing:'-0.02em', lineHeight:1.2, marginBottom:2 }}>{f.label}</div>
-                <div style={{ fontSize:16, fontWeight:400, color:'rgba(255,255,255,0.75)', lineHeight:1.4 }}>{f.desc}</div>
-              </div>
-            </div>
-          ))}
+        <div style={{ display:'flex', flexDirection:'column', gap:12, marginTop:8, ...show(3) }}>
+          <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+            <div style={{ width:4, height:4, borderRadius:2, background:'rgba(255,255,255,0.4)', flexShrink:0 }} />
+            <span style={{ fontSize:15, fontWeight:400, color:'rgba(255,255,255,0.55)', lineHeight:'22px' }}>Leads who are ready to buy</span>
+          </div>
+          <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+            <div style={{ width:4, height:4, borderRadius:2, background:'rgba(255,255,255,0.4)', flexShrink:0 }} />
+            <span style={{ fontSize:15, fontWeight:400, color:'rgba(255,255,255,0.55)', lineHeight:'22px' }}>Clients who need your help</span>
+          </div>
+          <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+            <div style={{ width:4, height:4, borderRadius:2, background:'rgba(255,255,255,0.4)', flexShrink:0 }} />
+            <span style={{ fontSize:15, fontWeight:400, color:'rgba(255,255,255,0.55)', lineHeight:'22px' }}>Community worth engaging with</span>
+          </div>
+        </div>
+        <div style={{ marginTop:4, ...show(4) }}>
+          <div style={{ fontSize:16, fontWeight:400, color:'rgba(255,255,255,0.7)', lineHeight:'24px' }}>
+            You focus on what matters. I handle the rest.
+          </div>
         </div>
       </div>
-      <div style={{ position:'relative', zIndex:1, padding:'0 32px 92px', ...show(6) }}>
+      <div style={show(5)}>
         <button onClick={onNext}
-          style={{ width:'100%', height:48, background:'#292929', color:'#fff', border:'none', borderRadius:24, fontSize:17, fontWeight:500, cursor:'pointer', letterSpacing:'-0.01em' }}>
-          Let's do it
+          style={{ width:'100%', height:52, background:'#fff', color:'#000', border:'none', borderRadius:14, fontSize:17, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em' }}>
+          Connect Instagram
         </button>
       </div>
     </div>
@@ -3285,8 +3259,8 @@ function ObResultsV2b({ onOpenInbox }) {
 
   useEffect(() => {
     const timers = [];
-    for (let i = 1; i <= 6; i++) {
-      timers.push(setTimeout(() => setVis(i), i * 300 + 300));
+    for (let i = 1; i <= 4; i++) {
+      timers.push(setTimeout(() => setVis(i), i * 400 + 300));
     }
     return () => timers.forEach(t => clearTimeout(t));
   }, []);
@@ -3298,51 +3272,43 @@ function ObResultsV2b({ onOpenInbox }) {
 
   const show = (i) => ({
     opacity: vis >= i ? 1 : 0,
-    transform: vis >= i ? 'translateY(0)' : 'translateY(10px)',
+    transform: vis >= i ? 'translateY(0)' : 'translateY(8px)',
     transition: 'opacity .5s ease, transform .5s ease',
   });
 
-  const n1 = useCountUp(20, 700, vis >= 2);
-  const n2 = useCountUp(8,  700, vis >= 3);
-  const n3 = useCountUp(4,  700, vis >= 4);
-  const n4 = useCountUp(12, 700, vis >= 5);
-
-  const stats = [
-    { num: n1, label: 'conversations for your attention',      visIdx: 2 },
-    { num: n2, label: 'people interested in your services',    visIdx: 3 },
-    { num: n3, label: 'engaged followers',                     visIdx: 4 },
-    { num: n4, label: 'replies ready to send',                 visIdx: 5 },
-  ];
+  const n1 = useCountUp(STATS.totalHandled, 800, vis >= 1);
+  const n2 = useCountUp(INTERESTED_ITEMS.filter(i=>i.draft).length, 600, vis >= 2);
+  const n3 = useCountUp(STATS.spamFiltered, 600, vis >= 2);
 
   return (
-    <div style={{ height:'100%', display:'flex', flexDirection:'column', position:'relative', overflow:'hidden' }}>
-      <div style={{ position:'relative', zIndex:1, flex:1, display:'flex', flexDirection:'column', padding:'72px 32px 0' }}>
-        <div style={{ marginBottom:8, ...show(1) }}>
-          <h1 style={{ fontSize:32, fontWeight:900, color:'#fff', letterSpacing:'-0.03em', lineHeight:1.15 }}>
-            Went through 35 messages overnight.
-          </h1>
+    <div style={{ height:'100%', display:'flex', flexDirection:'column', justifyContent:'flex-end', position:'relative', overflow:'hidden', padding:'0 24px 48px' }}>
+      {/* Chat-like results from the agent */}
+      <div style={{ display:'flex', flexDirection:'column', gap:16, marginBottom:40 }}>
+        <div style={show(1)}>
+          <div style={{ fontSize:28, fontWeight:700, color:'#fff', letterSpacing:'-0.5px', lineHeight:'36px' }}>
+            Done. Went through {n1} messages.
+          </div>
         </div>
-        <div style={{ marginBottom:28, ...show(1) }}>
-          <p style={{ fontSize:20, fontWeight:700, color:'#fff', letterSpacing:'-0.02em', lineHeight:1.4 }}>
-            Here's what matters:
-          </p>
+        <div style={{ display:'flex', flexDirection:'column', gap:12, marginTop:4, ...show(2) }}>
+          <div style={{ fontSize:16, fontWeight:400, color:'rgba(255,255,255,0.7)', lineHeight:'24px' }}>
+            {n2} replies are ready to send.
+          </div>
+          <div style={{ fontSize:16, fontWeight:400, color:'rgba(255,255,255,0.7)', lineHeight:'24px' }}>
+            {n3} spam messages filtered out.
+          </div>
         </div>
-        <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
-          {stats.map((s, i) => (
-            <div key={i} style={{ display:'flex', alignItems:'baseline', gap:12, ...show(s.visIdx) }}>
-              <span style={{ fontSize:28, fontWeight:900, color:'#fff', letterSpacing:'-0.03em', lineHeight:1, minWidth:32, display:'inline-block' }}>{s.num}</span>
-              <span style={{ fontSize:16, fontWeight:400, color:'rgba(255,255,255,0.85)', lineHeight:1.4 }}>{s.label}</span>
-            </div>
-          ))}
+        <div style={{ marginTop:4, ...show(3) }}>
+          <div style={{ fontSize:16, fontWeight:400, color:'rgba(255,255,255,0.7)', lineHeight:'24px' }}>
+            Your inbox is ready.
+          </div>
         </div>
       </div>
-      <div style={{ position:'relative', zIndex:1, padding:'0 32px 56px', ...show(6) }}>
+      <div style={show(4)}>
         <button onClick={handleOpen}
-          style={{ width:'100%', height:48, background:'#292929', color:'#fff', border:'none', borderRadius:24, fontSize:17, fontWeight:500, cursor:'pointer', letterSpacing:'-0.01em' }}>
+          style={{ width:'100%', height:52, background:'#fff', color:'#000', border:'none', borderRadius:14, fontSize:17, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em' }}>
           Open Inbox
         </button>
       </div>
-      {/* Fade-to-white transition overlay */}
       {closing && (
         <div style={{ position:'absolute', inset:0, zIndex:20, background:'#fff', animation:'fadeIn 0.5s ease both' }} />
       )}
@@ -3359,10 +3325,9 @@ function App() {
   return (
     <div style={{ width:'100%', height:'100%', position:'relative', overflow:'hidden' }}>
 
-      {/* ─── Onboarding: persistent purple + grid; step content fades in ─── */}
+      {/* ─── Onboarding: clean black background, chat-like ─── */}
       {onOnboarding && (
-        <div style={{ position:'absolute', inset:0, background: OB_PURPLE.base, zIndex:0 }}>
-          <PurpleBg gridMode={screen === 'ob-loading' ? 'loading' : 'idle'} />
+        <div style={{ position:'absolute', inset:0, background:'#000', zIndex:0 }}>
           <div
             key={screen}
             className="ob-step-layer"
@@ -3383,7 +3348,7 @@ function App() {
       )}
 
       {/* Bottom Nav — visible on welcome + main inbox, hidden on loading/results/overlays */}
-      {(screen === 'ob-welcome' || (screen === 'main' && !hideNav)) && <BottomNav />}
+      {screen === 'main' && !hideNav && <BottomNav />}
     </div>
   );
 }
