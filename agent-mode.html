@@ -134,7 +134,7 @@ const CREATOR = { name: 'Sofia Reyes', handle: '@sofia.reyes.coach', avatar: 'ht
 /* STATS moved after data arrays — see below */
 
 const INTERESTED_ITEMS = [
-  { user:'@lauragomez.fit', name:'Laura Gómez', avatar:'https://i.pravatar.cc/88?u=lauragomezfit', msg:"Hey! I saw your transformation reel and I want to know more about the 12-week program. How much is it and when does it start?", source:'DM', time:'just now', unread:1, intent:'Opportunities', mode:'confident',
+  { user:'@lauragomez.fit', name:'Laura Gómez', avatar:'https://i.pravatar.cc/88?u=lauragomezfit', msg:"Hey! I saw your transformation reel and I want to know more about the 12-week program. How much is it and when does it start?", source:'DM', time:'just now', unread:1, intent:'Opportunities', category:'important', severity:'high', tag:'sales', mode:'confident',
     summary:'Hot lead, wants 12-week details', status:'Reply ready',
     contactBio:'Follower since 14 months · 🇪🇸 Spain · Engages regularly with your reels and stories',
     contactBioExpanded:'Follows you for 14 months and reacts to almost every story. Commented on 3 posts in the last month — always about your transformation content. Completed the 4-week Kickstart in April. No complaints, no refunds. High engagement, high intent — upgrade candidate.',
@@ -194,7 +194,7 @@ const INTERESTED_ITEMS = [
         { from:'them', text:"Hey! I saw your transformation reel and I want to know more about the 12-week program. How much is it and when does it start?", time:'8:47 AM' },
       ]},
     ]},
-  { user:'@jenna.transforms', name:'Jenna Walsh', avatar:'https://i.pravatar.cc/88?u=jennatransforms', msg:"Is the 12 week program still open? I've been following you for 2 years and I think I'm finally ready", source:'DM', time:'1h ago', unread:1, intent:'Opportunities', mode:'confident',
+  { user:'@jenna.transforms', name:'Jenna Walsh', avatar:'https://i.pravatar.cc/88?u=jennatransforms', msg:"Is the 12 week program still open? I've been following you for 2 years and I think I'm finally ready", source:'DM', time:'1h ago', unread:1, intent:'Opportunities', category:'important', severity:'high', tag:'sales', mode:'confident',
     summary:'Long-time follower, ready to buy', status:'Reply ready',
     contactBio:'Follower since 2 yrs · 🇺🇸 US · Engages weekly with posts',
     contactBioExpanded:'Has followed for 2 years and consistently likes your transformation content. Comments on motivational posts monthly. Never purchased before but saves every product-related story. High intent — long nurture coming to a close.',
@@ -229,7 +229,7 @@ const INTERESTED_ITEMS = [
         { from:'them', text:"Is the 12 week program still open? I've been following you for 2 years and I think I'm finally ready", time:'7:30 AM' },
       ]},
     ]},
-  { user:'@carlosfit24', name:'Carlos M.', avatar:'https://i.pravatar.cc/88?u=carlosfit24', msg:"How much is the program? I saw you have a 4-week one too", source:'DM', time:'2h ago', unread:1, intent:'Opportunities', mode:'confident',
+  { user:'@carlosfit24', name:'Carlos M.', avatar:'https://i.pravatar.cc/88?u=carlosfit24', msg:"How much is the program? I saw you have a 4-week one too", source:'DM', time:'2h ago', unread:1, intent:'Opportunities', category:'important', severity:'high', tag:'sales', mode:'confident',
     summary:'Comparing programs, price-sensitive', status:'Reply ready',
     contactBio:'Follower since 3 months · 🇲🇽 Mexico · Likes workout reels',
     contactBioExpanded:'Started following 3 months ago after a workout reel went viral. Likes posts consistently but has never commented or engaged in stories. First time reaching out via DM. Price question suggests he is comparing options carefully.',
@@ -242,7 +242,7 @@ const INTERESTED_ITEMS = [
     draft:"Hey Carlos! 💪 I have two options: the 4-week Kickstart ($197) is perfect for getting started and seeing quick results. The 12-week Reboot ($597 or 3x $197) is for a full transformation with weekly 1-on-1 calls and a personalized plan. What result are you looking for? I can help you pick the right fit.",
     styleReason:"Presented both options clearly with prices. Question at end guides him toward the right fit without pushing.",
     agentRead:'Comparing options · Reply ready' },
-  { user:'@mia.wellness', name:'Mia Fernández', avatar:'https://i.pravatar.cc/88?u=miawellness', msg:"Do you do 1 on 1 coaching or is it group?", source:'DM', time:'3h ago', unread:1, intent:'Opportunities', mode:'confident',
+  { user:'@mia.wellness', name:'Mia Fernández', avatar:'https://i.pravatar.cc/88?u=miawellness', msg:"Do you do 1 on 1 coaching or is it group?", source:'DM', time:'3h ago', unread:1, intent:'Opportunities', category:'important', severity:'high', tag:'sales', mode:'confident',
     summary:'Asking about 1-on-1 vs group', status:'Reply ready',
     contactBio:'Follower since 8 months · 🇺🇸 US · Watches all stories',
     contactBioExpanded:'Follows for 8 months, watches every story but rarely likes posts. First DM ever. The format question suggests a preference for personal attention — possibly had a negative group coaching experience. High conversion potential if 1-on-1 element is highlighted.',
@@ -255,7 +255,7 @@ const INTERESTED_ITEMS = [
     draft:"Both, actually! The 12-Week Reboot has weekly 1-on-1 calls with me personally, plus access to the community group. So you get both the personal attention AND the support network. The 4-Week Kickstart is more self-paced with group check-ins. Which sounds more like what you're looking for?",
     styleReason:"Answered directly, highlighted the 1-on-1 angle of the flagship program since that's what she's asking about.",
     agentRead:'Format question · Reply ready' },
-  { user:'@paolaruiz.mx', name:'Paola Ruiz', avatar:'https://i.pravatar.cc/88?u=paolaruizmx', msg:"Hey Sofia, would you recommend the Kickstart for someone who has never done anything at the gym?", source:'DM', time:'4h ago', unread:1, intent:'Opportunities', mode:'confident',
+  { user:'@paolaruiz.mx', name:'Paola Ruiz', avatar:'https://i.pravatar.cc/88?u=paolaruizmx', msg:"Hey Sofia, would you recommend the Kickstart for someone who has never done anything at the gym?", source:'DM', time:'4h ago', unread:1, intent:'Opportunities', category:'important', severity:'high', tag:'sales', mode:'confident',
     summary:'Beginner, needs program guidance', status:'Reply ready',
     contactBio:'Follower since 5 months · 🇲🇽 Mexico · Engages with beginner content',
     contactBioExpanded:'Followed after finding a beginner-friendly reel 5 months ago. Consistently saves beginner workout posts. Comments occasionally on motivational content. No purchase history. The direct question shows trust in Sofia as an authority.',
@@ -268,7 +268,7 @@ const INTERESTED_ITEMS = [
     draft:"Hey Paola! Yes, the 4-week Kickstart is exactly right for you 🙌 It is designed to start from zero, no prior experience needed. Everything goes at your pace and I walk you through every step. Plus it is the perfect way to see if the method works for you before committing to the 12 weeks. Want me to send you the details?",
     styleReason:"Validated her choice, reassured about the beginner-friendly approach, left the door open for the 12-week.",
     agentRead:'Beginner inquiry · Reply ready' },
-  { user:'@rebecajones', name:'Rebeca Jones', avatar:'https://i.pravatar.cc/88?u=rebecajones', msg:"What's included in the 12 week program exactly?", source:'DM', time:'5h ago', unread:1, intent:'Opportunities', mode:'confident',
+  { user:'@rebecajones', name:'Rebeca Jones', avatar:'https://i.pravatar.cc/88?u=rebecajones', msg:"What's included in the 12 week program exactly?", source:'DM', time:'5h ago', unread:1, intent:'Opportunities', category:'important', severity:'high', tag:'sales', mode:'confident',
     summary:'Wants full breakdown before deciding', status:'Reply ready',
     contactBio:'Follower since 6 months · 🇺🇸 US · Compares products carefully',
     contactBioExpanded:'Started following 6 months ago. Regularly likes transformation posts and saves pricing-related stories. First DM — the detailed question suggests she is in evaluation mode and comparing options before committing.',
@@ -281,7 +281,7 @@ const INTERESTED_ITEMS = [
     draft:"Great question! The 12-Week Reboot includes: weekly 1-on-1 video calls with me, a fully custom nutrition plan updated every 2 weeks, daily check-ins via the app, access to the private community, and all workout plans included. Investment is $597 or 3x $197. Want me to send the full program guide?",
     styleReason:"Gave the complete breakdown she asked for. Professional but warm, no filler.",
     agentRead:'Evaluation stage · Reply ready' },
-  { user:'@daniela.v.fit', name:'Daniela V.', avatar:'https://i.pravatar.cc/88?u=danielavfit', msg:"I saw your story about the client who lost 8kg in 3 months. Is that for real?", source:'DM', time:'6h ago', unread:1, intent:'Opportunities', mode:'confident',
+  { user:'@daniela.v.fit', name:'Daniela V.', avatar:'https://i.pravatar.cc/88?u=danielavfit', msg:"I saw your story about the client who lost 8kg in 3 months. Is that for real?", source:'DM', time:'6h ago', unread:1, intent:'Opportunities', category:'important', severity:'high', tag:'sales', mode:'confident',
     summary:'Skeptical, wants proof it works', status:'Reply ready',
     contactBio:'Follower since 4 months · 🇨🇴 Colombia · Reacts to results posts',
     contactBioExpanded:'Followed after a transformation story 4 months ago. Engages specifically with before/after content and results posts. Skeptical tone in DM suggests she has tried other programs before. Needs social proof to convert.',
@@ -293,7 +293,7 @@ const INTERESTED_ITEMS = [
     draft:"Totally real! That was Ana, one of my clients from the 12-week program. It is not magic — it is consistency with a plan that adapts to her. I have tons of stories like that. Want me to send you some testimonials? 😊",
     styleReason:"Addressed the skepticism directly without being defensive. Offered social proof as the natural next step.",
     agentRead:'Skeptical lead · Reply ready' },
-  { user:'@tomaszwilk', name:'Tomasz W.', avatar:'https://i.pravatar.cc/88?u=tomaszwilk', msg:"Do you work with men too or only women?", source:'DM', time:'8h ago', unread:1, intent:'Opportunities', mode:'confident',
+  { user:'@tomaszwilk', name:'Tomasz W.', avatar:'https://i.pravatar.cc/88?u=tomaszwilk', msg:"Do you work with men too or only women?", source:'DM', time:'8h ago', unread:1, intent:'Opportunities', category:'important', severity:'high', tag:'sales', mode:'confident',
     summary:'Checking if program works for men', status:'Reply ready',
     contactBio:'Follower since 1 month · 🇵🇱 Poland · Found via Explore',
     contactBioExpanded:'Recent follower, likely found via Explore page. No engagement history before this DM. The question about working with men suggests he is interested but unsure if the program targets him. Quick clarification could convert.',
@@ -306,7 +306,7 @@ const INTERESTED_ITEMS = [
     draft:"Yes, absolutely! About 30% of my clients are men 💪 The program is fully customized regardless of gender — different nutrition targets, workout structure, everything. What's your main goal? Weight loss, muscle building, or something else?",
     styleReason:"Removed the barrier immediately, gave a credibility stat, and opened the conversation with a qualifying question.",
     agentRead:'Male prospect · Reply ready' },
-  { user:'@isabellav.coach', name:'Isabella V.', avatar:'https://i.pravatar.cc/88?u=isabellavcoach', msg:"Hey! What is the difference between the Kickstart and the Reboot?", source:'DM', time:'9h ago', unread:1, intent:'Opportunities', mode:'confident',
+  { user:'@isabellav.coach', name:'Isabella V.', avatar:'https://i.pravatar.cc/88?u=isabellavcoach', msg:"Hey! What is the difference between the Kickstart and the Reboot?", source:'DM', time:'9h ago', unread:1, intent:'Opportunities', category:'important', severity:'high', tag:'sales', mode:'confident',
     summary:'Kickstart vs Reboot comparison', status:'Reply ready',
     contactBio:'Follower since 7 months · 🇦🇷 Argentina · Saves program posts',
     contactBioExpanded:'Has followed for 7 months and consistently saves posts about both programs. Comments on nutrition tips occasionally. First DM — she is in the comparison stage and needs a clear side-by-side to decide.',
@@ -319,7 +319,7 @@ const INTERESTED_ITEMS = [
     draft:"Hey Isabella! 😊 Kickstart (4 weeks, $197): perfect for getting started, routines + nutrition guide, self-paced, group check-ins. Reboot (12 weeks, $597): full transformation, weekly 1-on-1 calls with me, personalized nutrition plan, private community. What is your main goal?",
     styleReason:"Side-by-side structure makes the decision easy. Ended with a question to qualify her further.",
     agentRead:'Comparing programs · Reply ready' },
-  { user:'@nathaliebrown', name:'Nathalie B.', avatar:'https://i.pravatar.cc/88?u=nathaliebrown', msg:"Can I pay in installments?", source:'DM', time:'10h ago', unread:1, intent:'Opportunities', mode:'confident',
+  { user:'@nathaliebrown', name:'Nathalie B.', avatar:'https://i.pravatar.cc/88?u=nathaliebrown', msg:"Can I pay in installments?", source:'DM', time:'10h ago', unread:1, intent:'Opportunities', category:'important', severity:'high', tag:'sales', mode:'confident',
     summary:'Asking about installment options', status:'Reply ready',
     contactBio:'Follower since 10 months · 🇫🇷 France · Engages with pricing content',
     contactBioExpanded:'Follower for 10 months. Saves every story that mentions pricing or promotions. Liked 3 posts in the last week — all transformation content. First DM is about payment, which signals real purchase intent with a budget constraint.',
@@ -332,7 +332,7 @@ const INTERESTED_ITEMS = [
     draft:"Yes! You can pay 3x $197/month for the 12-Week Reboot — same full program, just split into 3 payments. The 4-Week Kickstart is one payment of $197. Which program were you thinking about?",
     styleReason:"Answered directly with the numbers. No pitch, just information. Let her decide.",
     agentRead:'Price question · Reply ready' },
-  { user:'@kristinamlk', name:'Kristina M.', avatar:'https://i.pravatar.cc/88?u=kristinamlk', msg:"Hey! When would the next group for the program be?", source:'DM', time:'12h ago', unread:1, intent:'Opportunities', mode:'confident',
+  { user:'@kristinamlk', name:'Kristina M.', avatar:'https://i.pravatar.cc/88?u=kristinamlk', msg:"Hey! When would the next group for the program be?", source:'DM', time:'12h ago', unread:1, intent:'Opportunities', category:'important', severity:'normal', tag:'product_inquiry', mode:'confident',
     summary:'Asking when the next group starts', status:'',
     contactBio:'Follower since 9 months · 🇩🇪 Germany · Watches lives regularly',
     contactBioExpanded:'Followed for 9 months. Joins most live sessions and asks questions in the chat. Has never purchased but engagement is very consistent. Thinks the program has fixed cohort start dates — needs clarification that it is self-paced.',
@@ -345,7 +345,7 @@ const INTERESTED_ITEMS = [
     draft:"",noDraftReason:"I wasn't sure if the next cohort has a start date — you know your schedule best.",
     styleReason:"",
     agentRead:'Timing question · No draft' },
-  { user:'@lenafit2024', name:'Lena H.', avatar:'https://i.pravatar.cc/88?u=lenafit2024', msg:"Do you offer nutrition coaching only without workouts?", source:'DM', time:'14h ago', unread:1, intent:'Opportunities', mode:'confident',
+  { user:'@lenafit2024', name:'Lena H.', avatar:'https://i.pravatar.cc/88?u=lenafit2024', msg:"Do you offer nutrition coaching only without workouts?", source:'DM', time:'14h ago', unread:1, intent:'Opportunities', category:'important', severity:'normal', tag:'product_inquiry', mode:'confident',
     summary:'Wants nutrition coaching only', status:'',
     contactBio:'Follower since 3 months · 🇸🇪 Sweden · Engages with nutrition tips',
     contactBioExpanded:'Followed 3 months ago after a nutrition-focused reel. Engages primarily with meal prep and nutrition content, rarely interacts with workout posts. The nutrition-only ask is not a standard offering — needs Sofia direct input.',
@@ -358,7 +358,7 @@ const INTERESTED_ITEMS = [
     draft:"",noDraftReason:"This is a custom request I don't have info on — nutrition-only isn't in your standard offerings.",
     styleReason:"",
     agentRead:'Custom request · Needs your input' },
-  { user:'@valentinap.mx', name:'Valentina P.', avatar:'https://i.pravatar.cc/88?u=valentinapmx', msg:"Hey Sofia! I did the Kickstart 6 months ago. Can I do the Reboot now?", source:'DM', time:'16h ago', unread:1, intent:'Opportunities', mode:'confident',
+  { user:'@valentinap.mx', name:'Valentina P.', avatar:'https://i.pravatar.cc/88?u=valentinapmx', msg:"Hey Sofia! I did the Kickstart 6 months ago. Can I do the Reboot now?", source:'DM', time:'16h ago', unread:1, intent:'Opportunities', category:'important', severity:'high', tag:'upgrade', mode:'confident',
     summary:'Returning client, ready to upgrade', status:'Reply ready',
     contactBio:'Past client · Kickstart alumni · 🇲🇽 Mexico',
     contactBioExpanded:'Completed the 4-week Kickstart 6 months ago with great results. Left a glowing comment on a transformation post 3 months ago. Now asking about the 12-week Reboot — classic upgrade path. VIP treatment warranted.',
@@ -392,7 +392,7 @@ const INTERESTED_ITEMS = [
         { from:'them', text:"Hey Sofia! I did the Kickstart 6 months ago. Can I do the Reboot now?", time:'4:00 PM' },
       ]},
     ]},
-  { user:'@amykeller.runs', name:'Amy Keller', avatar:'https://i.pravatar.cc/88?u=amykellerruns', msg:"Hi! I'm a runner, does your program work for endurance athletes?", source:'DM', time:'18h ago', unread:1, intent:'Opportunities', mode:'confident',
+  { user:'@amykeller.runs', name:'Amy Keller', avatar:'https://i.pravatar.cc/88?u=amykellerruns', msg:"Hi! I'm a runner, does your program work for endurance athletes?", source:'DM', time:'18h ago', unread:1, intent:'Opportunities', category:'important', severity:'normal', tag:'product_inquiry', mode:'confident',
     summary:'Runner, asking if program fits', status:'',
     contactBio:'Follower since 4 months · 🇺🇸 US · Engages with cardio content',
     contactBioExpanded:'Followed 4 months ago. Primarily engages with cardio and endurance-related content. Profile shows marathon finisher photos. The niche question needs a custom answer — Sofia should speak to how the program adapts for endurance athletes.',
@@ -408,7 +408,7 @@ const INTERESTED_ITEMS = [
 ];
 
 const ATTENTION_ITEMS = [
-  { user:'@diana.client12', name:'Diana Morales', avatar:'https://i.pravatar.cc/88?u=dianaclient12', msg:"Sofia I can't access module 3, it keeps giving me an error since yesterday", source:'DM', time:'2h ago', unread:2, intent:'Support', mode:'confident',
+  { user:'@diana.client12', name:'Diana Morales', avatar:'https://i.pravatar.cc/88?u=dianaclient12', msg:"Sofia I can't access module 3, it keeps giving me an error since yesterday", source:'DM', time:'2h ago', unread:2, intent:'Support', category:'important', severity:'high', tag:'technical_issue', mode:'confident',
     summary:'Locked out of module 3 since yesterday', status:'',
     contactBio:'Active client · 12-Week Reboot · Week 6',
     contactBioExpanded:'Paying client in the 12-Week Reboot, currently week 6. High engagement in community group. Never had a complaint before. Tech issue is blocking her progress.',
@@ -436,7 +436,7 @@ const ATTENTION_ITEMS = [
         { from:'them', text:"Sofia I can't access module 3, it keeps giving me an error since yesterday", time:'8:45 AM' },
       ]},
     ]},
-  { user:'@markusbauer.fit', name:'Markus Bauer', avatar:'https://i.pravatar.cc/88?u=markusbauer', msg:"I need to pause my subscription for 2 weeks, is that possible?", source:'DM', time:'3h ago', unread:1, intent:'Support', mode:'confident',
+  { user:'@markusbauer.fit', name:'Markus Bauer', avatar:'https://i.pravatar.cc/88?u=markusbauer', msg:"I need to pause my subscription for 2 weeks, is that possible?", source:'DM', time:'3h ago', unread:1, intent:'Support', category:'important', severity:'high', tag:'churn_risk', mode:'confident',
     summary:'Wants to pause for 2 weeks', status:'',
     contactBio:'Active client · 12-Week Reboot · Week 4',
     contactBioExpanded:'Paying client in the 12-Week Reboot, currently week 4. Engagement has dropped in the last week — fewer check-ins, no community posts. Pause request may signal reduced motivation. Handle with care to prevent churn.',
@@ -448,7 +448,7 @@ const ATTENTION_ITEMS = [
     draft:"",noDraftReason:"Pause requests need a personal touch — how you respond here could determine if he stays.",
     styleReason:"",
     agentRead:'Churn risk · Pause request' },
-  { user:'@camilasoto.fit', name:'Camila Soto', avatar:'https://i.pravatar.cc/88?u=camilasoto', msg:"I feel like I'm not seeing results after 4 weeks 😔", source:'DM', time:'5h ago', unread:1, intent:'Support', mode:'confident',
+  { user:'@camilasoto.fit', name:'Camila Soto', avatar:'https://i.pravatar.cc/88?u=camilasoto', msg:"I feel like I'm not seeing results after 4 weeks 😔", source:'DM', time:'5h ago', unread:1, intent:'Support', category:'important', severity:'high', tag:'churn_risk', mode:'confident',
     summary:'Not seeing results, feeling discouraged', status:'',
     contactBio:'Active client · Kickstart · Week 4',
     contactBioExpanded:'Paying client in the 4-week Kickstart, final week. Has been engaged throughout but is now expressing frustration about results. This is a critical retention moment — her perception of results will determine if she upgrades to the Reboot.',
@@ -461,7 +461,7 @@ const ATTENTION_ITEMS = [
     draft:"",noDraftReason:"She's in a vulnerable moment — this needs your empathy, not an AI reply.",
     styleReason:"",
     agentRead:'Emotional · Personal reply needed' },
-  { user:'@rafaelm.client', name:'Rafael M.', avatar:'https://i.pravatar.cc/88?u=rafaelm', msg:"The checkout page is broken, I can't complete my purchase", source:'DM', time:'6h ago', unread:1, intent:'Support', mode:'confident',
+  { user:'@rafaelm.client', name:'Rafael M.', avatar:'https://i.pravatar.cc/88?u=rafaelm', msg:"The checkout page is broken, I can't complete my purchase", source:'DM', time:'6h ago', unread:1, intent:'Support', category:'important', severity:'high', tag:'technical_issue', mode:'confident',
     summary:'Checkout broken, tried 3 times', status:'',
     contactBio:'New prospect · Trying to purchase · 🇧🇷 Brazil',
     contactBioExpanded:'Not yet a client — actively trying to buy. Has attempted checkout 3 times, which means very high purchase intent. Every hour this goes unresolved is lost revenue. Technical issue needs immediate attention.',
@@ -474,7 +474,7 @@ const ATTENTION_ITEMS = [
     draft:"",noDraftReason:"This is a technical issue — you'll need to check the checkout page and give him a specific answer.",
     styleReason:"",
     agentRead:'Revenue at risk · Checkout broken' },
-  { user:'@simoneb.fit', name:'Simone B.', avatar:'https://i.pravatar.cc/88?u=simonebfit', msg:"I asked for a refund 5 days ago and haven't heard back", source:'DM', time:'1d ago', unread:1, intent:'Support', mode:'confident',
+  { user:'@simoneb.fit', name:'Simone B.', avatar:'https://i.pravatar.cc/88?u=simonebfit', msg:"I asked for a refund 5 days ago and haven't heard back", source:'DM', time:'1d ago', unread:1, intent:'Support', category:'important', severity:'high', tag:'refund', mode:'confident',
     summary:'Refund ignored for 5 days', status:'',
     contactBio:'Former client · Refund requested · 🇮🇹 Italy',
     contactBioExpanded:'Was a client in the Kickstart program. Requested a refund via email 5 days ago with no response. Now escalating to DM. If left unresolved, this becomes a chargeback risk and potential negative review.',
@@ -487,7 +487,7 @@ const ATTENTION_ITEMS = [
     draft:"",noDraftReason:"Refund conversations are sensitive — your personal response sets the tone for how this resolves.",
     styleReason:"",
     agentRead:'Escalation risk · Refund pending' },
-  { user:'@annakowalski.run', name:'Anna Kowalski', avatar:'https://i.pravatar.cc/88?u=annakowalski', msg:"My meal plan isn't loading in the app, it's been 2 days", source:'DM', time:'2d ago', unread:1, intent:'Support', mode:'confident',
+  { user:'@annakowalski.run', name:'Anna Kowalski', avatar:'https://i.pravatar.cc/88?u=annakowalski', msg:"My meal plan isn't loading in the app, it's been 2 days", source:'DM', time:'2d ago', unread:1, intent:'Support', category:'important', severity:'high', tag:'technical_issue', mode:'confident',
     summary:'Meal plan not loading, 2 days', status:'',
     contactBio:'Active client · 12-Week Reboot · Week 3 · 🇵🇱 Poland',
     contactBioExpanded:'Paying client in the 12-Week Reboot, week 3. Has been following the program closely. Two days without access to her meal plan means she cannot follow the nutrition program. Sent two messages — patience is wearing thin.',
@@ -504,7 +504,7 @@ const ATTENTION_ITEMS = [
 ];
 
 const COMMUNITY_ITEMS = [
-  { user:'@mariavega.runs', name:'Maria Vega', avatar:'https://i.pravatar.cc/88?u=mariavegaruns', msg:"Your content changed how I think about fitness. 2 years and still here 🙌", source:'DM', time:'just now', unread:1, intent:'Fans', mode:'confident',
+  { user:'@mariavega.runs', name:'Maria Vega', avatar:'https://i.pravatar.cc/88?u=mariavegaruns', msg:"Your content changed how I think about fitness. 2 years and still here 🙌", source:'DM', time:'just now', unread:1, intent:'Fans', category:'interesting', tag:'testimonial', mode:'confident',
     summary:'2-year follower, just saying thanks', status:'Reply ready',
     contactBio:'Follower since 2 yrs · 🇲🇽 Mexico · Engages with every post',
     contactBioExpanded:'One of the longest-following community members at 2 years. Likes nearly every post and comments on motivational content monthly. Never purchased a program but recommends Sofia to friends in comments. Pure community goodwill.',
@@ -516,7 +516,7 @@ const COMMUNITY_ITEMS = [
     draft:"That means the world to me, Maria. 2 years! You're one of the OGs and I appreciate you being here every step of the way. Anything I can ever help with, just ask.",
     styleReason:"Long-time supporter deserves personal acknowledgment. Warm, genuine, with an open-ended offer to help.",
     agentRead:'Loyal fan · Reply ready' },
-  { user:'@carloslopes.fit', name:'Carlos Lopes', avatar:'https://i.pravatar.cc/88?u=carloslopes', msg:"Just finished week 8 and I'm down 6kg. This actually works. Thank you Sofia!", source:'DM', time:'1h ago', unread:1, intent:'Fans', mode:'confident',
+  { user:'@carloslopes.fit', name:'Carlos Lopes', avatar:'https://i.pravatar.cc/88?u=carloslopes', msg:"Just finished week 8 and I'm down 6kg. This actually works. Thank you Sofia!", source:'DM', time:'1h ago', unread:1, intent:'Fans', category:'interesting', tag:'testimonial', mode:'confident',
     summary:'Down 6kg at week 8, great result', status:'Reply ready',
     contactBio:'Active client · 12-Week Reboot · Week 8 · 🇧🇷 Brazil',
     contactBioExpanded:'Paying client in the 12-Week Reboot, currently week 8. Started enthusiastic and has maintained momentum throughout. Down 6kg is an excellent result. Strong testimonial candidate — his energy makes him ideal for a social proof ask.',
@@ -545,7 +545,7 @@ const COMMUNITY_ITEMS = [
         { from:'them', text:"Just finished week 8 and I'm down 6kg. This actually works. Thank you Sofia!", time:'8:15 AM' },
       ]},
     ]},
-  { user:'@anapaula.fit', name:'Ana Paula', avatar:'https://i.pravatar.cc/88?u=anapaulafit', msg:"Honestly the best investment I made this year. The community alone is worth it. Everyone is so supportive.", source:'DM', time:'2h ago', unread:1, intent:'Fans', mode:'confident',
+  { user:'@anapaula.fit', name:'Ana Paula', avatar:'https://i.pravatar.cc/88?u=anapaulafit', msg:"Honestly the best investment I made this year. The community alone is worth it. Everyone is so supportive.", source:'DM', time:'2h ago', unread:1, intent:'Fans', category:'interesting', tag:'testimonial', mode:'confident',
     summary:'Loves the community, strong testimonial', status:'Reply ready',
     contactBio:'Active client · 12-Week Reboot · Week 10 · 🇧🇷 Brazil',
     contactBioExpanded:'Paying client in the 12-Week Reboot, week 10. Extremely active in the community group — posts daily and encourages other members. This unprompted testimonial about community value is perfect for social proof.',
@@ -557,7 +557,7 @@ const COMMUNITY_ITEMS = [
     draft:"Thank you so much for saying that, Ana. The community really is special — it's members like you who make it what it is. I'm so glad you feel that way.",
     styleReason:"Genuine gratitude, reflects the compliment back to the community. Warm but not over-the-top.",
     agentRead:'Testimonial · Reply ready' },
-  { user:'@sofian.collab', name:'Sofia Nunes', avatar:'https://i.pravatar.cc/88?u=sofiancollab', msg:"Hey! I am a fitness content creator with 40k followers, I would love to do a collab with you if you are interested 🤝", source:'DM', time:'3h ago', unread:1, intent:'Fans', mode:'confident',
+  { user:'@sofian.collab', name:'Sofia Nunes', avatar:'https://i.pravatar.cc/88?u=sofiancollab', msg:"Hey! I am a fitness content creator with 40k followers, I would love to do a collab with you if you are interested 🤝", source:'DM', time:'3h ago', unread:1, intent:'Fans', category:'interesting', tag:'collaboration', mode:'confident',
     summary:'Fitness creator, collab proposal', status:'Filtered',
     contactBio:'Creator · 40k followers · 🇧🇷 Brazil · Fitness niche',
     contactBioExpanded:'Fitness content creator with 40k followers based in Brazil. Relevant audience overlap with Sofia. First-time DM with a collab proposal. Worth exploring when Sofia has time but not urgent.',
@@ -567,7 +567,7 @@ const COMMUNITY_ITEMS = [
     ],
     context:"Creator collab ask, 40k followers in fitness niche — relevant audience. Worth exploring when you have a moment.",
     draft:"",styleReason:"",agentRead:'Collab ask · Creator match' },
-  { user:'@isabelrt', name:'Isabel R.', avatar:'https://i.pravatar.cc/88?u=isabelrt', msg:"Thanks for the live yesterday, the protein tip helped me so much. I put it into practice today!", source:'DM', time:'4h ago', unread:1, intent:'Fans', mode:'confident',
+  { user:'@isabelrt', name:'Isabel R.', avatar:'https://i.pravatar.cc/88?u=isabelrt', msg:"Thanks for the live yesterday, the protein tip helped me so much. I put it into practice today!", source:'DM', time:'4h ago', unread:1, intent:'Fans', category:'interesting', tag:'feedback', mode:'confident',
     summary:'Tried your live tip, it worked', status:'Reply ready',
     contactBio:'Follower since 11 months · 🇪🇸 Spain · Attends every live',
     contactBioExpanded:'Loyal follower for 11 months who attends almost every live session. Engages actively in live chat and follows through on advice. This message shows real implementation of tips — high-value community member.',
@@ -579,7 +579,7 @@ const COMMUNITY_ITEMS = [
     draft:"So glad the protein tip helped! I love hearing when people actually put it into practice. That's what the lives are for. See you at the next one!",
     styleReason:"Reinforces the value of lives, encourages continued attendance. Casual, encouraging.",
     agentRead:'Live follow-up · Reply ready' },
-  { user:'@brendanmac', name:'Brendan M.', avatar:'https://i.pravatar.cc/88?u=brendanmac', msg:"Would you ever consider doing a podcast? Your explanations of nutrition are so clear and I'd love to listen on my runs", source:'DM', time:'5h ago', unread:1, intent:'Fans', mode:'confident',
+  { user:'@brendanmac', name:'Brendan M.', avatar:'https://i.pravatar.cc/88?u=brendanmac', msg:"Would you ever consider doing a podcast? Your explanations of nutrition are so clear and I'd love to listen on my runs", source:'DM', time:'5h ago', unread:1, intent:'Fans', category:'interesting', tag:'collaboration', mode:'confident',
     summary:'Suggesting you start a podcast', status:'Filtered',
     contactBio:'Follower since 6 months · 🇮🇪 Ireland · Engages with nutrition content',
     contactBioExpanded:'Follows for 6 months, primarily engages with nutrition explanation content. Saves educational posts regularly. The podcast suggestion shows he consumes content deeply and wants more. Good content strategy signal.',
@@ -590,7 +590,7 @@ const COMMUNITY_ITEMS = [
     context:"Genuine content feedback — follower is listening closely. Good insight for your content strategy.",
     draft:"",styleReason:"",agentRead:'Content feedback · Engaged follower' },
   /* ── New community items (22 additional) ── */
-  { user:'@luciana.health', name:'Luciana Marques', avatar:'https://i.pravatar.cc/88?u=lucianahealth', msg:"You genuinely inspire me every single day. Thank you for being so real 💛", source:'DM', time:'6h', unread:1, intent:'Fans', mode:'confident',
+  { user:'@luciana.health', name:'Luciana Marques', avatar:'https://i.pravatar.cc/88?u=lucianahealth', msg:"You genuinely inspire me every single day. Thank you for being so real 💛", source:'DM', time:'6h', unread:1, intent:'Fans', category:'other', tag:'feedback', mode:'confident',
     summary:'Daily inspiration, genuine appreciation', status:'Filtered',
     contactBio:'Follower since 1 yr · 🇧🇷 Brazil · Daily story viewer',
     contactBioExpanded:'Consistent follower for a year who views every story and likes most posts. Never commented publicly but this DM shows deep connection to the content. Pure appreciation, no ask.',
@@ -600,7 +600,7 @@ const COMMUNITY_ITEMS = [
     ],
     context:"Heartfelt appreciation from a quiet but loyal follower. No action needed but a reply would mean a lot.",
     agentRead:'Appreciation · Filtered' },
-  { user:'@fitjordan21', name:'Jordan Ellis', avatar:'https://i.pravatar.cc/88?u=fitjordan21', msg:"Your mindset content is what actually changed things for me. The workouts are great but the mental shifts hit different", source:'DM', time:'6h', unread:1, intent:'Fans', mode:'confident',
+  { user:'@fitjordan21', name:'Jordan Ellis', avatar:'https://i.pravatar.cc/88?u=fitjordan21', msg:"Your mindset content is what actually changed things for me. The workouts are great but the mental shifts hit different", source:'DM', time:'6h', unread:1, intent:'Fans', category:'interesting', tag:'feedback', mode:'confident',
     summary:'Values mindset content most', status:'Filtered',
     contactBio:'Follower since 8 months · 🇺🇸 US · Saves mindset posts',
     contactBioExpanded:'Follower for 8 months who engages primarily with mindset and motivation content rather than workout posts. Saves posts regularly. This feedback highlights an underappreciated content pillar.',
@@ -609,7 +609,7 @@ const COMMUNITY_ITEMS = [
     ],
     context:"Values the mindset angle over the fitness — good content strategy insight.",
     agentRead:'Content feedback · Filtered' },
-  { user:'@priya.transforms', name:'Priya Sharma', avatar:'https://i.pravatar.cc/88?u=priyatransforms', msg:"You changed my perspective on what healthy actually means. I stopped obsessing over the scale because of you", source:'DM', time:'7h', unread:1, intent:'Fans', mode:'confident',
+  { user:'@priya.transforms', name:'Priya Sharma', avatar:'https://i.pravatar.cc/88?u=priyatransforms', msg:"You changed my perspective on what healthy actually means. I stopped obsessing over the scale because of you", source:'DM', time:'7h', unread:1, intent:'Fans', category:'interesting', tag:'testimonial', mode:'confident',
     summary:'Shifted perspective on health', status:'Reply ready',
     contactBio:'Follower since 10 months · 🇮🇳 India · Deep engagement',
     contactBioExpanded:'Follows for 10 months from India. Engages deeply with educational content — comments thoughtful responses on nutrition posts. This message reflects a meaningful mindset shift directly attributed to the content.',
@@ -621,7 +621,7 @@ const COMMUNITY_ITEMS = [
     draft:"Priya, this is exactly why I do what I do. Health is so much bigger than a number on the scale and I am so glad that message landed for you. Keep going 💛",
     styleReason:"Acknowledges the personal impact, reinforces the philosophy. Warm and affirming without being preachy.",
     agentRead:'Impact story · Reply ready' },
-  { user:'@emmawellness.uk', name:'Emma Clarke', avatar:'https://i.pravatar.cc/88?u=emmawellnessuk', msg:"Thank you for always being honest about the hard parts too. So refreshing", source:'DM', time:'8h', unread:1, intent:'Fans', mode:'confident',
+  { user:'@emmawellness.uk', name:'Emma Clarke', avatar:'https://i.pravatar.cc/88?u=emmawellnessuk', msg:"Thank you for always being honest about the hard parts too. So refreshing", source:'DM', time:'8h', unread:1, intent:'Fans', category:'other', tag:'feedback', mode:'confident',
     summary:'Appreciates honesty in content', status:'Filtered',
     contactBio:'Follower since 5 months · 🇬🇧 UK · Comments regularly',
     contactBioExpanded:'UK-based follower for 5 months. Comments on posts about the realistic side of fitness — struggles, plateaus, honest moments. Values transparency over polished content.',
@@ -630,7 +630,7 @@ const COMMUNITY_ITEMS = [
     ],
     context:"Appreciates authenticity — important signal for content direction.",
     agentRead:'Appreciation · Filtered' },
-  { user:'@katelyn.moves', name:'Katelyn Brooks', avatar:'https://i.pravatar.cc/88?u=katelynmoves', msg:"I just wanted you to know that I recommend you to literally everyone I talk to about fitness", source:'DM', time:'9h', unread:1, intent:'Fans', mode:'confident',
+  { user:'@katelyn.moves', name:'Katelyn Brooks', avatar:'https://i.pravatar.cc/88?u=katelynmoves', msg:"I just wanted you to know that I recommend you to literally everyone I talk to about fitness", source:'DM', time:'9h', unread:1, intent:'Fans', category:'interesting', tag:'feedback', mode:'confident',
     summary:'Active referrer, spreads the word', status:'Reply ready',
     contactBio:'Follower since 1 yr · 🇺🇸 US · Word-of-mouth advocate',
     contactBioExpanded:'Year-long follower who tags friends in comments regularly and shares posts to stories. Self-identified as someone who actively refers others. Organic growth driver.',
@@ -641,7 +641,7 @@ const COMMUNITY_ITEMS = [
     draft:"Katelyn that honestly means everything to me 🥹 Word of mouth from people like you is how this community grows. Thank you for spreading the love!",
     styleReason:"Acknowledges the referral behavior directly. Warm and grateful to reinforce the behavior.",
     agentRead:'Advocate · Reply ready' },
-  { user:'@mikefitcoach', name:'Mike Donovan', avatar:'https://i.pravatar.cc/88?u=mikefitcoach', msg:"Your meal prep reel saved my week. I made 5 days of lunches in 40 minutes following your method", source:'DM', time:'10h', unread:1, intent:'Fans', mode:'confident',
+  { user:'@mikefitcoach', name:'Mike Donovan', avatar:'https://i.pravatar.cc/88?u=mikefitcoach', msg:"Your meal prep reel saved my week. I made 5 days of lunches in 40 minutes following your method", source:'DM', time:'10h', unread:1, intent:'Fans', category:'interesting', tag:'testimonial', mode:'confident',
     summary:'Meal prep method worked, specific result', status:'Reply ready',
     contactBio:'Follower since 4 months · 🇺🇸 US · Tries every recipe',
     contactBioExpanded:'Follows for 4 months and engages heavily with meal prep and recipe content. Actually implements the methods shown in reels. Specific result (5 days in 40 min) makes this great testimonial material.',
@@ -653,7 +653,7 @@ const COMMUNITY_ITEMS = [
     draft:"Mike that is amazing! 5 days in 40 minutes is exactly the goal. Would you mind if I shared this? I think it would motivate a lot of people who think meal prep takes forever.",
     styleReason:"Celebrates the result, then soft ask for testimonial. Matches his practical energy.",
     agentRead:'Result story · Reply ready' },
-  { user:'@nina.transforms', name:'Nina Petrova', avatar:'https://i.pravatar.cc/88?u=ninatransforms', msg:"I finished the Kickstart last week and I already signed up for the Reboot. This program changed everything for me", source:'DM', time:'10h', unread:1, intent:'Fans', mode:'confident',
+  { user:'@nina.transforms', name:'Nina Petrova', avatar:'https://i.pravatar.cc/88?u=ninatransforms', msg:"I finished the Kickstart last week and I already signed up for the Reboot. This program changed everything for me", source:'DM', time:'10h', unread:1, intent:'Fans', category:'interesting', tag:'testimonial', mode:'confident',
     summary:'Completed Kickstart, upgraded to Reboot', status:'Reply ready',
     contactBio:'Client · Kickstart graduate · Now in Reboot · 🇷🇺 Russia',
     contactBioExpanded:'Completed the 4-week Kickstart and immediately upgraded to the 12-Week Reboot. This is the ideal client journey. Her enthusiasm makes her a strong candidate for a case study or testimonial.',
@@ -665,7 +665,7 @@ const COMMUNITY_ITEMS = [
     draft:"Nina!! That is the best news I have heard all week 🥹 The fact that you went straight to the Reboot tells me you really felt the difference. I can not wait to see what the next 12 weeks bring for you!",
     styleReason:"Celebrates the upgrade, builds excitement for the journey ahead. Extra warm for loyalty.",
     agentRead:'Upgrade story · Reply ready' },
-  { user:'@rachelt.health', name:'Rachel Torres', avatar:'https://i.pravatar.cc/88?u=rachelthealth', msg:"I hit my first pull-up today because of your program. I literally cried in the gym 😭", source:'DM', time:'12h', unread:1, intent:'Fans', mode:'confident',
+  { user:'@rachelt.health', name:'Rachel Torres', avatar:'https://i.pravatar.cc/88?u=rachelthealth', msg:"I hit my first pull-up today because of your program. I literally cried in the gym 😭", source:'DM', time:'12h', unread:1, intent:'Fans', category:'interesting', tag:'testimonial', mode:'confident',
     summary:'First pull-up milestone, emotional', status:'Reply ready',
     contactBio:'Active client · 12-Week Reboot · Week 9 · 🇺🇸 US',
     contactBioExpanded:'Client in week 9 of the Reboot. Has been posting progress in the community group consistently. First pull-up is a major strength milestone — highly emotional and shareable.',
@@ -677,7 +677,7 @@ const COMMUNITY_ITEMS = [
     draft:"RACHEL!! 🎉 A pull-up!!! Do you know how huge that is?! I am so incredibly proud of you. That moment is yours forever. Would you be okay if I shared this with the community? This would inspire SO many people.",
     styleReason:"Matches her excitement level. Celebrates the milestone fully before the testimonial ask.",
     agentRead:'Milestone · Reply ready' },
-  { user:'@davemacfit', name:'Dave McCarthy', avatar:'https://i.pravatar.cc/88?u=davemacfit', msg:"Hit my goal weight today. 12 weeks ago I didn't think this was possible. Thank you", source:'DM', time:'14h', unread:1, intent:'Fans', mode:'confident',
+  { user:'@davemacfit', name:'Dave McCarthy', avatar:'https://i.pravatar.cc/88?u=davemacfit', msg:"Hit my goal weight today. 12 weeks ago I didn't think this was possible. Thank you", source:'DM', time:'14h', unread:1, intent:'Fans', category:'interesting', tag:'testimonial', mode:'confident',
     summary:'Hit goal weight after 12 weeks', status:'Reply ready',
     contactBio:'Client · 12-Week Reboot graduate · 🇦🇺 Australia',
     contactBioExpanded:'Just completed the full 12-Week Reboot and hit his goal weight. Quiet in the community group but consistent with check-ins. The gratitude message at the end signals deep satisfaction with the program.',
@@ -688,7 +688,7 @@ const COMMUNITY_ITEMS = [
     draft:"Dave this gave me chills. You put in the work every single day for 12 weeks and it paid off. I am so proud of you. What is next for you?",
     styleReason:"Gives full credit to his effort. Open-ended question to keep the relationship going and explore upsell.",
     agentRead:'Goal achieved · Reply ready' },
-  { user:'@samira.wellness', name:'Samira Al-Rashid', avatar:'https://i.pravatar.cc/88?u=samirawellness', msg:"Your reel about not needing to exercise every day actually relieved so much guilt. I needed that", source:'DM', time:'15h', unread:1, intent:'Fans', mode:'confident',
+  { user:'@samira.wellness', name:'Samira Al-Rashid', avatar:'https://i.pravatar.cc/88?u=samirawellness', msg:"Your reel about not needing to exercise every day actually relieved so much guilt. I needed that", source:'DM', time:'15h', unread:1, intent:'Fans', category:'other', tag:'feedback', mode:'confident',
     summary:'Content relieved exercise guilt', status:'Filtered',
     contactBio:'Follower since 7 months · 🇦🇪 UAE · Engages with rest day content',
     contactBioExpanded:'Follower for 7 months from the UAE. Engages specifically with content about rest, recovery, and balanced approaches to fitness. The guilt relief message shows the content is hitting the right note for her audience segment.',
@@ -697,7 +697,7 @@ const COMMUNITY_ITEMS = [
     ],
     context:"Content addressing exercise guilt resonated deeply. Good signal for content strategy.",
     agentRead:'Impact feedback · Filtered' },
-  { user:'@alexm.collab', name:'Alex Morrison', avatar:'https://i.pravatar.cc/88?u=alexmcollab', msg:"Hey Sofia! I run a wellness podcast with 15k listeners. Would love to have you as a guest to talk about sustainable fitness habits", source:'DM', time:'17h', unread:1, intent:'Fans', mode:'confident',
+  { user:'@alexm.collab', name:'Alex Morrison', avatar:'https://i.pravatar.cc/88?u=alexmcollab', msg:"Hey Sofia! I run a wellness podcast with 15k listeners. Would love to have you as a guest to talk about sustainable fitness habits", source:'DM', time:'17h', unread:1, intent:'Fans', category:'important', severity:'normal', tag:'collaboration', mode:'confident',
     summary:'Podcast interview invitation, 15k audience', status:'Filtered',
     contactBio:'Podcast host · 15k listeners · 🇨🇦 Canada · Wellness niche',
     contactBioExpanded:'Runs a wellness podcast with 15k listeners based in Canada. The audience aligns well with Sofia niche. Podcast appearances are great for brand building and reaching new audiences.',
@@ -707,7 +707,7 @@ const COMMUNITY_ITEMS = [
     ],
     context:"Podcast guest opportunity — relevant audience, good brand exposure. Worth considering when schedule allows.",
     agentRead:'Podcast invite · Filtered' },
-  { user:'@juanpablo.writes', name:'Juan Pablo Ríos', avatar:'https://i.pravatar.cc/88?u=juanpablowrites', msg:"I write for a fitness magazine and I would love to feature your approach to personalized coaching. Can we set up a quick interview?", source:'DM', time:'18h', unread:1, intent:'Fans', mode:'confident',
+  { user:'@juanpablo.writes', name:'Juan Pablo Ríos', avatar:'https://i.pravatar.cc/88?u=juanpablowrites', msg:"I write for a fitness magazine and I would love to feature your approach to personalized coaching. Can we set up a quick interview?", source:'DM', time:'18h', unread:1, intent:'Fans', category:'important', severity:'normal', tag:'collaboration', mode:'confident',
     summary:'Magazine feature request, interview ask', status:'Filtered',
     contactBio:'Journalist · Fitness magazine · 🇨🇴 Colombia',
     contactBioExpanded:'Writes for a fitness publication based in Colombia. Feature request for an interview about personalized coaching approach. Good PR opportunity for brand visibility in Latin American market.',
@@ -717,7 +717,7 @@ const COMMUNITY_ITEMS = [
     ],
     context:"Press inquiry for a magazine feature. Could be valuable exposure. Worth exploring.",
     agentRead:'Press inquiry · Filtered' },
-  { user:'@yogawithnat', name:'Natalia Reyes', avatar:'https://i.pravatar.cc/88?u=yogawithnat', msg:"Would you ever consider adding a yoga/mobility module? I think it would complement the strength training perfectly", source:'DM', time:'19h', unread:1, intent:'Fans', mode:'confident',
+  { user:'@yogawithnat', name:'Natalia Reyes', avatar:'https://i.pravatar.cc/88?u=yogawithnat', msg:"Would you ever consider adding a yoga/mobility module? I think it would complement the strength training perfectly", source:'DM', time:'19h', unread:1, intent:'Fans', category:'interesting', tag:'feedback', mode:'confident',
     summary:'Suggesting yoga module for program', status:'Filtered',
     contactBio:'Follower since 1 yr · 🇨🇱 Chile · Yoga instructor',
     contactBioExpanded:'Yoga instructor who has followed for a year. Engages with flexibility and recovery content. The product suggestion comes from professional experience and genuine belief in the program.',
@@ -726,7 +726,7 @@ const COMMUNITY_ITEMS = [
     ],
     context:"Product feedback from a yoga professional. Could be a future offering or collaboration.",
     agentRead:'Product suggestion · Filtered' },
-  { user:'@fitdad.marco', name:'Marco Bianchi', avatar:'https://i.pravatar.cc/88?u=fitdadmarco', msg:"What does your morning routine actually look like? I am a dad of 3 and I am trying to find time for fitness", source:'DM', time:'20h', unread:1, intent:'Fans', mode:'confident',
+  { user:'@fitdad.marco', name:'Marco Bianchi', avatar:'https://i.pravatar.cc/88?u=fitdadmarco', msg:"What does your morning routine actually look like? I am a dad of 3 and I am trying to find time for fitness", source:'DM', time:'20h', unread:1, intent:'Fans', category:'other', mode:'confident',
     summary:'Dad of 3, asking about morning routine', status:'Filtered',
     contactBio:'Follower since 6 months · 🇮🇹 Italy · Engages with routine content',
     contactBioExpanded:'Italian follower for 6 months, dad of 3. Engages specifically with content about fitting fitness into busy schedules. The personal question shows he sees Sofia as relatable and accessible.',
@@ -735,7 +735,7 @@ const COMMUNITY_ITEMS = [
     ],
     context:"Lifestyle question from a busy parent. Good content idea — could answer this in a reel.",
     agentRead:'Lifestyle question · Filtered' },
-  { user:'@mari.lifts', name:'Mari Tanaka', avatar:'https://i.pravatar.cc/88?u=marilifts', msg:"How do you stay motivated on days when you really don't feel like training? Asking for real because today was rough", source:'DM', time:'21h', unread:1, intent:'Fans', mode:'confident',
+  { user:'@mari.lifts', name:'Mari Tanaka', avatar:'https://i.pravatar.cc/88?u=marilifts', msg:"How do you stay motivated on days when you really don't feel like training? Asking for real because today was rough", source:'DM', time:'21h', unread:1, intent:'Fans', category:'other', mode:'confident',
     summary:'Asking about motivation on hard days', status:'Filtered',
     contactBio:'Follower since 4 months · 🇯🇵 Japan · Engages with mindset content',
     contactBioExpanded:'Japanese follower for 4 months who gravitates toward mindset and motivation content. The vulnerable question shows trust. Could be addressed in a future reel for broader reach.',
@@ -745,7 +745,7 @@ const COMMUNITY_ITEMS = [
     ],
     context:"Real question about motivation. Great content opportunity — relatable for the whole audience.",
     agentRead:'Routine question · Filtered' },
-  { user:'@healthymaya.co', name:'Maya Chen', avatar:'https://i.pravatar.cc/88?u=healthymayaco', msg:"Do you have a specific pre-workout snack you swear by? I always feel sluggish going in", source:'DM', time:'22h', unread:1, intent:'Fans', mode:'confident',
+  { user:'@healthymaya.co', name:'Maya Chen', avatar:'https://i.pravatar.cc/88?u=healthymayaco', msg:"Do you have a specific pre-workout snack you swear by? I always feel sluggish going in", source:'DM', time:'22h', unread:1, intent:'Fans', category:'other', mode:'confident',
     summary:'Asking about pre-workout nutrition', status:'Filtered',
     contactBio:'Follower since 3 months · 🇺🇸 US · Nutrition-focused',
     contactBioExpanded:'Follows for 3 months, primarily engages with nutrition and meal content. The pre-workout snack question is specific enough to answer in a story or reel for broader value.',
@@ -754,7 +754,7 @@ const COMMUNITY_ITEMS = [
     ],
     context:"Specific nutrition question. Could answer publicly in a story for broader value.",
     agentRead:'Nutrition question · Filtered' },
-  { user:'@tagmefit', name:'Leah Brown', avatar:'https://i.pravatar.cc/88?u=tagmefit', msg:"OMG just tagged you in my story!! My friend and I did your HIIT reel together and we were DYING 😂", source:'DM', time:'1d', unread:1, intent:'Fans', mode:'confident',
+  { user:'@tagmefit', name:'Leah Brown', avatar:'https://i.pravatar.cc/88?u=tagmefit', msg:"OMG just tagged you in my story!! My friend and I did your HIIT reel together and we were DYING 😂", source:'DM', time:'1d', unread:1, intent:'Fans', category:'other', mode:'confident',
     summary:'Tagged in story, did HIIT reel with friend', status:'Reply ready',
     contactBio:'Follower since 2 months · 🇺🇸 US · Shares content socially',
     contactBioExpanded:'Recent follower who actively shares content with friends. Tagged Sofia in a story doing a workout reel together with a friend — organic reach and social proof. Worth engaging to encourage more of this behavior.',
@@ -765,7 +765,7 @@ const COMMUNITY_ITEMS = [
     draft:"I LOVE this!! 😂 You two are amazing. I am reposting this to my story — this is exactly the energy I want to see!",
     styleReason:"Enthusiastic, matches her energy. Announces the repost to encourage more UGC.",
     agentRead:'UGC tag · Reply ready' },
-  { user:'@fitcouple.sam', name:'Sam & Lisa', avatar:'https://i.pravatar.cc/88?u=fitcouplesam', msg:"My girlfriend and I both follow you and we just started doing your workouts together. Wanted to say thanks for bringing us closer 🤣💪", source:'DM', time:'1d', unread:1, intent:'Fans', mode:'confident',
+  { user:'@fitcouple.sam', name:'Sam & Lisa', avatar:'https://i.pravatar.cc/88?u=fitcouplesam', msg:"My girlfriend and I both follow you and we just started doing your workouts together. Wanted to say thanks for bringing us closer 🤣💪", source:'DM', time:'1d', unread:1, intent:'Fans', category:'other', mode:'confident',
     summary:'Couple doing workouts together, fun message', status:'Filtered',
     contactBio:'Followers · Couple account · 🇺🇸 US · Shared workouts',
     contactBioExpanded:'Couple account that follows and works out together using Sofia content. Fun, wholesome engagement. Nice story potential but not urgent.',
@@ -774,7 +774,7 @@ const COMMUNITY_ITEMS = [
     ],
     context:"Wholesome couple engagement. Nice for stories if they are open to it.",
     agentRead:'Fun engagement · Filtered' },
-  { user:'@runnerjess.k', name:'Jess Kim', avatar:'https://i.pravatar.cc/88?u=runnerjessk', msg:"My sister showed me your account and now we both do your stretching routine every morning. Just wanted you to know you have a new fan!", source:'DM', time:'1d', unread:1, intent:'Fans', mode:'confident',
+  { user:'@runnerjess.k', name:'Jess Kim', avatar:'https://i.pravatar.cc/88?u=runnerjessk', msg:"My sister showed me your account and now we both do your stretching routine every morning. Just wanted you to know you have a new fan!", source:'DM', time:'1d', unread:1, intent:'Fans', category:'other', mode:'confident',
     summary:'Sister referral, new fan', status:'Filtered',
     contactBio:'New follower · 🇰🇷 South Korea · Referred by sister',
     contactBioExpanded:'Brand new follower referred by her sister. They do the stretching routine together daily. Word-of-mouth referral story — shows organic reach beyond the main audience.',
@@ -783,7 +783,7 @@ const COMMUNITY_ITEMS = [
     ],
     context:"Referral story — sister introduced her. Nice organic growth signal.",
     agentRead:'Referral story · Filtered' },
-  { user:'@patrice.lifts', name:'Patrice Dubois', avatar:'https://i.pravatar.cc/88?u=patricelifts', msg:"Sent your transformation reel to my whole group chat. You are going viral in our gym 😂", source:'DM', time:'2d', unread:1, intent:'Fans', mode:'confident',
+  { user:'@patrice.lifts', name:'Patrice Dubois', avatar:'https://i.pravatar.cc/88?u=patricelifts', msg:"Sent your transformation reel to my whole group chat. You are going viral in our gym 😂", source:'DM', time:'2d', unread:1, intent:'Fans', category:'other', mode:'confident',
     summary:'Shared reel with gym group chat', status:'Filtered',
     contactBio:'Follower since 5 months · 🇫🇷 France · Shares content widely',
     contactBioExpanded:'French follower for 5 months who actively shares content within his gym community. This kind of organic distribution is incredibly valuable for reach. Fun message, no action needed.',
@@ -792,7 +792,7 @@ const COMMUNITY_ITEMS = [
     ],
     context:"Organic content sharing in a gym community. Great reach signal.",
     agentRead:'Content share · Filtered' },
-  { user:'@wellnesswitheva', name:'Eva Lindström', avatar:'https://i.pravatar.cc/88?u=wellnesswitheva', msg:"I have been doing your evening stretching routine for 3 weeks straight and my back pain is actually gone. I can not believe it", source:'DM', time:'2d', unread:1, intent:'Fans', mode:'confident',
+  { user:'@wellnesswitheva', name:'Eva Lindström', avatar:'https://i.pravatar.cc/88?u=wellnesswitheva', msg:"I have been doing your evening stretching routine for 3 weeks straight and my back pain is actually gone. I can not believe it", source:'DM', time:'2d', unread:1, intent:'Fans', category:'interesting', tag:'testimonial', mode:'confident',
     summary:'Back pain gone after 3 weeks of stretching', status:'Reply ready',
     contactBio:'Follower since 6 months · 🇸🇪 Sweden · Health improvement',
     contactBioExpanded:'Swedish follower for 6 months who found Sofia through stretching content. 3 weeks of consistent practice led to a specific health improvement. Great testimonial for the stretching content pillar.',
@@ -804,7 +804,7 @@ const COMMUNITY_ITEMS = [
     draft:"Eva that is incredible!! Back pain gone in 3 weeks of consistent stretching — your body was just asking for it. Would you be open to sharing this? So many people deal with back pain and need to hear this.",
     styleReason:"Celebrates the result, then soft testimonial ask. Frames it as helping others.",
     agentRead:'Health result · Reply ready' },
-  { user:'@alinagym', name:'Alina Popescu', avatar:'https://i.pravatar.cc/88?u=alinagym', msg:"Just completed all 4 weeks of the Kickstart!! 💪 Feeling stronger than ever", source:'DM', time:'2d', unread:1, intent:'Fans', mode:'confident',
+  { user:'@alinagym', name:'Alina Popescu', avatar:'https://i.pravatar.cc/88?u=alinagym', msg:"Just completed all 4 weeks of the Kickstart!! 💪 Feeling stronger than ever", source:'DM', time:'2d', unread:1, intent:'Fans', category:'interesting', tag:'testimonial', mode:'confident',
     summary:'Completed Kickstart program', status:'Reply ready',
     contactBio:'Client · Kickstart graduate · 🇷🇴 Romania',
     contactBioExpanded:'Just completed the 4-week Kickstart program. Active in the community group during the program. Completion message with enthusiasm suggests high satisfaction and potential upgrade candidate.',
@@ -2382,9 +2382,14 @@ function FocusMode({ title, items, initialSentSet, onClose, onSent }) {
                 <span style={{ fontSize:16, fontWeight:600, color:'#292929' }}>{item.name || item.user}</span>
                 <span style={{ fontSize:14, color:'#292929' }}>★</span>
               </div>
-              {item.intent && (
-                <div style={{ display:'inline-block', background:'#F0F0F0', borderRadius:4, padding:'2px 8px', marginTop:4 }}>
-                  <span style={{ fontSize:12, fontWeight:400, color:'#707070' }}>{item.intent === 'Opportunities' ? 'High value' : item.intent}</span>
+              {item.tag && (
+                <div style={{ display:'inline-flex', alignItems:'center', gap:4, background: item.category === 'important' ? (item.severity === 'high' ? '#FFF0F0' : '#F0F0F0') : '#F0F5FF', borderRadius:4, padding:'2px 8px', marginTop:4 }}>
+                  {item.category === 'important' && item.severity === 'high' && (
+                    <span style={{ fontSize:10 }}>🔴</span>
+                  )}
+                  <span style={{ fontSize:12, fontWeight:400, color: item.category === 'important' ? (item.severity === 'high' ? '#CC3333' : '#707070') : '#4A7FBF' }}>
+                    {item.tag.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                  </span>
                 </div>
               )}
             </div>
@@ -2605,22 +2610,13 @@ function AgentChatHome({ onOverlayChange }) {
     const leadsWithDrafts = INTERESTED_ITEMS.filter(i => i.draft).length;
     const initial = [
       { type:'agent', content:'Morning, Sofia \u2615', delay:300 },
-      { type:'agent', content:'This happened overnight:\n\u2022 ' + INTERESTED_ITEMS.filter(i=>i.draft).length + ' new leads with replies ready, including ' + INTERESTED_ITEMS[0].name + ' who\'s been following for 2 years.\n\u2022 ' + ATTENTION_ITEMS.length + ' people need your attention \u2014 ' + ATTENTION_ITEMS[0].name + ' has been waiting since yesterday.\n\u2022 ' + STATS.spamFiltered + ' spam messages filtered.', delay:800 },
-      { type:'agent', content:'I\'d start with the urgent ones \u2014 a client has been waiting since yesterday:', delay:1400,
+      { type:'agent', content: ATTENTION_ITEMS.length + ' people need your attention \u2014 ' + ATTENTION_ITEMS[0].name + ' has been locked out since yesterday. I\'d start here.', delay:800,
         cardLabel: 'need your attention',
         cardSubtitle: ATTENTION_ITEMS.length + ' support issues',
         cards: ATTENTION_ITEMS.slice(0,4).map(item => ({
-          user: item.user, name: item.name, avatar: item.avatar,
-          _item: item,
-        }))
-      },
-      { type:'agent', content:'Then tackle your leads \u2014 ' + leadsWithDrafts + ' replies ready to send:', delay:2000,
-        cardLabel: 'ready to buy',
-        cardSubtitle: INTERESTED_ITEMS.length + ' leads',
-        cards: INTERESTED_ITEMS.slice(0,3).map(item => ({
-          user: item.user, name: item.name, avatar: item.avatar,
-          _item: item,
-        }))
+          user: item.user, name: item.name, avatar: item.avatar, _item: item,
+        })),
+        suggestions: ['Show me what else you have for today'],
       },
     ];
     initial.forEach((msg, i) => {
@@ -2642,6 +2638,7 @@ function AgentChatHome({ onOverlayChange }) {
   const getResponse = (query) => {
     const q = query.toLowerCase();
     const allItems = [...INTERESTED_ITEMS, ...ATTENTION_ITEMS, ...COMMUNITY_ITEMS];
+    const leadsWithDrafts = INTERESTED_ITEMS.filter(i => i.draft).length;
 
     // --- Name/handle search (most specific, check first) ---
     const nameMatch = allItems.find(item =>
@@ -2805,6 +2802,19 @@ function AgentChatHome({ onOverlayChange }) {
           '\u2022 Common objections: pricing, beginner-friendliness, and program format.\n\n' +
           'Want me to dig deeper?',
         suggestions: ['Show me leads', 'Who are my most loyal fans?', 'Any unanswered messages?'],
+      };
+    }
+
+    // --- Show me more / What else / Today's overview ---
+    if (q.match(/what else|show me more|else.*today|what.*today|more for today/)) {
+      return {
+        reasoning: 'Here is the full picture of what came in while you were away.',
+        content: leadsWithDrafts + ' leads with replies ready. Plus ' + COMMUNITY_ITEMS.length + ' community messages.',
+        cardLabel: 'ready to buy',
+        cardSubtitle: leadsWithDrafts + ' replies ready',
+        cards: INTERESTED_ITEMS.slice(0,3).map(item => ({
+          user: item.user, name: item.name, avatar: item.avatar, _item: item,
+        })),
       };
     }
 
