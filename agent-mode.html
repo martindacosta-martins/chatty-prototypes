@@ -2984,12 +2984,7 @@ function FocusMode({ title, items, onClose, onSent }) {
           animation: slideDir === 'left' ? 'slideFromRight .5s cubic-bezier(.25,.46,.45,.94) both' : slideDir === 'right' ? 'slideFromLeft .5s cubic-bezier(.25,.46,.45,.94) both' : 'fadeIn .3s ease both'
         }}>
 
-        {/* Agent summary — 14px, 1 line, tap to expand */}
-        <div onClick={() => setExpandedSummary(!expandedSummary)}
-          style={{ padding:'12px 0', fontSize:14, fontWeight:400, color:'#292929', lineHeight:'20px', cursor:'pointer',
-            ...(!expandedSummary ? { overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' } : {}) }}>
-          {item.context || 'This contact is waiting for your reply.'}
-        </div>
+        {/* Agent summary removed — too much info, user should focus on the reply */}
 
         {/* Contact card */}
         <div style={{ border:'1px solid #D6D6D6', borderRadius:16, padding:20, display:'flex', flexDirection:'column', gap:16 }}>
@@ -3015,6 +3010,14 @@ function FocusMode({ title, items, onClose, onSent }) {
               {item.chatHistory ? item.chatHistory[item.chatHistory.length - 1]?.text : item.msg}
             </div>
           </div>
+
+          {/* Message count hint */}
+          {item.chatHistory && item.chatHistory.length > 1 && (
+            <div style={{ fontSize:12, fontWeight:400, color:'#707070', marginTop:8, display:'flex', alignItems:'center', gap:2, cursor:'pointer' }}>
+              <span>{item.chatHistory.length - 1} previous messages</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#707070" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+          )}
 
           {/* Draft section — hidden in reply mode */}
           {!replyMode && !customSentMsg && (
