@@ -2074,14 +2074,13 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
           </div>
         )}
 
-        {/* Tabs: Your reply / Ask Agent */}
-        <div style={{ display:'flex', gap:0, marginBottom:6 }}>
-          <div style={{ padding:'6px 14px', fontSize:12, fontWeight:500, color:'#292929', background:'#F0F0F0', borderRadius:'8px 0 0 8px', cursor:'default' }}>Your reply</div>
-          <div onClick={() => setAgentOverlayOpen(true)} style={{ padding:'6px 14px', fontSize:12, fontWeight:500, color:'#707070', background:'#F8F8F8', borderRadius:'0 8px 8px 0', cursor:'pointer', borderLeft:'1px solid #E8E8E8' }}>Ask Agent</div>
-        </div>
-
-        {/* The actual input field */}
-        <div style={{ background:'#fff', border:'1px solid #D6D6D6', borderRadius:12, boxShadow:'0 8px 16px rgba(132,146,166,0.12)', padding:8, display:'flex', flexDirection:'column', gap: mode === 'editing' ? 8 : 0 }}>
+        {/* The input field with tabs inside */}
+        <div style={{ background:'#fff', border:'1px solid #D6D6D6', borderRadius:12, boxShadow:'0 8px 16px rgba(132,146,166,0.12)', padding:8, display:'flex', flexDirection:'column', gap:8 }}>
+          {/* Tabs: Your reply / Ask Agent */}
+          <div style={{ display:'flex', gap:4 }}>
+            <div style={{ padding:'5px 12px', fontSize:12, fontWeight:500, color:'#292929', background:'#F0F0F0', borderRadius:8, cursor:'default' }}>Your reply</div>
+            <div onClick={() => setAgentOverlayOpen(true)} style={{ padding:'5px 12px', fontSize:12, fontWeight:500, color:'#707070', background:'transparent', borderRadius:8, cursor:'pointer' }}>Ask Agent</div>
+          </div>
           <div style={{ display:'flex', gap:8, alignItems:'center' }}>
             <div style={{ width:36, height:36, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:12, flexShrink:0 }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
