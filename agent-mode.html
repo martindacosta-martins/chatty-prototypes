@@ -2839,8 +2839,8 @@ function AgentChatHome({ onOverlayChange }) {
 
     // --- Fallback with suggestion chips ---
     return {
-      content: 'I\'m not sure what you\'re looking for. Here are some things I can help with:',
-      suggestions: ['Show me leads', 'Who needs support?', 'Any new messages?', 'What should I do first?', 'Show me my fans', 'Any testimonials?', 'Tell me about my business'],
+      content: 'I\'m not sure what you\'re looking for. Try one of these:',
+      suggestions: ['Show me leads', 'Who needs support?', 'What should I do first?'],
     };
   };
 
@@ -2972,50 +2972,41 @@ function AgentChatHome({ onOverlayChange }) {
                 );
               })()}
 
-              {/* Suggestion chips rendered as floating element above input instead */}
+              {/* Suggestion chips — inline, right-aligned */}
+              {msg.suggestions && (
+                <div style={{ display:'flex', flexWrap:'wrap', gap:8, justifyContent:'flex-end' }}>
+                  {msg.suggestions.map((s, i) => (
+                    <div key={i} onClick={() => { setTimeout(() => {
+                      setMessages(prev => prev.map(m => m.suggestions ? { ...m, suggestions: null } : m));
+                      setMessages(prev => [...prev, { type:'user', content: s, id: Date.now() }]);
+                      setTimeout(() => {
+                        setMessages(prev => [...prev, { type:'thinking', id: Date.now() }]);
+                        setTimeout(() => {
+                          const resp = getResponse(s);
+                          setMessages(prev => {
+                            const filtered = prev.filter(m => m.type !== 'thinking');
+                            return [...filtered, {
+                              type: 'agent', content: resp.content, id: Date.now(),
+                              ...(resp.reasoning ? { reasoning: resp.reasoning } : {}),
+                              ...(resp.suggestions ? { suggestions: resp.suggestions } : {}),
+                              ...(resp.cards ? { cardLabel: resp.cardLabel, cardSubtitle: resp.cardSubtitle, cards: resp.cards } : {}),
+                            }];
+                          });
+                        }, 1500);
+                      }, 300);
+                    }, 10); }}
+                      style={{ padding:'8px 14px', background:'#F5F5F5', border:'1px solid #E0E2E5',
+                        borderRadius:100, fontSize:13, fontWeight:500, color:T.ink, cursor:'pointer',
+                        WebkitTapHighlightColor:'transparent' }}>
+                      {s}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           );
         })}
       </div>
-
-      {/* Floating suggestion chips — above input, right-aligned */}
-      {(() => {
-        const lastMsg = [...messages].reverse().find(m => m.suggestions);
-        if (!lastMsg) return null;
-        return (
-          <div style={{ position:'absolute', bottom:136, right:16, display:'flex', flexWrap:'wrap', gap:8, justifyContent:'flex-end', zIndex:10 }}>
-            {lastMsg.suggestions.map((s, i) => (
-              <div key={i} onClick={() => { setInputVal(''); setTimeout(() => {
-                setMessages(prev => {
-                  // Remove suggestions from the message that had them
-                  return prev.map(m => m.suggestions ? { ...m, suggestions: null } : m);
-                });
-                setMessages(prev => [...prev, { type:'user', content: s, id: Date.now() }]);
-                setTimeout(() => {
-                  setMessages(prev => [...prev, { type:'thinking', id: Date.now() }]);
-                  setTimeout(() => {
-                    const resp = getResponse(s);
-                    setMessages(prev => {
-                      const filtered = prev.filter(m => m.type !== 'thinking');
-                      return [...filtered, {
-                        type: 'agent', content: resp.content, id: Date.now(),
-                        ...(resp.reasoning ? { reasoning: resp.reasoning } : {}),
-                        ...(resp.suggestions ? { suggestions: resp.suggestions } : {}),
-                        ...(resp.cards ? { cardLabel: resp.cardLabel, cardSubtitle: resp.cardSubtitle, cards: resp.cards } : {}),
-                      }];
-                    });
-                  }, 1500);
-                }, 300);
-              }, 10); }}
-                style={{ padding:'8px 14px', background:'#F5F5F5', border:'1px solid #E0E2E5',
-                  borderRadius:100, fontSize:13, fontWeight:500, color:T.ink, cursor:'pointer',
-                  WebkitTapHighlightColor:'transparent', animation:'fadeUp .3s ease both' }}>
-                {s}
-              </div>
-            ))}
-          </div>
-        );
-      })()}
 
       {/* Input bar */}
       <div style={{ position:'absolute', bottom:90, left:16, right:16, background:'#fff', border:'1px solid #D6D6D6', borderRadius:12, boxShadow:'0 8px 16px rgba(132,146,166,0.12)', padding:'8px 16px', display:'flex', alignItems:'center', gap:8, zIndex:10 }}>
