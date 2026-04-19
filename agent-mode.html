@@ -1966,6 +1966,46 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
           );
         })}
 
+        {/* Inline draft replies — shown in chat body when draft exists */}
+        {mode === 'suggest' && item.draft && (() => {
+          const sentences = item.draft.split(/(?<=[.!?])\s+/);
+          const splitIdx = Math.max(1, sentences.length - 1);
+          const parts = [sentences.slice(0, splitIdx).join(' '), sentences.slice(splitIdx).join(' ')].filter(Boolean);
+          return (
+            <>
+              {/* Divider */}
+              <div style={{ display:'flex', alignItems:'center', gap:12, margin:'8px 0' }}>
+                <div style={{ flex:1, height:1, background:'#E0E0E0' }} />
+                <span style={{ fontSize:12, fontWeight:400, color:'#707070', whiteSpace:'nowrap' }}>{parts.length}-message reply ready</span>
+                <div style={{ flex:1, height:1, background:'#E0E0E0' }} />
+              </div>
+              {/* Draft bubbles */}
+              <div style={{ display:'flex', flexDirection:'column', gap:8, alignItems:'flex-end' }}>
+                {parts.map((part, pi) => (
+                  <div key={pi} style={{ maxWidth:288, padding:12, borderRadius: pi === parts.length - 1 ? '12px 12px 2px 12px' : '12px', background:'#fff', border:'1.5px dashed #292929' }}>
+                    <div style={{ fontSize:14, fontWeight:400, fontStyle:'italic', lineHeight:'20px', color:'#292929' }}>{part}</div>
+                  </div>
+                ))}
+              </div>
+              {/* Why this reply */}
+              {item.styleReason && (
+                <div onClick={() => setReasoningSheet({ title:'Why this reply', body: item.styleReason })}
+                  style={{ display:'flex', alignItems:'center', justifyContent:'flex-end', gap:4, cursor:'pointer', margin:'4px 0' }}>
+                  <span style={{ fontSize:13, fontWeight:400, color:'#707070' }}>Why this reply</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#707070" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
+              )}
+              {/* Send replies button */}
+              <div style={{ display:'flex', justifyContent:'flex-end', margin:'4px 0 8px' }}>
+                <button onClick={handleSend}
+                  style={{ padding:'8px 20px', background:'#292929', border:'none', borderRadius:12, fontSize:14, fontWeight:500, color:'#fff', cursor:'pointer', lineHeight:'20px' }}>
+                  Send replies
+                </button>
+              </div>
+            </>
+          );
+        })()}
+
         {/* Edit feedback moved to bottom section */}
       </div>
 
@@ -1973,8 +2013,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
 
     {/* ═══ AGENT CARDS — below the chat, above input ═══ */}
 
-    {/* Suggest mode */}
-    {mode === 'suggest' && item.draft && <AgentSheet item={item} onSend={handleSend} onEdit={() => { setMode('editing'); setEditVal(item.draft); setFeedbackEligible(true); }} onSkip={handleIllReply} onWhy={() => setReasoningSheet({ title:'Reply reasoning', body: item.styleReason || item.context || '' })} />}
+    {/* AgentSheet removed — drafts now inline in chat body */}
 
     {/* Snackbar layer — in flow above input: agent on top, system at bottom */}
     {(showToast || (mode === 'sent' && undoCount > 0 && sentFromAgent)) && (
@@ -1984,9 +2023,9 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
       </div>
     )}
 
-    {/* ═══ Message Input — hidden during suggest mode, slides up when agent card dismissed ═══ */}
-    {mode !== 'suggest' && (
-      <div style={{ margin:'0 16px 32px', flexShrink:0, animation:'toastUp .4s cubic-bezier(.25,.46,.45,.94) both' }}>
+    {/* ═══ Message Input — always visible ═══ */}
+    {(mode !== 'suggest' || !item.draft) && (
+      <div style={{ margin:'0 16px 8px', flexShrink:0, animation:'toastUp .4s cubic-bezier(.25,.46,.45,.94) both' }}>
         {/* Follow-up question — shows after user edits/dismisses/types instead of sending directly */}
         {/* Edit feedback — same style as follow-up card */}
         {editFeedback === 'asking' && (
@@ -2083,7 +2122,11 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
       </div>
     )}
 
-    {/* Message input removed from suggest mode — only appears after agent card is dismissed */}
+    {/* Ask me about this DM — agent overlay trigger */}
+    <div style={{ margin:'0 16px 16px', background:'#fff', border:'1px solid #D6D6D6', borderRadius:12, padding:'8px 16px', display:'flex', alignItems:'center', gap:8, flexShrink:0, cursor:'pointer' }}>
+      <span style={{ fontSize:16, color:'#707070' }}>✦</span>
+      <span style={{ fontSize:16, color:'#878787', lineHeight:'24px' }}>Ask me about this DM...</span>
+    </div>
 
     {/* Reasoning Bottom Sheet */}
     {reasoningSheet && (
