@@ -2848,21 +2848,6 @@ function FocusMode({ title, items, onClose, onSent }) {
   const item = items[currentIdx];
   const allDone = !item || currentIdx >= items.length;
 
-  // Completion state
-  if (allDone) {
-    return (
-      <div className="screen-slide-in" style={{ position:'absolute', inset:0, zIndex:100, background:'#fff', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:32 }}>
-        <div style={{ fontSize:48, marginBottom:24 }}>✅</div>
-        <div style={{ fontSize:24, fontWeight:700, color:'#292929', textAlign:'center', lineHeight:'32px', marginBottom:8 }}>All done!</div>
-        <div style={{ fontSize:16, fontWeight:400, color:'#707070', textAlign:'center', lineHeight:'24px', marginBottom:40 }}>You've covered all {items.length} conversations.</div>
-        <button onClick={onClose}
-          style={{ padding:'14px 48px', background:'#292929', border:'none', borderRadius:12, fontSize:17, fontWeight:500, color:'#fff', cursor:'pointer', lineHeight:'24px' }}>
-          Go back
-        </button>
-      </div>
-    );
-  }
-
   // Split draft into 2 messages
   const splitDraft = (draft) => {
     if (!draft) return [];
@@ -2871,8 +2856,8 @@ function FocusMode({ title, items, onClose, onSent }) {
     const splitIdx = Math.max(1, sentences.length - 1);
     return [sentences.slice(0, splitIdx).join(' '), sentences.slice(splitIdx).join(' ')];
   };
-  const draftParts = splitDraft(currentDraft || item.draft);
-  const isSent = sentSet.has(item.user);
+  const draftParts = allDone ? [] : splitDraft(currentDraft || (item && item.draft));
+  const isSent = allDone ? false : sentSet.has(item && item.user);
 
   const goNext = () => {
     if (currentIdx < items.length) {
@@ -2970,6 +2955,21 @@ function FocusMode({ title, items, onClose, onSent }) {
 
   return (
     <div className="screen-slide-in" style={{ position:'absolute', inset:0, zIndex:100, background:'#fff', display:'flex', flexDirection:'column' }}>
+
+      {/* Completion state */}
+      {allDone ? (
+        <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:32 }}>
+          <div style={{ fontSize:48, marginBottom:24 }}>✅</div>
+          <div style={{ fontSize:24, fontWeight:700, color:'#292929', textAlign:'center', lineHeight:'32px', marginBottom:8 }}>All done!</div>
+          <div style={{ fontSize:16, fontWeight:400, color:'#707070', textAlign:'center', lineHeight:'24px', marginBottom:40 }}>You've covered all {items.length} conversations.</div>
+          <button onClick={onClose}
+            style={{ padding:'14px 48px', background:'#292929', border:'none', borderRadius:12, fontSize:17, fontWeight:500, color:'#fff', cursor:'pointer', lineHeight:'24px' }}>
+            Go back
+          </button>
+        </div>
+      ) : (
+      <>
+
       {/* Header */}
       <div style={{ padding:'52px 16px 12px', display:'flex', alignItems:'center', gap:12, flexShrink:0 }}>
         <div onClick={onClose} style={{ cursor:'pointer', padding:8, margin:-8 }}>
@@ -3146,6 +3146,9 @@ function FocusMode({ title, items, onClose, onSent }) {
       {reasoningSheet && (
         <ReasoningSheet title={reasoningSheet.title} body={reasoningSheet.body}
           onClose={() => setReasoningSheet(null)} showFeedback={true} />
+      )}
+
+      </>
       )}
     </div>
   );
