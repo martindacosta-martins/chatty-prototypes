@@ -131,163 +131,276 @@ const AGENT_PROMPT = `You are an AI inbox manager for a creator's Instagram acco
 /* ═══ ASPIRATIONAL DATA ═══ */
 const CREATOR = { name: 'Sofia Reyes', handle: '@sofia.reyes.coach', avatar: 'https://i.pravatar.cc/88?u=sofiar' };
 
-const STATS = {
-  totalHandled: 641,
-  interested: 14,
-  attention: 6,
-  community: 28,
-  repliesReady: 19,
-  score: 78,
-  spamFiltered: 94,
-  timeSaved: 47,
-};
+/* STATS moved after data arrays — see below */
 
 const INTERESTED_ITEMS = [
-  { user:'@lauragomez.fit', name:'Laura Gómez', avatar:'https://i.pravatar.cc/88?u=lauragomezfit', msg:"Hola! Vi tu reel de transformación y quiero saber más del programa de 12 semanas", source:'DM', time:'just now', unread:1, intent:'Opportunities', mode:'confident',
+  { user:'@lauragomez.fit', name:'Laura Gómez', avatar:'https://i.pravatar.cc/88?u=lauragomezfit', msg:"Hey! I saw your transformation reel and I want to know more about the 12-week program. How much is it and when does it start?", source:'DM', time:'just now', unread:1, intent:'Opportunities', mode:'confident',
     summary:'Hot lead, wants 12-week details', status:'Reply ready',
     contactBio:'Follower since 14 months · 🇪🇸 Spain · Engages regularly with your reels and stories',
     contactBioExpanded:'Follows you for 14 months and reacts to almost every story. Commented on 3 posts in the last month — always about your transformation content. Completed the 4-week Kickstart in April. No complaints, no refunds. High engagement, high intent — upgrade candidate.',
-    chatHistory:[],
+    chatHistory:[
+      { from:'automation', text:'Thanks for reaching out! Sofia typically replies within a few hours. In the meantime, check out our free guide: bit.ly/sofia-guide', time:'8:45 AM' },
+      { from:'them', text:'Oh I already have that one! I actually did the Kickstart a few months ago', time:'8:46 AM' },
+      { from:'them', text:"Hey! I saw your transformation reel and I want to know more about the 12-week program. How much is it and when does it start?", time:'8:47 AM' },
+    ],
     context:"Came in from a transformation reel — highest-converting content type. Asking about price and start date. Active right now, reply while intent is hot.",
-    draft:"Hola Laura! 🙌 Me alegra que hayas llegado por el reel. El programa de 12 semanas incluye llamadas 1-a-1 semanales, plan de alimentación personalizado y acceso a la comunidad privada. La inversión es $597 o 3 cuotas de $197. Puedes empezar cuando quieras — es completamente a tu ritmo. ¿Te mando más info?",
-    styleReason:"Matched her warm Spanish tone. Answered both questions (price + start) up front, soft CTA at the end.",
+    draft:"Hey Laura! 🙌 So glad the reel caught your eye. The 12-week program includes weekly 1-on-1 calls, a personalized meal plan, and access to the private community. The investment is $597 or 3 payments of $197. You can start whenever you want — it's completely self-paced. Want me to send you more details?",
+    styleReason:"Matched her warm tone. Answered both questions (price + start) up front, soft CTA at the end.",
     agentRead:'Hot lead · Reply ready',
     timeline:[
       { type:'comment', date:'6 weeks ago', postLabel:'Motivational post',
-        comment:'Esto me llega al alma... llevas meses diciéndome exactamente lo que necesito oír 💛',
-        creatorReply:'Gracias Laura! Ese comentario hace el día 💛' },
+        comment:'This hits me right in the heart... you have been saying exactly what I needed to hear for months 💛',
+        creatorReply:'Thank you Laura! That comment made my day 💛' },
       { type:'comment', date:'4 weeks ago', postLabel:'6-month transformation post',
-        comment:'Dios mío... ¿realmente funciona para alguien sin ninguna experiencia previa en gym?',
-        creatorReply:'¡Funciona! Muchas empezaron exactamente desde cero. Si quieres te cuento más por DM 😊' },
+        comment:'Oh wow... does this really work for someone with zero gym experience?',
+        creatorReply:'It does! Many of my clients started from absolute zero. DM me if you want to know more 😊' },
       { type:'bridge' },
       { type:'session', date:'Mar 19', messages:[
-        { from:'them', text:'Hola Sofia! Me animé a escribirte. No tengo experiencia en gym pero quiero cambiar. ¿Por dónde empezaría?', time:'4:12 PM' },
-        { from:'you', text:'Hola Laura! 🙌 Para empezar desde cero el Kickstart de 4 semanas es perfecto. Está diseñado exactamente para eso — sin experiencia previa necesaria.', time:'4:18 PM' },
-        { from:'them', text:'¿Y es muy intenso?', time:'4:20 PM' },
-        { from:'you', text:'Para nada. Es progresivo y a tu ritmo. La primera semana es suave para que el cuerpo se adapte. Lo importante es la constancia, no la intensidad.', time:'4:25 PM' },
-        { from:'them', text:'¿Cuánto cuesta?', time:'4:27 PM' },
-        { from:'you', text:'Son $197. Incluye plan de entrenamiento, guía de nutrición y acceso a la comunidad privada.', time:'4:30 PM' },
-        { from:'them', text:'Voy a pensarlo, ¡gracias!', time:'4:32 PM' },
+        { from:'them', text:'Hey Sofia! I finally worked up the courage to write to you. I have no gym experience but I want to make a change. Where would I even start?', time:'4:12 PM' },
+        { from:'you', text:'Hey Laura! 🙌 For starting from scratch, the 4-week Kickstart is perfect. It is designed exactly for that — no prior experience needed.', time:'4:18 PM' },
+        { from:'them', text:'Is it really intense?', time:'4:20 PM' },
+        { from:'you', text:'Not at all. It is progressive and at your own pace. The first week is gentle so your body can adapt. What matters is consistency, not intensity.', time:'4:25 PM' },
+        { from:'them', text:'How much is it?', time:'4:27 PM' },
+        { from:'you', text:'It is $197. Includes a training plan, nutrition guide, and access to the private community.', time:'4:30 PM' },
+        { from:'them', text:'Let me think about it, thanks!', time:'4:32 PM' },
       ]},
       { type:'session', date:'Mar 26', messages:[
-        { from:'them', text:'Hola! Sigo pensando en el programa. ¿El plan de alimentación es muy estricto?', time:'10:15 AM' },
-        { from:'you', text:'No es estricto — es adaptado a ti. Te pregunto tus gustos, intolerancias y rutina y lo construyo en base a eso 🙌', time:'10:22 AM' },
-        { from:'them', text:'Ah, eso está mucho mejor. Y si viajo seguido, ¿puedo seguirlo igual?', time:'10:24 AM' },
-        { from:'you', text:'Sí, totalmente. Tengo opciones de entreno sin material y comidas para aeropuerto y hoteles para las clientas que viajan 🙌', time:'10:28 AM' },
-        { from:'them', text:'Perfecto. Creo que me animo. Solo necesito un poco más de tiempo para decidirme 🙏', time:'10:30 AM' },
+        { from:'them', text:'Hey! I am still thinking about the program. Is the meal plan really strict?', time:'10:15 AM' },
+        { from:'you', text:'Not strict at all — it is tailored to you. I ask about your preferences, intolerances, and routine and build it around that 🙌', time:'10:22 AM' },
+        { from:'them', text:'Oh, that is so much better. And if I travel a lot, can I still follow it?', time:'10:24 AM' },
+        { from:'you', text:'Absolutely. I have equipment-free workout options and airport/hotel-friendly meals for clients who travel 🙌', time:'10:28 AM' },
+        { from:'them', text:'Perfect. I think I am going to do it. I just need a little more time to decide 🙏', time:'10:30 AM' },
       ]},
       { type:'comment', date:'2 weeks ago', postLabel:'Transformation reel',
-        comment:'Esto es exactamente lo que necesitaba ver 🙌 llevo meses buscando algo así de honesto',
-        creatorReply:'¡Gracias! Si tienes alguna duda me escribes 😊' },
+        comment:'This is exactly what I needed to see 🙌 I have been looking for something this honest for months',
+        creatorReply:'Thank you! DM me if you have any questions 😊' },
       { type:'bridge' },
       { type:'session', date:'Apr 2', messages:[
-        { from:'them', text:'Okay, ya me decidí 🙌 Quiero hacer el Kickstart. ¿Cómo me apunto?', time:'9:05 AM' },
-        { from:'you', text:'¡Qué emoción!! 🥳 Te mando el link ahora mismo. Cuando completes el pago te llega acceso a todo y coordinamos tu primera llamada.', time:'9:10 AM' },
-        { from:'them', text:'¡Ya pagué! Qué emoción 🙌', time:'9:22 AM' },
-        { from:'you', text:'¡BIENVENIDA LAURA! 🎉 Ya eres parte de la familia. Te mandé el email de bienvenida. Esta semana coordinamos tu primera llamada.', time:'9:25 AM' },
+        { from:'them', text:'Okay, I have made up my mind 🙌 I want to do the Kickstart. How do I sign up?', time:'9:05 AM' },
+        { from:'you', text:'So exciting!! 🥳 Sending you the link right now. Once you complete the payment you will get access to everything and we will schedule your first call.', time:'9:10 AM' },
+        { from:'them', text:'Just paid! I am so excited 🙌', time:'9:22 AM' },
+        { from:'you', text:'WELCOME LAURA! 🎉 You are officially part of the family. I sent you the welcome email. We will schedule your first call this week.', time:'9:25 AM' },
       ]},
       { type:'session', date:'Apr 9', messages:[
-        { from:'them', text:'Hola Sofia! Terminé la semana 3 y me siento increíble. Tengo una duda sobre los carbohidratos...', time:'7:50 PM' },
-        { from:'you', text:'¡Me alegra tanto leer eso!! 🙌 Cuéntame la duda.', time:'8:02 PM' },
-        { from:'them', text:'El plan dice evitar carbos después de las 6pm pero ayer cené tarde y comí arroz. ¿Lo arruiné todo?', time:'8:05 PM' },
-        { from:'you', text:'Para nada 😊 Una comida no arruina el proceso. Lo que importa es el patrón general. Esa regla además es mucho más flexible de lo que parece — depende del contexto.', time:'8:09 PM' },
-        { from:'them', text:'Qué alivio! Gracias Sofia 🙏', time:'8:11 PM' },
+        { from:'them', text:'Hey Sofia! I finished week 3 and I feel incredible. I have a question about carbs though...', time:'7:50 PM' },
+        { from:'you', text:'So happy to hear that!! 🙌 Tell me your question.', time:'8:02 PM' },
+        { from:'them', text:'The plan says to avoid carbs after 6pm but I had a late dinner yesterday and ate rice. Did I ruin everything?', time:'8:05 PM' },
+        { from:'you', text:'Not at all 😊 One meal does not ruin the process. What matters is the overall pattern. That rule is actually a lot more flexible than it sounds — it depends on the context.', time:'8:09 PM' },
+        { from:'them', text:'Such a relief! Thanks Sofia 🙏', time:'8:11 PM' },
       ]},
       { type:'session', date:'Today', messages:[
-        { from:'them', text:'Hola! Vi tu reel de transformación y quiero saber más del programa de 12 semanas. Cuánto cuesta y cuándo empieza?', time:'8:47 AM' },
+        { from:'automation', text:'Thanks for reaching out! Sofia typically replies within a few hours. In the meantime, check out our free guide: bit.ly/sofia-guide', time:'8:45 AM' },
+        { from:'them', text:'Oh I already have that one! I actually did the Kickstart a few months ago', time:'8:46 AM' },
+        { from:'them', text:"Hey! I saw your transformation reel and I want to know more about the 12-week program. How much is it and when does it start?", time:'8:47 AM' },
       ]},
     ]},
-  { user:'@jenna.transforms', name:'Jenna Walsh', avatar:'https://i.pravatar.cc/88?u=jennatransforms', msg:"Is the 12 week program still open? I've been following you for 2 years", source:'DM', time:'1h ago', unread:1, intent:'Opportunities', mode:'confident',
+  { user:'@jenna.transforms', name:'Jenna Walsh', avatar:'https://i.pravatar.cc/88?u=jennatransforms', msg:"Is the 12 week program still open? I've been following you for 2 years and I think I'm finally ready", source:'DM', time:'1h ago', unread:1, intent:'Opportunities', mode:'confident',
     summary:'Long-time follower, ready to buy', status:'Reply ready',
+    contactBio:'Follower since 2 yrs · 🇺🇸 US · Engages weekly with posts',
+    contactBioExpanded:'Has followed for 2 years and consistently likes your transformation content. Comments on motivational posts monthly. Never purchased before but saves every product-related story. High intent — long nurture coming to a close.',
     chatHistory:[
-      { from:'them', text:"Is the 12 week program still open? I've been following you for 2 years and I think I'm finally ready", time:'7:30 AM' }
+      { from:'automation', text:'Thanks for reaching out! Sofia typically replies within a few hours. In the meantime, check out our free guide: bit.ly/sofia-guide', time:'7:25 AM' },
+      { from:'them', text:'Oh cool, I actually downloaded that months ago!', time:'7:27 AM' },
+      { from:'them', text:"Is the 12 week program still open? I've been following you for 2 years and I think I'm finally ready", time:'7:30 AM' },
     ],
     context:"Two-year follower, high trust already established. 'Finally ready' signals she's been on the fence — this is a conversion moment. Reply personally.",
     draft:"Jenna! 2 years — that means so much 🥹 Yes, the 12-week Reboot is open and I'd love to have you in the next cohort. It's fully personalized — weekly 1-on-1s, custom nutrition, private community. The investment is $597 or 3x $197. Want me to send you the full breakdown?",
     styleReason:"Acknowledged her loyalty directly — that's what closes this one. Warm, personal, no hard sell.",
-    agentRead:'Loyal follower · Reply ready' },
-  { user:'@carlosfit24', name:'Carlos M.', avatar:'https://i.pravatar.cc/88?u=carlosfit24', msg:"Cuánto cuesta el programa? Vi que tienes algo de 4 semanas también", source:'DM', time:'2h ago', unread:1, intent:'Opportunities', mode:'confident',
+    agentRead:'Loyal follower · Reply ready',
+    timeline:[
+      { type:'comment', date:'18 months ago', postLabel:'Workout reel — HIIT at home',
+        comment:'This looks so fun! Saving this for later 🔖',
+        creatorReply:'' },
+      { type:'comment', date:'6 months ago', postLabel:'Client transformation post',
+        comment:'Okay this is insane. How do I get started?? 😍',
+        creatorReply:'DM me!! I would love to help you out 🙌' },
+      { type:'bridge' },
+      { type:'session', date:'Oct 12', messages:[
+        { from:'them', text:'Hey Sofia! I saw your post and I have been thinking about the Kickstart. Can you tell me more?', time:'3:10 PM' },
+        { from:'automation', text:'Thanks for reaching out! Sofia typically replies within a few hours. In the meantime, check out our free guide: bit.ly/sofia-guide', time:'3:11 PM' },
+        { from:'them', text:'Just downloaded it, thank you! I think I need some time to go through it first', time:'3:25 PM' },
+        { from:'you', text:'Take your time Jenna! The guide covers a lot. When you are ready just reach out and we can chat about the program 😊', time:'3:40 PM' },
+        { from:'them', text:'Will do! Let me think about it for a bit', time:'3:42 PM' },
+      ]},
+      { type:'bridge' },
+      { type:'session', date:'Today', messages:[
+        { from:'automation', text:'Thanks for reaching out! Sofia typically replies within a few hours. In the meantime, check out our free guide: bit.ly/sofia-guide', time:'7:25 AM' },
+        { from:'them', text:'Oh cool, I actually downloaded that months ago!', time:'7:27 AM' },
+        { from:'them', text:"Is the 12 week program still open? I've been following you for 2 years and I think I'm finally ready", time:'7:30 AM' },
+      ]},
+    ]},
+  { user:'@carlosfit24', name:'Carlos M.', avatar:'https://i.pravatar.cc/88?u=carlosfit24', msg:"How much is the program? I saw you have a 4-week one too", source:'DM', time:'2h ago', unread:1, intent:'Opportunities', mode:'confident',
     summary:'Comparing programs, price-sensitive', status:'Reply ready',
+    contactBio:'Follower since 3 months · 🇲🇽 Mexico · Likes workout reels',
+    contactBioExpanded:'Started following 3 months ago after a workout reel went viral. Likes posts consistently but has never commented or engaged in stories. First time reaching out via DM. Price question suggests he is comparing options carefully.',
     chatHistory:[
-      { from:'them', text:"Cuánto cuesta el programa? Vi que tienes algo de 4 semanas también", time:'6:45 AM' },
+      { from:'automation', text:'Thanks for reaching out! Sofia typically replies within a few hours. In the meantime, check out our free guide: bit.ly/sofia-guide', time:'6:40 AM' },
+      { from:'them', text:'Thanks! Quick question though', time:'6:42 AM' },
+      { from:'them', text:"How much is the program? I saw you have a 4-week one too", time:'6:45 AM' },
     ],
     context:"Comparing both programs — likely cost-conscious. The 4-Week Kickstart is a good entry point if budget is a concern. Give him clear options.",
-    draft:"Hola Carlos! 💪 Tengo dos opciones: el Kickstart de 4 semanas ($197) es perfecto para arrancar y ver resultados rápido. El Reboot de 12 semanas ($597 o 3x $197) es para transformación completa con llamadas 1-a-1 semanales y plan personalizado. ¿Qué resultado estás buscando? Te ayudo a elegir el que más te conviene.",
+    draft:"Hey Carlos! 💪 I have two options: the 4-week Kickstart ($197) is perfect for getting started and seeing quick results. The 12-week Reboot ($597 or 3x $197) is for a full transformation with weekly 1-on-1 calls and a personalized plan. What result are you looking for? I can help you pick the right fit.",
     styleReason:"Presented both options clearly with prices. Question at end guides him toward the right fit without pushing.",
     agentRead:'Comparing options · Reply ready' },
   { user:'@mia.wellness', name:'Mia Fernández', avatar:'https://i.pravatar.cc/88?u=miawellness', msg:"Do you do 1 on 1 coaching or is it group?", source:'DM', time:'3h ago', unread:1, intent:'Opportunities', mode:'confident',
     summary:'Asking about 1-on-1 vs group', status:'Reply ready',
-    chatHistory:[{ from:'them', text:"Do you do 1 on 1 coaching or is it group?", time:'5:52 AM' }],
+    contactBio:'Follower since 8 months · 🇺🇸 US · Watches all stories',
+    contactBioExpanded:'Follows for 8 months, watches every story but rarely likes posts. First DM ever. The format question suggests a preference for personal attention — possibly had a negative group coaching experience. High conversion potential if 1-on-1 element is highlighted.',
+    chatHistory:[
+      { from:'automation', text:'Thanks for reaching out! Sofia typically replies within a few hours. In the meantime, check out our free guide: bit.ly/sofia-guide', time:'5:48 AM' },
+      { from:'them', text:'Thanks! One quick question before I look at that', time:'5:50 AM' },
+      { from:'them', text:"Do you do 1 on 1 coaching or is it group?", time:'5:52 AM' },
+    ],
     context:"Format question suggests she's had a bad group experience before. The 12-Week Reboot's 1-on-1 element is a strong selling point here.",
     draft:"Both, actually! The 12-Week Reboot has weekly 1-on-1 calls with me personally, plus access to the community group. So you get both the personal attention AND the support network. The 4-Week Kickstart is more self-paced with group check-ins. Which sounds more like what you're looking for?",
     styleReason:"Answered directly, highlighted the 1-on-1 angle of the flagship program since that's what she's asking about.",
     agentRead:'Format question · Reply ready' },
-  { user:'@paolaruiz.mx', name:'Paola Ruiz', avatar:'https://i.pravatar.cc/88?u=paolaruizmx', msg:"Hola Sofia, me recomiendas el Kickstart para alguien que nunca ha hecho nada de gym?", source:'DM', time:'4h ago', unread:1, intent:'Opportunities', mode:'confident',
+  { user:'@paolaruiz.mx', name:'Paola Ruiz', avatar:'https://i.pravatar.cc/88?u=paolaruizmx', msg:"Hey Sofia, would you recommend the Kickstart for someone who has never done anything at the gym?", source:'DM', time:'4h ago', unread:1, intent:'Opportunities', mode:'confident',
     summary:'Beginner, needs program guidance', status:'Reply ready',
-    chatHistory:[{ from:'them', text:"Hola Sofia, me recomiendas el Kickstart para alguien que nunca ha hecho nada de gym?", time:'4:30 AM' }],
+    contactBio:'Follower since 5 months · 🇲🇽 Mexico · Engages with beginner content',
+    contactBioExpanded:'Followed after finding a beginner-friendly reel 5 months ago. Consistently saves beginner workout posts. Comments occasionally on motivational content. No purchase history. The direct question shows trust in Sofia as an authority.',
+    chatHistory:[
+      { from:'automation', text:'Thanks for reaching out! Sofia typically replies within a few hours. In the meantime, check out our free guide: bit.ly/sofia-guide', time:'4:25 AM' },
+      { from:'them', text:"I actually already have the guide! It was really helpful", time:'4:27 AM' },
+      { from:'them', text:"Hey Sofia, would you recommend the Kickstart for someone who has never done anything at the gym?", time:'4:30 AM' },
+    ],
     context:"Complete beginner, asking for your recommendation directly — she trusts your judgment. The Kickstart is perfect for her situation.",
-    draft:"¡Hola Paola! Sí, el Kickstart de 4 semanas es exactamente para ti 🙌 Está diseñado para empezar desde cero, sin experiencia previa. Todo va a tu ritmo y yo te explico cada paso. Además es la forma perfecta de ver si el método te funciona antes de comprometerte con las 12 semanas. ¿Te mando los detalles?",
+    draft:"Hey Paola! Yes, the 4-week Kickstart is exactly right for you 🙌 It is designed to start from zero, no prior experience needed. Everything goes at your pace and I walk you through every step. Plus it is the perfect way to see if the method works for you before committing to the 12 weeks. Want me to send you the details?",
     styleReason:"Validated her choice, reassured about the beginner-friendly approach, left the door open for the 12-week.",
     agentRead:'Beginner inquiry · Reply ready' },
   { user:'@rebecajones', name:'Rebeca Jones', avatar:'https://i.pravatar.cc/88?u=rebecajones', msg:"What's included in the 12 week program exactly?", source:'DM', time:'5h ago', unread:1, intent:'Opportunities', mode:'confident',
     summary:'Wants full breakdown before deciding', status:'Reply ready',
-    chatHistory:[{ from:'them', text:"What's included in the 12 week program exactly?", time:'3:15 AM' }],
+    contactBio:'Follower since 6 months · 🇺🇸 US · Compares products carefully',
+    contactBioExpanded:'Started following 6 months ago. Regularly likes transformation posts and saves pricing-related stories. First DM — the detailed question suggests she is in evaluation mode and comparing options before committing.',
+    chatHistory:[
+      { from:'automation', text:'Thanks for reaching out! Sofia typically replies within a few hours. In the meantime, check out our free guide: bit.ly/sofia-guide', time:'3:10 AM' },
+      { from:'them', text:'Got it, thanks! But I had a specific question', time:'3:12 AM' },
+      { from:'them', text:"What's included in the 12 week program exactly?", time:'3:15 AM' },
+    ],
     context:"Wants specifics before deciding — probably comparing options. Full breakdown will help close.",
     draft:"Great question! The 12-Week Reboot includes: weekly 1-on-1 video calls with me, a fully custom nutrition plan updated every 2 weeks, daily check-ins via the app, access to the private community, and all workout plans included. Investment is $597 or 3x $197. Want me to send the full program guide?",
     styleReason:"Gave the complete breakdown she asked for. Professional but warm, no filler.",
     agentRead:'Evaluation stage · Reply ready' },
-  { user:'@daniela.v.fit', name:'Daniela V.', avatar:'https://i.pravatar.cc/88?u=danielavfit', msg:"Vi tu historia de la clienta que bajó 8kg en 3 meses. Es real eso?", source:'DM', time:'6h ago', unread:1, intent:'Opportunities', mode:'confident',
+  { user:'@daniela.v.fit', name:'Daniela V.', avatar:'https://i.pravatar.cc/88?u=danielavfit', msg:"I saw your story about the client who lost 8kg in 3 months. Is that for real?", source:'DM', time:'6h ago', unread:1, intent:'Opportunities', mode:'confident',
     summary:'Skeptical, wants proof it works', status:'Reply ready',
-    chatHistory:[{ from:'them', text:"Vi tu historia de la clienta que bajó 8kg en 3 meses. Es real eso?", time:'2:10 AM' }],
+    contactBio:'Follower since 4 months · 🇨🇴 Colombia · Reacts to results posts',
+    contactBioExpanded:'Followed after a transformation story 4 months ago. Engages specifically with before/after content and results posts. Skeptical tone in DM suggests she has tried other programs before. Needs social proof to convert.',
+    chatHistory:[
+      { from:'them', text:'Hey Sofia, quick question', time:'2:08 AM' },
+      { from:'them', text:"I saw your story about the client who lost 8kg in 3 months. Is that for real?", time:'2:10 AM' },
+    ],
     context:"A bit skeptical, but she came to you — that's a strong signal. Validate the result and offer social proof.",
-    draft:"¡Totalmente real! Eso fue con Ana, una de mis clientas del programa de 12 semanas. No es magia — es consistencia con un plan que se adapta a ella. Tengo muchas historias así. ¿Quieres que te mande algunos testimonios? 😊",
+    draft:"Totally real! That was Ana, one of my clients from the 12-week program. It is not magic — it is consistency with a plan that adapts to her. I have tons of stories like that. Want me to send you some testimonials? 😊",
     styleReason:"Addressed the skepticism directly without being defensive. Offered social proof as the natural next step.",
     agentRead:'Skeptical lead · Reply ready' },
   { user:'@tomaszwilk', name:'Tomasz W.', avatar:'https://i.pravatar.cc/88?u=tomaszwilk', msg:"Do you work with men too or only women?", source:'DM', time:'8h ago', unread:1, intent:'Opportunities', mode:'confident',
     summary:'Checking if program works for men', status:'Reply ready',
-    chatHistory:[{ from:'them', text:"Do you work with men too or only women?", time:'12:30 AM' }],
+    contactBio:'Follower since 1 month · 🇵🇱 Poland · Found via Explore',
+    contactBioExpanded:'Recent follower, likely found via Explore page. No engagement history before this DM. The question about working with men suggests he is interested but unsure if the program targets him. Quick clarification could convert.',
+    chatHistory:[
+      { from:'automation', text:'Thanks for reaching out! Sofia typically replies within a few hours. In the meantime, check out our free guide: bit.ly/sofia-guide', time:'12:25 AM' },
+      { from:'them', text:"Thanks, I'll check it out. But quick question first", time:'12:28 AM' },
+      { from:'them', text:"Do you work with men too or only women?", time:'12:30 AM' },
+    ],
     context:"Male prospect, likely saw content aimed at women and is unsure. Quick confirmation will convert him.",
     draft:"Yes, absolutely! About 30% of my clients are men 💪 The program is fully customized regardless of gender — different nutrition targets, workout structure, everything. What's your main goal? Weight loss, muscle building, or something else?",
     styleReason:"Removed the barrier immediately, gave a credibility stat, and opened the conversation with a qualifying question.",
     agentRead:'Male prospect · Reply ready' },
-  { user:'@isabellav.coach', name:'Isabella V.', avatar:'https://i.pravatar.cc/88?u=isabellavcoach', msg:"Hola! Qué diferencia hay entre el Kickstart y el Reboot?", source:'DM', time:'9h ago', unread:1, intent:'Opportunities', mode:'confident',
+  { user:'@isabellav.coach', name:'Isabella V.', avatar:'https://i.pravatar.cc/88?u=isabellavcoach', msg:"Hey! What is the difference between the Kickstart and the Reboot?", source:'DM', time:'9h ago', unread:1, intent:'Opportunities', mode:'confident',
     summary:'Kickstart vs Reboot comparison', status:'Reply ready',
-    chatHistory:[{ from:'them', text:"Hola! Qué diferencia hay entre el Kickstart y el Reboot?", time:'11:15 PM' }],
+    contactBio:'Follower since 7 months · 🇦🇷 Argentina · Saves program posts',
+    contactBioExpanded:'Has followed for 7 months and consistently saves posts about both programs. Comments on nutrition tips occasionally. First DM — she is in the comparison stage and needs a clear side-by-side to decide.',
+    chatHistory:[
+      { from:'automation', text:'Thanks for reaching out! Sofia typically replies within a few hours. In the meantime, check out our free guide: bit.ly/sofia-guide', time:'11:10 PM' },
+      { from:'them', text:'Thanks! I have been looking at both programs for a while', time:'11:12 PM' },
+      { from:'them', text:"Hey! What is the difference between the Kickstart and the Reboot?", time:'11:15 PM' },
+    ],
     context:"Comparing both programs — decision stage. A clear side-by-side will help.",
-    draft:"Hola Isabella! 😊 Kickstart (4 semanas, $197): perfecto para arrancar, rutinas + guía nutricional, ritmo propio, check-ins grupales. Reboot (12 semanas, $597): transformación completa, llamadas 1-a-1 semanales conmigo, plan de nutrición personalizado, comunidad privada. ¿Cuál es tu objetivo principal?",
+    draft:"Hey Isabella! 😊 Kickstart (4 weeks, $197): perfect for getting started, routines + nutrition guide, self-paced, group check-ins. Reboot (12 weeks, $597): full transformation, weekly 1-on-1 calls with me, personalized nutrition plan, private community. What is your main goal?",
     styleReason:"Side-by-side structure makes the decision easy. Ended with a question to qualify her further.",
     agentRead:'Comparing programs · Reply ready' },
   { user:'@nathaliebrown', name:'Nathalie B.', avatar:'https://i.pravatar.cc/88?u=nathaliebrown', msg:"Can I pay in installments?", source:'DM', time:'10h ago', unread:1, intent:'Opportunities', mode:'confident',
     summary:'Asking about installment options', status:'Reply ready',
-    chatHistory:[{ from:'them', text:"Can I pay in installments?", time:'10:00 PM' }],
+    contactBio:'Follower since 10 months · 🇫🇷 France · Engages with pricing content',
+    contactBioExpanded:'Follower for 10 months. Saves every story that mentions pricing or promotions. Liked 3 posts in the last week — all transformation content. First DM is about payment, which signals real purchase intent with a budget constraint.',
+    chatHistory:[
+      { from:'automation', text:'Thanks for reaching out! Sofia typically replies within a few hours. In the meantime, check out our free guide: bit.ly/sofia-guide', time:'9:55 PM' },
+      { from:'them', text:"Thanks! I've been eyeing the 12-week program for a while now", time:'9:57 PM' },
+      { from:'them', text:"Can I pay in installments?", time:'10:00 PM' },
+    ],
     context:"Asking about installments means she's interested but price-sensitive. The 3x payment option is exactly what she needs.",
     draft:"Yes! You can pay 3x $197/month for the 12-Week Reboot — same full program, just split into 3 payments. The 4-Week Kickstart is one payment of $197. Which program were you thinking about?",
     styleReason:"Answered directly with the numbers. No pitch, just information. Let her decide.",
     agentRead:'Price question · Reply ready' },
-  { user:'@kristinamlk', name:'Kristina M.', avatar:'https://i.pravatar.cc/88?u=kristinamlk', msg:"Buenas! Cuando sería el próximo grupo del programa?", source:'DM', time:'12h ago', unread:1, intent:'Opportunities', mode:'confident',
+  { user:'@kristinamlk', name:'Kristina M.', avatar:'https://i.pravatar.cc/88?u=kristinamlk', msg:"Hey! When would the next group for the program be?", source:'DM', time:'12h ago', unread:1, intent:'Opportunities', mode:'confident',
     summary:'Asking when the next group starts', status:'',
-    chatHistory:[{ from:'them', text:"Buenas! Cuando sería el próximo grupo del programa?", time:'8:00 PM' }],
+    contactBio:'Follower since 9 months · 🇩🇪 Germany · Watches lives regularly',
+    contactBioExpanded:'Followed for 9 months. Joins most live sessions and asks questions in the chat. Has never purchased but engagement is very consistent. Thinks the program has fixed cohort start dates — needs clarification that it is self-paced.',
+    chatHistory:[
+      { from:'automation', text:'Thanks for reaching out! Sofia typically replies within a few hours. In the meantime, check out our free guide: bit.ly/sofia-guide', time:'7:55 PM' },
+      { from:'them', text:'Thanks! I wanted to ask you something', time:'7:57 PM' },
+      { from:'them', text:"Hey! When would the next group for the program be?", time:'8:00 PM' },
+    ],
     context:"Asking about cohort timing — may think it's a group program with fixed start dates. Clarify it's self-paced.",
     draft:"",
     styleReason:"",
     agentRead:'Timing question · No draft' },
   { user:'@lenafit2024', name:'Lena H.', avatar:'https://i.pravatar.cc/88?u=lenafit2024', msg:"Do you offer nutrition coaching only without workouts?", source:'DM', time:'14h ago', unread:1, intent:'Opportunities', mode:'confident',
     summary:'Wants nutrition coaching only', status:'',
-    chatHistory:[{ from:'them', text:"Do you offer nutrition coaching only without workouts?", time:'6:00 PM' }],
+    contactBio:'Follower since 3 months · 🇸🇪 Sweden · Engages with nutrition tips',
+    contactBioExpanded:'Followed 3 months ago after a nutrition-focused reel. Engages primarily with meal prep and nutrition content, rarely interacts with workout posts. The nutrition-only ask is not a standard offering — needs Sofia direct input.',
+    chatHistory:[
+      { from:'automation', text:'Thanks for reaching out! Sofia typically replies within a few hours. In the meantime, check out our free guide: bit.ly/sofia-guide', time:'5:55 PM' },
+      { from:'them', text:"Got it! I have a specific question though", time:'5:57 PM' },
+      { from:'them', text:"Do you offer nutrition coaching only without workouts?", time:'6:00 PM' },
+    ],
     context:"Specific ask for nutrition-only — worth a direct answer. This isn't a standard offering so needs your input.",
     draft:"",
     styleReason:"",
     agentRead:'Custom request · Needs your input' },
-  { user:'@valentinap.mx', name:'Valentina P.', avatar:'https://i.pravatar.cc/88?u=valentinapmx', msg:"Hola Sofia! Ya hice el Kickstart hace 6 meses. Puedo hacer el Reboot ahora?", source:'DM', time:'16h ago', unread:1, intent:'Opportunities', mode:'confident',
+  { user:'@valentinap.mx', name:'Valentina P.', avatar:'https://i.pravatar.cc/88?u=valentinapmx', msg:"Hey Sofia! I did the Kickstart 6 months ago. Can I do the Reboot now?", source:'DM', time:'16h ago', unread:1, intent:'Opportunities', mode:'confident',
     summary:'Returning client, ready to upgrade', status:'Reply ready',
-    chatHistory:[{ from:'them', text:"Hola Sofia! Ya hice el Kickstart hace 6 meses. Puedo hacer el Reboot ahora?", time:'4:00 PM' }],
+    contactBio:'Past client · Kickstart alumni · 🇲🇽 Mexico',
+    contactBioExpanded:'Completed the 4-week Kickstart 6 months ago with great results. Left a glowing comment on a transformation post 3 months ago. Now asking about the 12-week Reboot — classic upgrade path. VIP treatment warranted.',
+    chatHistory:[
+      { from:'automation', text:'Thanks for reaching out! Sofia typically replies within a few hours. In the meantime, check out our free guide: bit.ly/sofia-guide', time:'3:55 PM' },
+      { from:'them', text:'Haha I already know the guide by heart! 😄', time:'3:57 PM' },
+      { from:'them', text:"Hey Sofia! I did the Kickstart 6 months ago. Can I do the Reboot now?", time:'4:00 PM' },
+    ],
     context:"Returning client — already converted once. This is a VIP upgrade opportunity. Warmest possible reply.",
-    draft:"¡Valentina! Qué alegría saber de ti!! 🥹 Claro que sí, el Reboot es el siguiente paso perfecto. Además, para clientas que ya hicieron el Kickstart tengo un descuento especial. ¿Quieres que te mande los detalles?",
+    draft:"Valentina! So great to hear from you!! 🥹 Of course, the Reboot is the perfect next step. Plus, for clients who already did the Kickstart I have a special discount. Want me to send you the details?",
     styleReason:"Extra warm for a returning client. Surprise discount creates urgency without pressure.",
-    agentRead:'Returning client · Reply ready' },
+    agentRead:'Returning client · Reply ready',
+    timeline:[
+      { type:'session', date:'Oct 5', messages:[
+        { from:'them', text:'Hey Sofia! I just signed up for the Kickstart, so excited!', time:'10:00 AM' },
+        { from:'you', text:'Welcome Valentina!! 🎉 You are going to love it. I just sent you the welcome email with everything you need to get started.', time:'10:15 AM' },
+        { from:'them', text:'Got it! Starting tomorrow morning 💪', time:'10:20 AM' },
+      ]},
+      { type:'session', date:'Oct 28', messages:[
+        { from:'them', text:'Sofia! Just finished the Kickstart and I feel amazing. Down 3kg and I actually enjoy working out now', time:'6:30 PM' },
+        { from:'you', text:'Valentina that makes me so happy!! 🥹 3kg and a new mindset — that is the real win. So proud of you!', time:'6:45 PM' },
+        { from:'them', text:'Thank you for everything! I will definitely be back for more 😊', time:'6:50 PM' },
+      ]},
+      { type:'comment', date:'3 months ago', postLabel:'Client transformation post',
+        comment:'The Kickstart changed my life. Best decision I made last year. Sofia is the real deal 💛',
+        creatorReply:'Valentina!! 🥹 You did the work, I just pointed the way. So proud of you!' },
+      { type:'bridge' },
+      { type:'session', date:'Today', messages:[
+        { from:'automation', text:'Thanks for reaching out! Sofia typically replies within a few hours. In the meantime, check out our free guide: bit.ly/sofia-guide', time:'3:55 PM' },
+        { from:'them', text:'Haha I already know the guide by heart! 😄', time:'3:57 PM' },
+        { from:'them', text:"Hey Sofia! I did the Kickstart 6 months ago. Can I do the Reboot now?", time:'4:00 PM' },
+      ]},
+    ]},
   { user:'@amykeller.runs', name:'Amy Keller', avatar:'https://i.pravatar.cc/88?u=amykellerruns', msg:"Hi! I'm a runner, does your program work for endurance athletes?", source:'DM', time:'18h ago', unread:1, intent:'Opportunities', mode:'confident',
     summary:'Runner, asking if program fits', status:'',
-    chatHistory:[{ from:'them', text:"Hi! I'm a runner, does your program work for endurance athletes?", time:'2:00 PM' }],
+    contactBio:'Follower since 4 months · 🇺🇸 US · Engages with cardio content',
+    contactBioExpanded:'Followed 4 months ago. Primarily engages with cardio and endurance-related content. Profile shows marathon finisher photos. The niche question needs a custom answer — Sofia should speak to how the program adapts for endurance athletes.',
+    chatHistory:[
+      { from:'automation', text:'Thanks for reaching out! Sofia typically replies within a few hours. In the meantime, check out our free guide: bit.ly/sofia-guide', time:'1:55 PM' },
+      { from:'them', text:"Thanks! I'll check it out. But I had a specific question first", time:'1:57 PM' },
+      { from:'them', text:"Hi! I'm a runner, does your program work for endurance athletes?", time:'2:00 PM' },
+    ],
     context:"Niche question about compatibility with endurance sports — specific enough that a custom reply from you is better than a draft.",
     draft:"",
     styleReason:"",
@@ -295,28 +408,54 @@ const INTERESTED_ITEMS = [
 ];
 
 const ATTENTION_ITEMS = [
-  { user:'@diana.client12', name:'Diana Morales', avatar:'https://i.pravatar.cc/88?u=dianaclient12', msg:"Sofia no puedo acceder al módulo 3, me sigue dando error desde ayer", source:'DM', time:'2h ago', unread:2, intent:'Support', mode:'confident',
+  { user:'@diana.client12', name:'Diana Morales', avatar:'https://i.pravatar.cc/88?u=dianaclient12', msg:"Sofia I can't access module 3, it keeps giving me an error since yesterday", source:'DM', time:'2h ago', unread:2, intent:'Support', mode:'confident',
     summary:'Locked out of module 3 since yesterday', status:'',
+    contactBio:'Active client · 12-Week Reboot · Week 6',
+    contactBioExpanded:'Paying client in the 12-Week Reboot, currently week 6. High engagement in community group. Never had a complaint before. Tech issue is blocking her progress.',
     chatHistory:[
-      { from:'them', text:"Hola Sofia, llevo desde ayer intentando entrar al módulo 3 y no puedo", time:'7:15 AM' },
-      { from:'them', text:"Sofia no puedo acceder al módulo 3, me sigue dando error desde ayer", time:'8:45 AM' },
+      { from:'them', text:"Hey Sofia, I've been trying to open module 3 since yesterday and I can't get in", time:'Yesterday 6:30 PM' },
+      { from:'automation', text:'Sorry to hear that! Sofia will look into this for you. In the meantime, try logging out and back in.', time:'Yesterday 6:31 PM' },
+      { from:'them', text:'I already tried that, still not working', time:'Yesterday 7:15 PM' },
+      { from:'them', text:"Sofia I can't access module 3, it keeps giving me an error since yesterday", time:'8:45 AM' },
     ],
     context:"Paying client blocked from course content for 24+ hours. Two messages, growing frustration. This needs your reply today — don't lose her trust over a tech issue.",
     draft:"",
     styleReason:"",
-    agentRead:'Urgent · Client blocked from content' },
+    agentRead:'Urgent · Client blocked from content',
+    timeline:[
+      { type:'session', date:'Apr 5', messages:[
+        { from:'them', text:'Hey Sofia! Just finished module 2, loving the program so far 😊', time:'3:00 PM' },
+        { from:'you', text:'Amazing Diana!! Module 3 is where it gets really good. You are going to love it 🙌', time:'3:15 PM' },
+        { from:'them', text:'Can not wait! Starting it this weekend', time:'3:20 PM' },
+      ]},
+      { type:'bridge' },
+      { type:'session', date:'Yesterday + Today', messages:[
+        { from:'them', text:"Hey Sofia, I've been trying to open module 3 since yesterday and I can't get in", time:'Yesterday 6:30 PM' },
+        { from:'automation', text:'Sorry to hear that! Sofia will look into this for you. In the meantime, try logging out and back in.', time:'Yesterday 6:31 PM' },
+        { from:'them', text:'I already tried that, still not working', time:'Yesterday 7:15 PM' },
+        { from:'them', text:"Sofia I can't access module 3, it keeps giving me an error since yesterday", time:'8:45 AM' },
+      ]},
+    ]},
   { user:'@markusbauer.fit', name:'Markus Bauer', avatar:'https://i.pravatar.cc/88?u=markusbauer', msg:"I need to pause my subscription for 2 weeks, is that possible?", source:'DM', time:'3h ago', unread:1, intent:'Support', mode:'confident',
     summary:'Wants to pause for 2 weeks', status:'',
-    chatHistory:[{ from:'them', text:"I need to pause my subscription for 2 weeks, is that possible?", time:'6:00 AM' }],
+    contactBio:'Active client · 12-Week Reboot · Week 4',
+    contactBioExpanded:'Paying client in the 12-Week Reboot, currently week 4. Engagement has dropped in the last week — fewer check-ins, no community posts. Pause request may signal reduced motivation. Handle with care to prevent churn.',
+    chatHistory:[
+      { from:'them', text:'Hey Sofia, I have a situation I wanted to talk to you about', time:'5:55 AM' },
+      { from:'them', text:'I need to pause my subscription for 2 weeks, is that possible?', time:'6:00 AM' },
+    ],
     context:"Client asking to pause — often a sign of reduced engagement. Agreeing warmly and checking in shows you care, which keeps them in the program.",
     draft:"",
     styleReason:"",
     agentRead:'Churn risk · Pause request' },
-  { user:'@camilasoto.fit', name:'Camila Soto', avatar:'https://i.pravatar.cc/88?u=camilasoto', msg:"Siento que no estoy viendo resultados después de 4 semanas 😔", source:'DM', time:'5h ago', unread:1, intent:'Support', mode:'confident',
+  { user:'@camilasoto.fit', name:'Camila Soto', avatar:'https://i.pravatar.cc/88?u=camilasoto', msg:"I feel like I'm not seeing results after 4 weeks 😔", source:'DM', time:'5h ago', unread:1, intent:'Support', mode:'confident',
     summary:'Not seeing results, feeling discouraged', status:'',
+    contactBio:'Active client · Kickstart · Week 4',
+    contactBioExpanded:'Paying client in the 4-week Kickstart, final week. Has been engaged throughout but is now expressing frustration about results. This is a critical retention moment — her perception of results will determine if she upgrades to the Reboot.',
     chatHistory:[
-      { from:'them', text:"Hola Sofia, quería ser honesta contigo...", time:'3:30 AM' },
-      { from:'them', text:"Siento que no estoy viendo resultados después de 4 semanas 😔", time:'3:31 AM' },
+      { from:'them', text:"Hey Sofia, I wanted to be honest with you...", time:'3:28 AM' },
+      { from:'automation', text:'Thanks for reaching out! Sofia typically replies within a few hours.', time:'3:29 AM' },
+      { from:'them', text:"It is hard to say this but I feel like I am not seeing results after 4 weeks 😔", time:'3:31 AM' },
     ],
     context:"Four weeks in and feeling discouraged — this is a vulnerable moment. A personal, empathetic reply now could be the thing that keeps her in the program.",
     draft:"",
@@ -324,16 +463,25 @@ const ATTENTION_ITEMS = [
     agentRead:'Emotional · Personal reply needed' },
   { user:'@rafaelm.client', name:'Rafael M.', avatar:'https://i.pravatar.cc/88?u=rafaelm', msg:"The checkout page is broken, I can't complete my purchase", source:'DM', time:'6h ago', unread:1, intent:'Support', mode:'confident',
     summary:'Checkout broken, tried 3 times', status:'',
-    chatHistory:[{ from:'them', text:"The checkout page is broken, I can't complete my purchase. I've tried 3 times", time:'2:00 AM' }],
+    contactBio:'New prospect · Trying to purchase · 🇧🇷 Brazil',
+    contactBioExpanded:'Not yet a client — actively trying to buy. Has attempted checkout 3 times, which means very high purchase intent. Every hour this goes unresolved is lost revenue. Technical issue needs immediate attention.',
+    chatHistory:[
+      { from:'them', text:'Hey, I am trying to sign up for the 12-week program but the page is not working', time:'1:50 AM' },
+      { from:'automation', text:'Sorry to hear that! Sofia will look into this for you.', time:'1:51 AM' },
+      { from:'them', text:"The checkout page is broken, I can't complete my purchase. I've tried 3 times", time:'2:00 AM' },
+    ],
     context:"Active purchase attempt blocked by a tech issue — 3 tries means real intent. Every hour this goes unanswered is money lost.",
     draft:"",
     styleReason:"",
     agentRead:'Revenue at risk · Checkout broken' },
   { user:'@simoneb.fit', name:'Simone B.', avatar:'https://i.pravatar.cc/88?u=simonebfit', msg:"I asked for a refund 5 days ago and haven't heard back", source:'DM', time:'1d ago', unread:1, intent:'Support', mode:'confident',
     summary:'Refund ignored for 5 days', status:'',
+    contactBio:'Former client · Refund requested · 🇮🇹 Italy',
+    contactBioExpanded:'Was a client in the Kickstart program. Requested a refund via email 5 days ago with no response. Now escalating to DM. If left unresolved, this becomes a chargeback risk and potential negative review.',
     chatHistory:[
-      { from:'them', text:"Hi, I emailed about a refund 5 days ago", time:'Yesterday' },
-      { from:'them', text:"I asked for a refund 5 days ago and haven't heard back", time:'Yesterday' },
+      { from:'them', text:"Hi, I emailed about a refund 5 days ago and have not gotten any response", time:'Yesterday 10:00 AM' },
+      { from:'automation', text:'Sorry to hear that! Sofia will look into this for you.', time:'Yesterday 10:01 AM' },
+      { from:'them', text:"I asked for a refund 5 days ago and haven't heard back", time:'Yesterday 2:00 PM' },
     ],
     context:"Refund requests left unanswered become chargebacks and public complaints. This is urgent — even a 'we're looking into it' reply buys goodwill.",
     draft:"",
@@ -341,9 +489,13 @@ const ATTENTION_ITEMS = [
     agentRead:'Escalation risk · Refund pending' },
   { user:'@annakowalski.run', name:'Anna Kowalski', avatar:'https://i.pravatar.cc/88?u=annakowalski', msg:"My meal plan isn't loading in the app, it's been 2 days", source:'DM', time:'2d ago', unread:1, intent:'Support', mode:'confident',
     summary:'Meal plan not loading, 2 days', status:'',
+    contactBio:'Active client · 12-Week Reboot · Week 3 · 🇵🇱 Poland',
+    contactBioExpanded:'Paying client in the 12-Week Reboot, week 3. Has been following the program closely. Two days without access to her meal plan means she cannot follow the nutrition program. Sent two messages — patience is wearing thin.',
     chatHistory:[
-      { from:'them', text:"Hey Sofia, my meal plan in the app isn't loading", time:'2 days ago' },
-      { from:'them', text:"My meal plan isn't loading in the app, it's been 2 days", time:'Yesterday' },
+      { from:'them', text:"Hey Sofia, my meal plan in the app is not loading", time:'2 days ago 9:00 AM' },
+      { from:'automation', text:'Sorry to hear that! Sofia will look into this for you. In the meantime, try closing and reopening the app.', time:'2 days ago 9:01 AM' },
+      { from:'them', text:'Tried that, still nothing. Can you check on this?', time:'2 days ago 11:00 AM' },
+      { from:'them', text:"My meal plan isn't loading in the app, it's been 2 days", time:'Yesterday 8:00 AM' },
     ],
     context:"Two days without their meal plan means they can't follow the program properly. Sent two messages — patience is running out. Needs an urgent fix or workaround.",
     draft:"",
@@ -353,36 +505,329 @@ const ATTENTION_ITEMS = [
 
 const COMMUNITY_ITEMS = [
   { user:'@mariavega.runs', name:'Maria Vega', avatar:'https://i.pravatar.cc/88?u=mariavegaruns', msg:"Your content changed how I think about fitness. 2 years and still here 🙌", source:'DM', time:'just now', unread:1, intent:'Fans', mode:'confident',
-    summary:'2-year follower, just saying thanks', status:'',
-    chatHistory:[{ from:'them', text:"Your content changed how I think about fitness goals. 2 years and still here 🙌", time:'9:00 AM' }],
+    summary:'2-year follower, just saying thanks', status:'Reply ready',
+    contactBio:'Follower since 2 yrs · 🇲🇽 Mexico · Engages with every post',
+    contactBioExpanded:'One of the longest-following community members at 2 years. Likes nearly every post and comments on motivational content monthly. Never purchased a program but recommends Sofia to friends in comments. Pure community goodwill.',
+    chatHistory:[
+      { from:'them', text:"I just wanted to say something I have been meaning to tell you for a while", time:'8:58 AM' },
+      { from:'them', text:"Your content changed how I think about fitness goals. 2 years and still here 🙌", time:'9:00 AM' },
+    ],
     context:"Loyal long-term follower. No ask, just appreciation. Worth a warm personal reply when you have a moment.",
-    draft:"",styleReason:"",agentRead:'Loyal fan · No action needed' },
-  { user:'@carloslopes.fit', name:'Carlos Lopes', avatar:'https://i.pravatar.cc/88?u=carloslopes', msg:"Finished week 8 and I'm down 6kg. This actually works 💪", source:'DM', time:'1h ago', unread:1, intent:'Fans', mode:'confident',
-    summary:'Down 6kg at week 8, great result', status:'',
-    chatHistory:[{ from:'them', text:"Just finished week 8 and I'm down 6kg. This actually works. Thank you Sofia!", time:'8:15 AM' }],
+    draft:"That means the world to me, Maria. 2 years! You're one of the OGs and I appreciate you being here every step of the way. Anything I can ever help with, just ask.",
+    styleReason:"Long-time supporter deserves personal acknowledgment. Warm, genuine, with an open-ended offer to help.",
+    agentRead:'Loyal fan · Reply ready' },
+  { user:'@carloslopes.fit', name:'Carlos Lopes', avatar:'https://i.pravatar.cc/88?u=carloslopes', msg:"Just finished week 8 and I'm down 6kg. This actually works. Thank you Sofia!", source:'DM', time:'1h ago', unread:1, intent:'Fans', mode:'confident',
+    summary:'Down 6kg at week 8, great result', status:'Reply ready',
+    contactBio:'Active client · 12-Week Reboot · Week 8 · 🇧🇷 Brazil',
+    contactBioExpanded:'Paying client in the 12-Week Reboot, currently week 8. Started enthusiastic and has maintained momentum throughout. Down 6kg is an excellent result. Strong testimonial candidate — his energy makes him ideal for a social proof ask.',
+    chatHistory:[
+      { from:'them', text:"Sofia you will not believe this", time:'8:10 AM' },
+      { from:'them', text:"Just finished week 8 and I'm down 6kg. This actually works. Thank you Sofia!", time:'8:15 AM' },
+    ],
     context:"Active client hit a major milestone. Great testimonial potential — ask if you can share this.",
-    draft:"",styleReason:"",agentRead:'Milestone · Ask to share' },
-  { user:'@anapaula.fit', name:'Ana Paula', avatar:'https://i.pravatar.cc/88?u=anapaulafit', msg:"Honestly the best investment I made this year. The community alone is worth it", source:'DM', time:'2h ago', unread:1, intent:'Fans', mode:'confident',
-    summary:'Loves the community, strong testimonial', status:'',
-    chatHistory:[{ from:'them', text:"Honestly the best investment I made this year. The community alone is worth it. Everyone is so supportive.", time:'7:00 AM' }],
+    draft:"CARLOS!! 6kg in 8 weeks is incredible — you should be so proud! Would you be open to sharing your story? I think it would inspire so many people in the community.",
+    styleReason:"Milestone celebration with a soft ask for testimonial. Enthusiastic tone matches his energy.",
+    agentRead:'Milestone · Reply ready',
+    timeline:[
+      { type:'session', date:'Feb 24', messages:[
+        { from:'them', text:'Hey Sofia! Just signed up for the Reboot. So pumped to get started 💪', time:'9:00 AM' },
+        { from:'you', text:'Welcome Carlos!! 🎉 Love the energy. I just sent your welcome email — let us schedule your first call this week!', time:'9:20 AM' },
+        { from:'them', text:'Amazing, can not wait!', time:'9:22 AM' },
+      ]},
+      { type:'session', date:'Mar 17', messages:[
+        { from:'them', text:'Sofia!! Week 4 check-in: I am down 3kg already. This is unreal', time:'7:00 PM' },
+        { from:'you', text:'Carlos that is incredible!! 3kg in 4 weeks is right on track. Keep this energy going 🔥', time:'7:15 PM' },
+        { from:'them', text:'Not stopping anytime soon 💪', time:'7:18 PM' },
+      ]},
+      { type:'bridge' },
+      { type:'session', date:'Today', messages:[
+        { from:'them', text:"Sofia you will not believe this", time:'8:10 AM' },
+        { from:'them', text:"Just finished week 8 and I'm down 6kg. This actually works. Thank you Sofia!", time:'8:15 AM' },
+      ]},
+    ]},
+  { user:'@anapaula.fit', name:'Ana Paula', avatar:'https://i.pravatar.cc/88?u=anapaulafit', msg:"Honestly the best investment I made this year. The community alone is worth it. Everyone is so supportive.", source:'DM', time:'2h ago', unread:1, intent:'Fans', mode:'confident',
+    summary:'Loves the community, strong testimonial', status:'Reply ready',
+    contactBio:'Active client · 12-Week Reboot · Week 10 · 🇧🇷 Brazil',
+    contactBioExpanded:'Paying client in the 12-Week Reboot, week 10. Extremely active in the community group — posts daily and encourages other members. This unprompted testimonial about community value is perfect for social proof.',
+    chatHistory:[
+      { from:'them', text:"I just had to tell you this", time:'6:55 AM' },
+      { from:'them', text:"Honestly the best investment I made this year. The community alone is worth it. Everyone is so supportive.", time:'7:00 AM' },
+    ],
     context:"Powerful unprompted testimonial about community value. Perfect for social proof.",
-    draft:"",styleReason:"",agentRead:'Testimonial · High value' },
-  { user:'@sofian.collab', name:'Sofia Nunes', avatar:'https://i.pravatar.cc/88?u=sofiancollab', msg:"Hola! Soy creadora de contenido fitness, me gustaría hacer una collab contigo 🤝", source:'DM', time:'3h ago', unread:1, intent:'Fans', mode:'confident',
-    summary:'Fitness creator, collab proposal', status:'',
-    chatHistory:[{ from:'them', text:"Hola Sofia! Soy creadora de contenido fitness con 40k seguidores, me gustaría hacer una collab contigo si te interesa 🤝", time:'6:00 AM' }],
+    draft:"Thank you so much for saying that, Ana. The community really is special — it's members like you who make it what it is. I'm so glad you feel that way.",
+    styleReason:"Genuine gratitude, reflects the compliment back to the community. Warm but not over-the-top.",
+    agentRead:'Testimonial · Reply ready' },
+  { user:'@sofian.collab', name:'Sofia Nunes', avatar:'https://i.pravatar.cc/88?u=sofiancollab', msg:"Hey! I am a fitness content creator with 40k followers, I would love to do a collab with you if you are interested 🤝", source:'DM', time:'3h ago', unread:1, intent:'Fans', mode:'confident',
+    summary:'Fitness creator, collab proposal', status:'Filtered',
+    contactBio:'Creator · 40k followers · 🇧🇷 Brazil · Fitness niche',
+    contactBioExpanded:'Fitness content creator with 40k followers based in Brazil. Relevant audience overlap with Sofia. First-time DM with a collab proposal. Worth exploring when Sofia has time but not urgent.',
+    chatHistory:[
+      { from:'them', text:'Hey Sofia! Love your content, been following for a while', time:'5:55 AM' },
+      { from:'them', text:"Hey! I am a fitness content creator with 40k followers, I would love to do a collab with you if you are interested 🤝", time:'6:00 AM' },
+    ],
     context:"Creator collab ask, 40k followers in fitness niche — relevant audience. Worth exploring when you have a moment.",
     draft:"",styleReason:"",agentRead:'Collab ask · Creator match' },
-  { user:'@isabelrt', name:'Isabel R.', avatar:'https://i.pravatar.cc/88?u=isabelrt', msg:"Gracias por ayer en el live, me ayudó muchísimo el tip de las proteínas", source:'DM', time:'4h ago', unread:1, intent:'Fans', mode:'confident',
-    summary:'Tried your live tip, it worked', status:'',
-    chatHistory:[{ from:'them', text:"Gracias por ayer en el live, me ayudó muchísimo el tip de las proteínas. Lo puse en práctica hoy!", time:'5:30 AM' }],
+  { user:'@isabelrt', name:'Isabel R.', avatar:'https://i.pravatar.cc/88?u=isabelrt', msg:"Thanks for the live yesterday, the protein tip helped me so much. I put it into practice today!", source:'DM', time:'4h ago', unread:1, intent:'Fans', mode:'confident',
+    summary:'Tried your live tip, it worked', status:'Reply ready',
+    contactBio:'Follower since 11 months · 🇪🇸 Spain · Attends every live',
+    contactBioExpanded:'Loyal follower for 11 months who attends almost every live session. Engages actively in live chat and follows through on advice. This message shows real implementation of tips — high-value community member.',
+    chatHistory:[
+      { from:'them', text:"Hey Sofia! Just wanted to say something quick", time:'5:25 AM' },
+      { from:'them', text:"Thanks for the live yesterday, the protein tip helped me so much. I put it into practice today!", time:'5:30 AM' },
+    ],
     context:"Immediate action taken from live content — this is high engagement. A quick reply goes a long way.",
-    draft:"",styleReason:"",agentRead:'Live follow-up · High engagement' },
-  { user:'@brendanmac', name:'Brendan M.', avatar:'https://i.pravatar.cc/88?u=brendanmac', msg:"Would you ever consider doing a podcast? Your explanations are so clear", source:'DM', time:'5h ago', unread:1, intent:'Fans', mode:'confident',
-    summary:'Suggesting you start a podcast', status:'',
-    chatHistory:[{ from:'them', text:"Would you ever consider doing a podcast? Your explanations of nutrition are so clear and I'd love to listen on my runs", time:'4:00 AM' }],
+    draft:"So glad the protein tip helped! I love hearing when people actually put it into practice. That's what the lives are for. See you at the next one!",
+    styleReason:"Reinforces the value of lives, encourages continued attendance. Casual, encouraging.",
+    agentRead:'Live follow-up · Reply ready' },
+  { user:'@brendanmac', name:'Brendan M.', avatar:'https://i.pravatar.cc/88?u=brendanmac', msg:"Would you ever consider doing a podcast? Your explanations of nutrition are so clear and I'd love to listen on my runs", source:'DM', time:'5h ago', unread:1, intent:'Fans', mode:'confident',
+    summary:'Suggesting you start a podcast', status:'Filtered',
+    contactBio:'Follower since 6 months · 🇮🇪 Ireland · Engages with nutrition content',
+    contactBioExpanded:'Follows for 6 months, primarily engages with nutrition explanation content. Saves educational posts regularly. The podcast suggestion shows he consumes content deeply and wants more. Good content strategy signal.',
+    chatHistory:[
+      { from:'them', text:"Hey Sofia, random thought for you", time:'3:55 AM' },
+      { from:'them', text:"Would you ever consider doing a podcast? Your explanations of nutrition are so clear and I'd love to listen on my runs", time:'4:00 AM' },
+    ],
     context:"Genuine content feedback — follower is listening closely. Good insight for your content strategy.",
     draft:"",styleReason:"",agentRead:'Content feedback · Engaged follower' },
+  /* ── New community items (22 additional) ── */
+  { user:'@luciana.health', name:'Luciana Marques', avatar:'https://i.pravatar.cc/88?u=lucianahealth', msg:"You genuinely inspire me every single day. Thank you for being so real 💛", source:'DM', time:'6h', unread:1, intent:'Fans', mode:'confident',
+    summary:'Daily inspiration, genuine appreciation', status:'Filtered',
+    contactBio:'Follower since 1 yr · 🇧🇷 Brazil · Daily story viewer',
+    contactBioExpanded:'Consistent follower for a year who views every story and likes most posts. Never commented publicly but this DM shows deep connection to the content. Pure appreciation, no ask.',
+    chatHistory:[
+      { from:'them', text:'I know you probably get a lot of messages like this but I just had to say it', time:'3:00 AM' },
+      { from:'them', text:"You genuinely inspire me every single day. Thank you for being so real 💛", time:'3:02 AM' },
+    ],
+    context:"Heartfelt appreciation from a quiet but loyal follower. No action needed but a reply would mean a lot.",
+    agentRead:'Appreciation · Filtered' },
+  { user:'@fitjordan21', name:'Jordan Ellis', avatar:'https://i.pravatar.cc/88?u=fitjordan21', msg:"Your mindset content is what actually changed things for me. The workouts are great but the mental shifts hit different", source:'DM', time:'6h', unread:1, intent:'Fans', mode:'confident',
+    summary:'Values mindset content most', status:'Filtered',
+    contactBio:'Follower since 8 months · 🇺🇸 US · Saves mindset posts',
+    contactBioExpanded:'Follower for 8 months who engages primarily with mindset and motivation content rather than workout posts. Saves posts regularly. This feedback highlights an underappreciated content pillar.',
+    chatHistory:[
+      { from:'them', text:"Your mindset content is what actually changed things for me. The workouts are great but the mental shifts hit different", time:'3:15 AM' },
+    ],
+    context:"Values the mindset angle over the fitness — good content strategy insight.",
+    agentRead:'Content feedback · Filtered' },
+  { user:'@priya.transforms', name:'Priya Sharma', avatar:'https://i.pravatar.cc/88?u=priyatransforms', msg:"You changed my perspective on what healthy actually means. I stopped obsessing over the scale because of you", source:'DM', time:'7h', unread:1, intent:'Fans', mode:'confident',
+    summary:'Shifted perspective on health', status:'Reply ready',
+    contactBio:'Follower since 10 months · 🇮🇳 India · Deep engagement',
+    contactBioExpanded:'Follows for 10 months from India. Engages deeply with educational content — comments thoughtful responses on nutrition posts. This message reflects a meaningful mindset shift directly attributed to the content.',
+    chatHistory:[
+      { from:'them', text:'Sofia I need to tell you something important', time:'2:30 AM' },
+      { from:'them', text:"You changed my perspective on what healthy actually means. I stopped obsessing over the scale because of you", time:'2:32 AM' },
+    ],
+    context:"Deep personal impact. This kind of message is worth acknowledging — it reinforces the mission.",
+    draft:"Priya, this is exactly why I do what I do. Health is so much bigger than a number on the scale and I am so glad that message landed for you. Keep going 💛",
+    styleReason:"Acknowledges the personal impact, reinforces the philosophy. Warm and affirming without being preachy.",
+    agentRead:'Impact story · Reply ready' },
+  { user:'@emmawellness.uk', name:'Emma Clarke', avatar:'https://i.pravatar.cc/88?u=emmawellnessuk', msg:"Thank you for always being honest about the hard parts too. So refreshing", source:'DM', time:'8h', unread:1, intent:'Fans', mode:'confident',
+    summary:'Appreciates honesty in content', status:'Filtered',
+    contactBio:'Follower since 5 months · 🇬🇧 UK · Comments regularly',
+    contactBioExpanded:'UK-based follower for 5 months. Comments on posts about the realistic side of fitness — struggles, plateaus, honest moments. Values transparency over polished content.',
+    chatHistory:[
+      { from:'them', text:"Thank you for always being honest about the hard parts too. So refreshing", time:'1:00 AM' },
+    ],
+    context:"Appreciates authenticity — important signal for content direction.",
+    agentRead:'Appreciation · Filtered' },
+  { user:'@katelyn.moves', name:'Katelyn Brooks', avatar:'https://i.pravatar.cc/88?u=katelynmoves', msg:"I just wanted you to know that I recommend you to literally everyone I talk to about fitness", source:'DM', time:'9h', unread:1, intent:'Fans', mode:'confident',
+    summary:'Active referrer, spreads the word', status:'Reply ready',
+    contactBio:'Follower since 1 yr · 🇺🇸 US · Word-of-mouth advocate',
+    contactBioExpanded:'Year-long follower who tags friends in comments regularly and shares posts to stories. Self-identified as someone who actively refers others. Organic growth driver.',
+    chatHistory:[
+      { from:'them', text:"I just wanted you to know that I recommend you to literally everyone I talk to about fitness", time:'12:00 AM' },
+    ],
+    context:"Organic referral source — worth acknowledging to keep the word-of-mouth going.",
+    draft:"Katelyn that honestly means everything to me 🥹 Word of mouth from people like you is how this community grows. Thank you for spreading the love!",
+    styleReason:"Acknowledges the referral behavior directly. Warm and grateful to reinforce the behavior.",
+    agentRead:'Advocate · Reply ready' },
+  { user:'@mikefitcoach', name:'Mike Donovan', avatar:'https://i.pravatar.cc/88?u=mikefitcoach', msg:"Your meal prep reel saved my week. I made 5 days of lunches in 40 minutes following your method", source:'DM', time:'10h', unread:1, intent:'Fans', mode:'confident',
+    summary:'Meal prep method worked, specific result', status:'Reply ready',
+    contactBio:'Follower since 4 months · 🇺🇸 US · Tries every recipe',
+    contactBioExpanded:'Follows for 4 months and engages heavily with meal prep and recipe content. Actually implements the methods shown in reels. Specific result (5 days in 40 min) makes this great testimonial material.',
+    chatHistory:[
+      { from:'them', text:'Sofia I have to tell you what happened this weekend', time:'11:30 PM' },
+      { from:'them', text:"Your meal prep reel saved my week. I made 5 days of lunches in 40 minutes following your method", time:'11:32 PM' },
+    ],
+    context:"Specific, measurable result from content. Great for social proof — ask if you can share.",
+    draft:"Mike that is amazing! 5 days in 40 minutes is exactly the goal. Would you mind if I shared this? I think it would motivate a lot of people who think meal prep takes forever.",
+    styleReason:"Celebrates the result, then soft ask for testimonial. Matches his practical energy.",
+    agentRead:'Result story · Reply ready' },
+  { user:'@nina.transforms', name:'Nina Petrova', avatar:'https://i.pravatar.cc/88?u=ninatransforms', msg:"I finished the Kickstart last week and I already signed up for the Reboot. This program changed everything for me", source:'DM', time:'10h', unread:1, intent:'Fans', mode:'confident',
+    summary:'Completed Kickstart, upgraded to Reboot', status:'Reply ready',
+    contactBio:'Client · Kickstart graduate · Now in Reboot · 🇷🇺 Russia',
+    contactBioExpanded:'Completed the 4-week Kickstart and immediately upgraded to the 12-Week Reboot. This is the ideal client journey. Her enthusiasm makes her a strong candidate for a case study or testimonial.',
+    chatHistory:[
+      { from:'them', text:'Sofia!! I have news', time:'11:00 PM' },
+      { from:'them', text:"I finished the Kickstart last week and I already signed up for the Reboot. This program changed everything for me", time:'11:02 PM' },
+    ],
+    context:"Dream client journey — Kickstart to Reboot upgrade. Acknowledge and celebrate.",
+    draft:"Nina!! That is the best news I have heard all week 🥹 The fact that you went straight to the Reboot tells me you really felt the difference. I can not wait to see what the next 12 weeks bring for you!",
+    styleReason:"Celebrates the upgrade, builds excitement for the journey ahead. Extra warm for loyalty.",
+    agentRead:'Upgrade story · Reply ready' },
+  { user:'@rachelt.health', name:'Rachel Torres', avatar:'https://i.pravatar.cc/88?u=rachelthealth', msg:"I hit my first pull-up today because of your program. I literally cried in the gym 😭", source:'DM', time:'12h', unread:1, intent:'Fans', mode:'confident',
+    summary:'First pull-up milestone, emotional', status:'Reply ready',
+    contactBio:'Active client · 12-Week Reboot · Week 9 · 🇺🇸 US',
+    contactBioExpanded:'Client in week 9 of the Reboot. Has been posting progress in the community group consistently. First pull-up is a major strength milestone — highly emotional and shareable.',
+    chatHistory:[
+      { from:'them', text:'SOFIA', time:'9:00 PM' },
+      { from:'them', text:"I hit my first pull-up today because of your program. I literally cried in the gym 😭", time:'9:01 PM' },
+    ],
+    context:"Major physical milestone with emotional weight. Incredible testimonial opportunity.",
+    draft:"RACHEL!! 🎉 A pull-up!!! Do you know how huge that is?! I am so incredibly proud of you. That moment is yours forever. Would you be okay if I shared this with the community? This would inspire SO many people.",
+    styleReason:"Matches her excitement level. Celebrates the milestone fully before the testimonial ask.",
+    agentRead:'Milestone · Reply ready' },
+  { user:'@davemacfit', name:'Dave McCarthy', avatar:'https://i.pravatar.cc/88?u=davemacfit', msg:"Hit my goal weight today. 12 weeks ago I didn't think this was possible. Thank you", source:'DM', time:'14h', unread:1, intent:'Fans', mode:'confident',
+    summary:'Hit goal weight after 12 weeks', status:'Reply ready',
+    contactBio:'Client · 12-Week Reboot graduate · 🇦🇺 Australia',
+    contactBioExpanded:'Just completed the full 12-Week Reboot and hit his goal weight. Quiet in the community group but consistent with check-ins. The gratitude message at the end signals deep satisfaction with the program.',
+    chatHistory:[
+      { from:'them', text:"Hit my goal weight today. 12 weeks ago I didn't think this was possible. Thank you", time:'7:00 PM' },
+    ],
+    context:"Program completion + goal achieved. Perfect success story.",
+    draft:"Dave this gave me chills. You put in the work every single day for 12 weeks and it paid off. I am so proud of you. What is next for you?",
+    styleReason:"Gives full credit to his effort. Open-ended question to keep the relationship going and explore upsell.",
+    agentRead:'Goal achieved · Reply ready' },
+  { user:'@samira.wellness', name:'Samira Al-Rashid', avatar:'https://i.pravatar.cc/88?u=samirawellness', msg:"Your reel about not needing to exercise every day actually relieved so much guilt. I needed that", source:'DM', time:'15h', unread:1, intent:'Fans', mode:'confident',
+    summary:'Content relieved exercise guilt', status:'Filtered',
+    contactBio:'Follower since 7 months · 🇦🇪 UAE · Engages with rest day content',
+    contactBioExpanded:'Follower for 7 months from the UAE. Engages specifically with content about rest, recovery, and balanced approaches to fitness. The guilt relief message shows the content is hitting the right note for her audience segment.',
+    chatHistory:[
+      { from:'them', text:"Your reel about not needing to exercise every day actually relieved so much guilt. I needed that", time:'6:00 PM' },
+    ],
+    context:"Content addressing exercise guilt resonated deeply. Good signal for content strategy.",
+    agentRead:'Impact feedback · Filtered' },
+  { user:'@alexm.collab', name:'Alex Morrison', avatar:'https://i.pravatar.cc/88?u=alexmcollab', msg:"Hey Sofia! I run a wellness podcast with 15k listeners. Would love to have you as a guest to talk about sustainable fitness habits", source:'DM', time:'17h', unread:1, intent:'Fans', mode:'confident',
+    summary:'Podcast interview invitation, 15k audience', status:'Filtered',
+    contactBio:'Podcast host · 15k listeners · 🇨🇦 Canada · Wellness niche',
+    contactBioExpanded:'Runs a wellness podcast with 15k listeners based in Canada. The audience aligns well with Sofia niche. Podcast appearances are great for brand building and reaching new audiences.',
+    chatHistory:[
+      { from:'them', text:'Hey Sofia! Big fan of your content', time:'4:00 PM' },
+      { from:'them', text:"I run a wellness podcast with 15k listeners. Would love to have you as a guest to talk about sustainable fitness habits", time:'4:02 PM' },
+    ],
+    context:"Podcast guest opportunity — relevant audience, good brand exposure. Worth considering when schedule allows.",
+    agentRead:'Podcast invite · Filtered' },
+  { user:'@juanpablo.writes', name:'Juan Pablo Ríos', avatar:'https://i.pravatar.cc/88?u=juanpablowrites', msg:"I write for a fitness magazine and I would love to feature your approach to personalized coaching. Can we set up a quick interview?", source:'DM', time:'18h', unread:1, intent:'Fans', mode:'confident',
+    summary:'Magazine feature request, interview ask', status:'Filtered',
+    contactBio:'Journalist · Fitness magazine · 🇨🇴 Colombia',
+    contactBioExpanded:'Writes for a fitness publication based in Colombia. Feature request for an interview about personalized coaching approach. Good PR opportunity for brand visibility in Latin American market.',
+    chatHistory:[
+      { from:'them', text:"Hey Sofia! I love what you are doing with your coaching programs", time:'3:00 PM' },
+      { from:'them', text:"I write for a fitness magazine and I would love to feature your approach to personalized coaching. Can we set up a quick interview?", time:'3:03 PM' },
+    ],
+    context:"Press inquiry for a magazine feature. Could be valuable exposure. Worth exploring.",
+    agentRead:'Press inquiry · Filtered' },
+  { user:'@yogawithnat', name:'Natalia Reyes', avatar:'https://i.pravatar.cc/88?u=yogawithnat', msg:"Would you ever consider adding a yoga/mobility module? I think it would complement the strength training perfectly", source:'DM', time:'19h', unread:1, intent:'Fans', mode:'confident',
+    summary:'Suggesting yoga module for program', status:'Filtered',
+    contactBio:'Follower since 1 yr · 🇨🇱 Chile · Yoga instructor',
+    contactBioExpanded:'Yoga instructor who has followed for a year. Engages with flexibility and recovery content. The product suggestion comes from professional experience and genuine belief in the program.',
+    chatHistory:[
+      { from:'them', text:"Would you ever consider adding a yoga/mobility module? I think it would complement the strength training perfectly", time:'2:00 PM' },
+    ],
+    context:"Product feedback from a yoga professional. Could be a future offering or collaboration.",
+    agentRead:'Product suggestion · Filtered' },
+  { user:'@fitdad.marco', name:'Marco Bianchi', avatar:'https://i.pravatar.cc/88?u=fitdadmarco', msg:"What does your morning routine actually look like? I am a dad of 3 and I am trying to find time for fitness", source:'DM', time:'20h', unread:1, intent:'Fans', mode:'confident',
+    summary:'Dad of 3, asking about morning routine', status:'Filtered',
+    contactBio:'Follower since 6 months · 🇮🇹 Italy · Engages with routine content',
+    contactBioExpanded:'Italian follower for 6 months, dad of 3. Engages specifically with content about fitting fitness into busy schedules. The personal question shows he sees Sofia as relatable and accessible.',
+    chatHistory:[
+      { from:'them', text:"What does your morning routine actually look like? I am a dad of 3 and I am trying to find time for fitness", time:'1:00 PM' },
+    ],
+    context:"Lifestyle question from a busy parent. Good content idea — could answer this in a reel.",
+    agentRead:'Lifestyle question · Filtered' },
+  { user:'@mari.lifts', name:'Mari Tanaka', avatar:'https://i.pravatar.cc/88?u=marilifts', msg:"How do you stay motivated on days when you really don't feel like training? Asking for real because today was rough", source:'DM', time:'21h', unread:1, intent:'Fans', mode:'confident',
+    summary:'Asking about motivation on hard days', status:'Filtered',
+    contactBio:'Follower since 4 months · 🇯🇵 Japan · Engages with mindset content',
+    contactBioExpanded:'Japanese follower for 4 months who gravitates toward mindset and motivation content. The vulnerable question shows trust. Could be addressed in a future reel for broader reach.',
+    chatHistory:[
+      { from:'them', text:"Rough day today and I just need to ask you something real", time:'12:00 PM' },
+      { from:'them', text:"How do you stay motivated on days when you really don't feel like training? Asking for real because today was rough", time:'12:02 PM' },
+    ],
+    context:"Real question about motivation. Great content opportunity — relatable for the whole audience.",
+    agentRead:'Routine question · Filtered' },
+  { user:'@healthymaya.co', name:'Maya Chen', avatar:'https://i.pravatar.cc/88?u=healthymayaco', msg:"Do you have a specific pre-workout snack you swear by? I always feel sluggish going in", source:'DM', time:'22h', unread:1, intent:'Fans', mode:'confident',
+    summary:'Asking about pre-workout nutrition', status:'Filtered',
+    contactBio:'Follower since 3 months · 🇺🇸 US · Nutrition-focused',
+    contactBioExpanded:'Follows for 3 months, primarily engages with nutrition and meal content. The pre-workout snack question is specific enough to answer in a story or reel for broader value.',
+    chatHistory:[
+      { from:'them', text:"Do you have a specific pre-workout snack you swear by? I always feel sluggish going in", time:'11:00 AM' },
+    ],
+    context:"Specific nutrition question. Could answer publicly in a story for broader value.",
+    agentRead:'Nutrition question · Filtered' },
+  { user:'@tagmefit', name:'Leah Brown', avatar:'https://i.pravatar.cc/88?u=tagmefit', msg:"OMG just tagged you in my story!! My friend and I did your HIIT reel together and we were DYING 😂", source:'DM', time:'1d', unread:1, intent:'Fans', mode:'confident',
+    summary:'Tagged in story, did HIIT reel with friend', status:'Reply ready',
+    contactBio:'Follower since 2 months · 🇺🇸 US · Shares content socially',
+    contactBioExpanded:'Recent follower who actively shares content with friends. Tagged Sofia in a story doing a workout reel together with a friend — organic reach and social proof. Worth engaging to encourage more of this behavior.',
+    chatHistory:[
+      { from:'them', text:"OMG just tagged you in my story!! My friend and I did your HIIT reel together and we were DYING 😂", time:'9:00 AM' },
+    ],
+    context:"User-generated content opportunity — they tagged you. Repost and engage.",
+    draft:"I LOVE this!! 😂 You two are amazing. I am reposting this to my story — this is exactly the energy I want to see!",
+    styleReason:"Enthusiastic, matches her energy. Announces the repost to encourage more UGC.",
+    agentRead:'UGC tag · Reply ready' },
+  { user:'@fitcouple.sam', name:'Sam & Lisa', avatar:'https://i.pravatar.cc/88?u=fitcouplesam', msg:"My girlfriend and I both follow you and we just started doing your workouts together. Wanted to say thanks for bringing us closer 🤣💪", source:'DM', time:'1d', unread:1, intent:'Fans', mode:'confident',
+    summary:'Couple doing workouts together, fun message', status:'Filtered',
+    contactBio:'Followers · Couple account · 🇺🇸 US · Shared workouts',
+    contactBioExpanded:'Couple account that follows and works out together using Sofia content. Fun, wholesome engagement. Nice story potential but not urgent.',
+    chatHistory:[
+      { from:'them', text:"My girlfriend and I both follow you and we just started doing your workouts together. Wanted to say thanks for bringing us closer 🤣💪", time:'8:00 AM' },
+    ],
+    context:"Wholesome couple engagement. Nice for stories if they are open to it.",
+    agentRead:'Fun engagement · Filtered' },
+  { user:'@runnerjess.k', name:'Jess Kim', avatar:'https://i.pravatar.cc/88?u=runnerjessk', msg:"My sister showed me your account and now we both do your stretching routine every morning. Just wanted you to know you have a new fan!", source:'DM', time:'1d', unread:1, intent:'Fans', mode:'confident',
+    summary:'Sister referral, new fan', status:'Filtered',
+    contactBio:'New follower · 🇰🇷 South Korea · Referred by sister',
+    contactBioExpanded:'Brand new follower referred by her sister. They do the stretching routine together daily. Word-of-mouth referral story — shows organic reach beyond the main audience.',
+    chatHistory:[
+      { from:'them', text:"My sister showed me your account and now we both do your stretching routine every morning. Just wanted you to know you have a new fan!", time:'7:00 AM' },
+    ],
+    context:"Referral story — sister introduced her. Nice organic growth signal.",
+    agentRead:'Referral story · Filtered' },
+  { user:'@patrice.lifts', name:'Patrice Dubois', avatar:'https://i.pravatar.cc/88?u=patricelifts', msg:"Sent your transformation reel to my whole group chat. You are going viral in our gym 😂", source:'DM', time:'2d', unread:1, intent:'Fans', mode:'confident',
+    summary:'Shared reel with gym group chat', status:'Filtered',
+    contactBio:'Follower since 5 months · 🇫🇷 France · Shares content widely',
+    contactBioExpanded:'French follower for 5 months who actively shares content within his gym community. This kind of organic distribution is incredibly valuable for reach. Fun message, no action needed.',
+    chatHistory:[
+      { from:'them', text:"Sent your transformation reel to my whole group chat. You are going viral in our gym 😂", time:'Yesterday 6:00 PM' },
+    ],
+    context:"Organic content sharing in a gym community. Great reach signal.",
+    agentRead:'Content share · Filtered' },
+  { user:'@wellnesswitheva', name:'Eva Lindström', avatar:'https://i.pravatar.cc/88?u=wellnesswitheva', msg:"I have been doing your evening stretching routine for 3 weeks straight and my back pain is actually gone. I can not believe it", source:'DM', time:'2d', unread:1, intent:'Fans', mode:'confident',
+    summary:'Back pain gone after 3 weeks of stretching', status:'Reply ready',
+    contactBio:'Follower since 6 months · 🇸🇪 Sweden · Health improvement',
+    contactBioExpanded:'Swedish follower for 6 months who found Sofia through stretching content. 3 weeks of consistent practice led to a specific health improvement. Great testimonial for the stretching content pillar.',
+    chatHistory:[
+      { from:'them', text:'Sofia I have to share something with you', time:'Yesterday 4:00 PM' },
+      { from:'them', text:"I have been doing your evening stretching routine for 3 weeks straight and my back pain is actually gone. I can not believe it", time:'Yesterday 4:02 PM' },
+    ],
+    context:"Specific health improvement from free content. Powerful testimonial for stretching content.",
+    draft:"Eva that is incredible!! Back pain gone in 3 weeks of consistent stretching — your body was just asking for it. Would you be open to sharing this? So many people deal with back pain and need to hear this.",
+    styleReason:"Celebrates the result, then soft testimonial ask. Frames it as helping others.",
+    agentRead:'Health result · Reply ready' },
+  { user:'@alinagym', name:'Alina Popescu', avatar:'https://i.pravatar.cc/88?u=alinagym', msg:"Just completed all 4 weeks of the Kickstart!! 💪 Feeling stronger than ever", source:'DM', time:'2d', unread:1, intent:'Fans', mode:'confident',
+    summary:'Completed Kickstart program', status:'Reply ready',
+    contactBio:'Client · Kickstart graduate · 🇷🇴 Romania',
+    contactBioExpanded:'Just completed the 4-week Kickstart program. Active in the community group during the program. Completion message with enthusiasm suggests high satisfaction and potential upgrade candidate.',
+    chatHistory:[
+      { from:'them', text:'SOFIA!!', time:'Yesterday 2:00 PM' },
+      { from:'them', text:"Just completed all 4 weeks of the Kickstart!! 💪 Feeling stronger than ever", time:'Yesterday 2:01 PM' },
+    ],
+    context:"Program completion celebration. Good moment to congratulate and mention the Reboot as next step.",
+    draft:"ALINA!! 🎉 4 weeks done and feeling stronger — that is what I love to hear! You should be so proud of yourself. Have you thought about what is next? The Reboot would be an amazing next step for you!",
+    styleReason:"Celebrates completion, naturally introduces the Reboot as the next chapter. Not pushy.",
+    agentRead:'Completion · Reply ready' },
 ];
+
+const STATS = {
+  totalHandled: 641,
+  interested: INTERESTED_ITEMS.length,
+  attention: ATTENTION_ITEMS.length,
+  community: COMMUNITY_ITEMS.length,
+  repliesReady: [...INTERESTED_ITEMS, ...COMMUNITY_ITEMS].filter(i => i.draft).length,
+  score: 78,
+  spamFiltered: 94,
+  timeSaved: 47,
+};
 
 /* ═══ SHARED COMPONENTS ═══ */
 function BlackBtn({ label, onClick, disabled }) {
@@ -1256,7 +1701,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
             ) : (
               <div>
                 <div style={{ display:'flex', alignItems:'center', gap:4, marginBottom:4 }}>
-                  <span style={{ fontSize:11, fontWeight:500, color:'#707070' }}>About Laura</span>
+                  <span style={{ fontSize:11, fontWeight:500, color:'#707070' }}>About {(item.name || item.user).split(' ')[0]}</span>
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#707070" strokeWidth="2" style={{ flexShrink:0, transform:'rotate(180deg)' }}><polyline points="6 9 12 15 18 9"/></svg>
                 </div>
                 <div style={{ fontSize:11, fontWeight:400, color:'#707070', lineHeight:'16px' }}>{item.contactBioExpanded}</div>
@@ -1537,34 +1982,118 @@ function AgentOverlay({ item, draft, onChangeDraft, onClose }) {
   // Generate proposal based on user query
   const getProposal = (q) => {
     const lower = q.toLowerCase();
-    if (lower.match(/warm|friend/)) {
-      const newDraft = '💛 ' + draft;
-      return { thinking:'Adjusting the tone...', proposal:'How about this?\n\n"' + newDraft + '"', question:'Want me to update the reply?', newDraft, closeAfter:true };
+    const contactName = item.name ? item.name.split(' ')[0] : 'this contact';
+
+    // --- Info queries (no confirmation) ---
+    if (lower.match(/tell me|who is|about|more info|background|bio/)) {
+      const info = item.contactBioExpanded || item.context || (contactName + ' has been engaging with your content recently.');
+      return { thinking: 'Looking up ' + contactName + '...', proposal: 'Here\'s what I know about ' + contactName + ':\n\n' + info, question: null };
     }
-    if (lower.match(/short|concise|brief/)) {
-      const newDraft = draft.split(/(?<=[.!?])\s+/).slice(0,2).join(' ');
-      return { thinking:'Shortening it...', proposal:'Here\'s a shorter version:\n\n"' + newDraft + '"', question:'Should I use this instead?', newDraft, closeAfter:true };
-    }
-    if (lower.match(/spanish|español/)) {
-      const newDraft = '[ES] ' + draft;
-      return { thinking:'Translating...', proposal:'Here it is in Spanish:\n\n"' + newDraft + '"', question:'Want me to switch to this?', newDraft, closeAfter:true };
-    }
-    if (lower.match(/ignore|skip|don't show|remove|archive/)) {
-      return { thinking:'Checking...', proposal:'I\'ll archive this contact and won\'t show them again.', question:'Confirm?', newDraft:'', closeAfter:true, skipContact:true };
-    }
-    if (lower.match(/book|link|calendly/)) {
-      const newDraft = draft + ' → calendly.com/sofia';
-      return { thinking:'Adding the link...', proposal:'I\'ll add your booking link at the end:\n\n"' + newDraft + '"', question:'Look good?', newDraft, closeAfter:true };
-    }
-    if (lower.match(/tell me|who is|about|more info|background/)) {
-      const info = item.contactBioExpanded || item.context || 'This contact has been engaging with your content recently.';
-      return { thinking:'Looking up...', proposal: info, question:null }; // Info only, no confirmation needed
-    }
+
     if (lower.match(/why|reason|explain/)) {
-      const info = item.styleReason || 'I based this reply on your usual tone and the context of their message.';
-      return { thinking:'Let me explain...', proposal: info, question:null };
+      const info = item.styleReason || ('I based this reply on your usual tone and the context of ' + contactName + '\'s message.');
+      return { thinking: 'Let me explain...', proposal: info, question: null };
     }
-    return { thinking:'Thinking...', proposal:'I\'ll keep that in mind for future replies.', question:null };
+
+    if (lower.match(/history|previous|past|conversation/)) {
+      const msgCount = (item.chatHistory ? item.chatHistory.length : 0);
+      const timelineCount = (item.timeline ? item.timeline.length : 0);
+      return { thinking: 'Checking history...', proposal: msgCount > 2 || timelineCount > 0
+        ? (contactName + ' has ' + msgCount + ' messages in the current thread' + (timelineCount > 0 ? ' and a longer history with comments and past conversations' : '') + '. Tap their name to see the full thread.')
+        : ('This is ' + contactName + '\'s first conversation with you. No previous history.'), question: null };
+    }
+
+    // --- Draft modifications (confirmation required) ---
+    if (lower.match(/warm|friend|personal/)) {
+      const newDraft = 'Hey ' + contactName + '! ' + draft;
+      return { thinking: 'Making it warmer...', proposal: 'How about this?\n\n"' + newDraft + '"', question: 'Want me to update the reply?', newDraft: newDraft, closeAfter: true };
+    }
+
+    if (lower.match(/short|concise|brief/)) {
+      const sentences = draft.split(/(?<=[.!?])\s+/);
+      const newDraft = sentences.slice(0, 2).join(' ');
+      return { thinking: 'Shortening it...', proposal: 'Here\'s a shorter version:\n\n"' + newDraft + '"', question: 'Should I use this instead?', newDraft: newDraft, closeAfter: true };
+    }
+
+    if (lower.match(/formal|professional/)) {
+      const newDraft = draft.replace(/[^\w\s.,!?'"()\-:;]/g, '').replace(/^Hey |^Hi |^Hello /i, 'Dear ');
+      return { thinking: 'Making it more professional...', proposal: 'Here\'s a more formal version:\n\n"' + newDraft + '"', question: 'Want me to use this?', newDraft: newDraft, closeAfter: true };
+    }
+
+    if (lower.match(/longer|more detail|expand|elaborate/)) {
+      const newDraft = draft + ' Let me know if you have any other questions \u2014 I\'m happy to help!';
+      return { thinking: 'Expanding it...', proposal: 'Here\'s a more detailed version:\n\n"' + newDraft + '"', question: 'Should I update it?', newDraft: newDraft, closeAfter: true };
+    }
+
+    if (lower.match(/emoji|more personality|fun/)) {
+      const emojis = ['\uD83D\uDE4C', '\uD83D\uDCAA', '\u2728', '\uD83C\uDF89', '\uD83D\uDC9B'];
+      const picked = emojis[Math.floor(Math.random() * emojis.length)];
+      const newDraft = picked + ' ' + draft;
+      return { thinking: 'Adding personality...', proposal: 'How about this?\n\n"' + newDraft + '"', question: 'Want to use this version?', newDraft: newDraft, closeAfter: true };
+    }
+
+    if (lower.match(/no emoji|remove emoji|plain|clean/)) {
+      const newDraft = draft.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}]/gu, '').replace(/\s{2,}/g, ' ').trim();
+      return { thinking: 'Cleaning it up...', proposal: 'Here\'s a cleaner version:\n\n"' + newDraft + '"', question: 'Should I use this?', newDraft: newDraft, closeAfter: true };
+    }
+
+    if (lower.match(/spanish|espanol|espa\u00f1ol/)) {
+      const newDraft = '[Translated to Spanish] ' + draft;
+      return { thinking: 'Switching to Spanish...', proposal: 'Here it is in Spanish:\n\n"' + newDraft + '"', question: 'Want me to switch?', newDraft: newDraft, closeAfter: true };
+    }
+
+    if (lower.match(/ignore|skip|don.t show|remove|archive/)) {
+      return { thinking: 'Got it...', proposal: 'I\'ll archive ' + contactName + ' and won\'t show them again.', question: 'Confirm?', newDraft: '', closeAfter: true, skipContact: true };
+    }
+
+    if (lower.match(/book|link|calendly|schedule|call/)) {
+      const newDraft = draft + '\n\nHere\'s my calendar to book a call: calendly.com/sofia';
+      return { thinking: 'Adding the link...', proposal: 'I\'ll add your booking link at the end:\n\n"' + newDraft + '"', question: 'Look good?', newDraft: newDraft, closeAfter: true };
+    }
+
+    if (lower.match(/price|pricing|cost|how much/)) {
+      const priceInfo = '\n\nPricing: 4-Week Kickstart is $197. 12-Week Reboot is $597 (or 3x $197/month).';
+      const newDraft = draft + priceInfo;
+      return { thinking: 'Adding pricing...', proposal: 'Added the pricing details:\n\n"' + newDraft + '"', question: 'Want me to include this?', newDraft: newDraft, closeAfter: true };
+    }
+
+    if (lower.match(/follow.?up|remind|later|tomorrow/)) {
+      return { thinking: 'Setting a reminder...', proposal: 'I\'ll remind you to follow up with ' + contactName + ' tomorrow. Should I send the current draft now?', question: 'Send and set reminder?', newDraft: draft, closeAfter: true };
+    }
+
+    if (lower.match(/vip|special|discount|exclusive/)) {
+      const newDraft = draft.replace(/\.$/, '') + ' \u2014 and since you\'re one of my most valued community members, I have something special for you.';
+      return { thinking: 'Adding VIP touch...', proposal: 'Here\'s a version with VIP treatment:\n\n"' + newDraft + '"', question: 'Want me to use this?', newDraft: newDraft, closeAfter: true };
+    }
+
+    // --- Draft generation (for items without drafts) ---
+    if (lower.match(/draft|write|compose|reply for me|suggest a reply/)) {
+      if (!draft || draft.trim() === '') {
+        const templates = {
+          Support: 'Hey ' + contactName + ', I\'m so sorry about this. Let me look into it right now and I\'ll get back to you within the hour. Hang tight!',
+          Opportunities: 'Hey ' + contactName + '! Thanks for reaching out \u2014 I\'d love to tell you more about the program. What\'s your main goal right now?',
+          Fans: contactName + ', thank you so much for this message! It truly means a lot to me. Keep going \u2014 you\'re doing amazing!',
+        };
+        const generated = templates[item.intent] || ('Hey ' + contactName + ', thanks for reaching out! Let me get back to you on this.');
+        return { thinking: 'Writing a reply to ' + contactName + '...', proposal: 'How about this?\n\n"' + generated + '"', question: 'Want me to use this as the draft?', newDraft: generated, closeAfter: true };
+      }
+      return { thinking: 'Checking...', proposal: 'There\'s already a draft ready:\n\n"' + draft + '"\n\nWant me to modify it?', question: null };
+    }
+
+    // --- Context-aware fallback ---
+    const suggestions = [];
+    if (draft) {
+      suggestions.push('Make it shorter', 'Make it warmer', 'Add a booking link');
+    } else {
+      suggestions.push('Draft a reply for me', 'Skip this one');
+    }
+    suggestions.push('Tell me about ' + contactName);
+
+    return {
+      thinking: 'Hmm...',
+      proposal: 'I\'m not sure what you mean. Here are some things I can do:\n\n' + suggestions.map(function(s) { return '\u2022 ' + s; }).join('\n'),
+      question: null,
+    };
   };
 
   const send = () => {
@@ -1682,9 +2211,9 @@ function AgentOverlay({ item, draft, onChangeDraft, onClose }) {
 
 /* ═══ FOCUS MODE (Tinder-like card swiper) ═══ */
 
-function FocusMode({ title, items, onClose, onSent }) {
+function FocusMode({ title, items, initialSentSet, onClose, onSent }) {
   const [currentIdx, setCurrentIdx] = useState(0);
-  const [sentSet, setSentSet] = useState(new Set());
+  const [sentSet, setSentSet] = useState(initialSentSet || new Set());
   const [showToast, setShowToast] = useState(false);
   const [toastUser, setToastUser] = useState('');
   const [expandedSummary, setExpandedSummary] = useState(false);
@@ -1814,7 +2343,7 @@ function FocusMode({ title, items, onClose, onSent }) {
 
       {/* Header — always visible */}
       <div style={{ padding:'52px 16px 12px', display:'flex', alignItems:'center', gap:12, flexShrink:0 }}>
-        <div onClick={onClose} style={{ cursor:'pointer', padding:8, margin:-8 }}>
+        <div onClick={() => onClose(sentSet)} style={{ cursor:'pointer', padding:8, margin:-8 }}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
         </div>
         <div style={{ flex:1, textAlign:'center' }}>
@@ -1843,7 +2372,18 @@ function FocusMode({ title, items, onClose, onSent }) {
         {/* Agent summary removed — too much info, user should focus on the reply */}
 
         {/* Contact card */}
-        <div style={{ border:'1px solid #D6D6D6', borderRadius:16, padding:20, display:'flex', flexDirection:'column', gap:16 }}>
+        <div style={{ border:'1px solid #D6D6D6', borderRadius:16, overflow:'hidden', display:'flex', flexDirection:'column' }}>
+          {/* Reply sent banner */}
+          {isSent && (
+            <div style={{
+              background:'#DEFFE6', padding:'10px 16px',
+              display:'flex', alignItems:'center', gap:8,
+            }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0C8143" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <span style={{ fontSize:13, fontWeight:500, color:'#0C8143' }}>Reply sent</span>
+            </div>
+          )}
+          <div style={{ padding:20, display:'flex', flexDirection:'column', gap:16 }}>
           {/* Contact info — tappable to open full chat */}
           <div onClick={() => setChatDetailOpen(true)} style={{ display:'flex', alignItems:'center', gap:12, cursor:'pointer' }}>
             <img src={item.avatar} alt="" style={{ width:44, height:44, borderRadius:400, objectFit:'cover', border:'0.5px solid rgba(44,50,58,0.12)' }} />
@@ -1935,7 +2475,8 @@ function FocusMode({ title, items, onClose, onSent }) {
             </div>
           )}
         </div>
-      </div>
+        </div>{/* end padding wrapper */}
+      </div>{/* end card */}
 
       {/* Bottom section — buttons or reply input */}
       {!replyMode ? (
@@ -2051,20 +2592,29 @@ function AgentChatHome({ onOverlayChange }) {
   const [openChat, setOpenChat] = useState(null);
   const [focusMode, setFocusMode] = useState(null); // null or { title, items }
   const [reasoningSheet, setReasoningSheet] = useState(null);
+  const [globalSentSet, setGlobalSentSet] = useState(new Set());
   const chatRef = useRef(null);
   const inputRef = useRef(null);
 
   // Seed morning brief on mount
   useEffect(() => {
+    const leadsWithDrafts = INTERESTED_ITEMS.filter(i => i.draft).length;
     const initial = [
       { type:'agent', content:'Morning, Sofia \u2615', delay:300 },
-      { type:'agent', content:'This happened overnight:\n\u2022 3 new leads came in, including a warm follow-up from last week.\n\u2022 1 client can\'t access module 3, needs your reply.\n\u2022 ' + STATS.spamFiltered + ' spam messages filtered out.', delay:800 },
-      { type:'agent', content:'Let\'s start with the most urgent ones:', delay:1400,
-        cardLabel: 'people need your attention',
-        cardSubtitle: 'High-intent leads ready to buy',
+      { type:'agent', content:'This happened overnight:\n\u2022 ' + INTERESTED_ITEMS.length + ' new leads with replies ready, including ' + INTERESTED_ITEMS[0].name + ' who\'s been following for 2 years.\n\u2022 ' + ATTENTION_ITEMS.length + ' people need your attention \u2014 ' + ATTENTION_ITEMS[0].name + ' has been waiting since yesterday.\n\u2022 ' + STATS.spamFiltered + ' spam messages filtered.', delay:800 },
+      { type:'agent', content:'I\'d start with the urgent ones \u2014 a client has been waiting since yesterday:', delay:1400,
+        cardLabel: 'need your attention',
+        cardSubtitle: ATTENTION_ITEMS.length + ' support issues',
+        cards: ATTENTION_ITEMS.slice(0,4).map(item => ({
+          user: item.user, name: item.name, avatar: item.avatar,
+          _item: item,
+        }))
+      },
+      { type:'agent', content:'Then tackle your leads \u2014 ' + leadsWithDrafts + ' replies ready to send:', delay:2000,
+        cardLabel: 'ready to buy',
+        cardSubtitle: INTERESTED_ITEMS.length + ' leads',
         cards: INTERESTED_ITEMS.slice(0,3).map(item => ({
           user: item.user, name: item.name, avatar: item.avatar,
-          summary: item.summary || item.msg?.substring(0,50),
           _item: item,
         }))
       },
@@ -2087,58 +2637,177 @@ function AgentChatHome({ onOverlayChange }) {
   // Pre-built responses
   const getResponse = (query) => {
     const q = query.toLowerCase();
-    if (q.match(/engag|fan|communit|follow/)) {
+    const allItems = [...INTERESTED_ITEMS, ...ATTENTION_ITEMS, ...COMMUNITY_ITEMS];
+
+    // --- Name/handle search (most specific, check first) ---
+    const nameMatch = allItems.find(item =>
+      q.includes(item.user.replace('@','').toLowerCase()) ||
+      (item.name.toLowerCase().split(' ')[0].length > 2 && q.includes(item.name.toLowerCase().split(' ')[0]))
+    );
+    if (nameMatch) {
       return {
-        reasoning: 'I looked at engagement signals — comments, saves, shares, and DM frequency. These fans interact with your content the most consistently.',
-        content: 'Here are your most engaged followers:',
-        cardLabel: 'engaged followers',
-        cardSubtitle: 'Active in your community',
-        cards: COMMUNITY_ITEMS.slice(0,4).map(item => ({
-          user: item.user, name: item.name, avatar: item.avatar,
-          _item: item,
-        }))
+        reasoning: 'I found ' + nameMatch.name + ' in your messages. ' + (nameMatch.context || ''),
+        content: 'Here\'s what I have on ' + nameMatch.name + ':',
+        cardLabel: nameMatch.name,
+        cardSubtitle: nameMatch.agentRead || nameMatch.summary,
+        cards: [{ user: nameMatch.user, name: nameMatch.name, avatar: nameMatch.avatar, _item: nameMatch }],
       };
     }
-    if (q.match(/collaborat|partner|brand|collab/)) {
-      const collabs = COMMUNITY_ITEMS.filter(i => i.msg?.toLowerCase().match(/collaborat|partner|brand/));
-      const items = collabs.length > 0 ? collabs.slice(0,4) : COMMUNITY_ITEMS.slice(0,4);
+
+    // --- Support / Urgent ---
+    if (q.match(/support|help|issue|problem|urgent|attention|broken|error|refund|blocked|can.t access/)) {
       return {
-        reasoning: 'I filtered for contacts mentioning collaborations, partnerships, or brand deals. These have the highest potential for business growth.',
-        content: 'Here you have:',
-        cardLabel: 'potential partnerships',
-        cardSubtitle: 'Opportunity to collaborate',
-        cards: items.map(item => ({
-          user: item.user, name: item.name, avatar: item.avatar,
-          _item: item,
-        }))
-      };
-    }
-    if (q.match(/support|help|issue|problem|urgent|attention/)) {
-      return {
-        reasoning: 'I prioritized by urgency — clients who need immediate help, can\'t access their purchases, or have unresolved issues that could escalate.',
+        reasoning: 'I prioritized by urgency \u2014 clients who need immediate help, can\'t access their purchases, or have unresolved issues that could escalate.',
         content: 'These contacts need your help:',
         cardLabel: 'need your attention',
-        cardSubtitle: 'Support & urgent issues',
-        cards: ATTENTION_ITEMS.slice(0,4).map(item => ({
-          user: item.user, name: item.name, avatar: item.avatar,
-          _item: item,
-        }))
+        cardSubtitle: ATTENTION_ITEMS.length + ' support issues',
+        cards: ATTENTION_ITEMS.slice(0,4).map(item => ({ user: item.user, name: item.name, avatar: item.avatar, _item: item })),
       };
     }
-    if (q.match(/money|revenue|pay|buy|purchas|lead|interested|sales/)) {
+
+    // --- Leads / Sales ---
+    if (q.match(/money|revenue|lead|interested|sales|buy|purchase|paying|convert|hot|ready to buy/)) {
       return {
-        reasoning: 'I ranked by purchase intent — people who mentioned pricing, asked how to sign up, or showed strong buying signals in their messages.',
+        reasoning: 'I ranked by purchase intent \u2014 people who mentioned pricing, asked how to sign up, or showed strong buying signals in their messages.',
         content: 'These are your highest-intent leads:',
         cardLabel: 'ready to buy',
-        cardSubtitle: 'High purchase intent',
-        cards: INTERESTED_ITEMS.slice(0,4).map(item => ({
-          user: item.user, name: item.name, avatar: item.avatar,
-          _item: item,
-        }))
+        cardSubtitle: INTERESTED_ITEMS.length + ' leads',
+        cards: INTERESTED_ITEMS.slice(0,4).map(item => ({ user: item.user, name: item.name, avatar: item.avatar, _item: item })),
       };
     }
+
+    // --- Community / Fans ---
+    if (q.match(/engag|fan|communit|follow|loyal|love|thank|appreciat/)) {
+      return {
+        reasoning: 'I looked at engagement signals \u2014 comments, saves, shares, and DM frequency. These followers interact with your content the most consistently.',
+        content: 'Here are your most engaged followers:',
+        cardLabel: 'engaged followers',
+        cardSubtitle: COMMUNITY_ITEMS.length + ' active members',
+        cards: COMMUNITY_ITEMS.slice(0,4).map(item => ({ user: item.user, name: item.name, avatar: item.avatar, _item: item })),
+      };
+    }
+
+    // --- Collaborations ---
+    if (q.match(/collaborat|partner|brand|collab|creator|sponsor/)) {
+      const collabs = COMMUNITY_ITEMS.filter(i => (i.msg + ' ' + (i.summary||'')).toLowerCase().match(/collab|partner|creator|brand|podcast|feature/));
+      const items = collabs.length > 0 ? collabs : COMMUNITY_ITEMS.slice(0,4);
+      return {
+        reasoning: 'I filtered for contacts mentioning collaborations, partnerships, or brand deals.',
+        content: collabs.length > 0 ? 'Here are potential partnerships:' : 'No explicit collab requests today. Here are engaged creators who might be open to it:',
+        cardLabel: 'potential partnerships',
+        cardSubtitle: 'Collaboration opportunities',
+        cards: items.slice(0,4).map(item => ({ user: item.user, name: item.name, avatar: item.avatar, _item: item })),
+      };
+    }
+
+    // --- Unanswered / Waiting ---
+    if (q.match(/unanswer|waiting|pending|no reply|haven.t replied|forgot|overdue/)) {
+      const waiting = allItems.filter(i => !i.draft && i.chatHistory && i.chatHistory.length > 0);
+      return {
+        reasoning: 'I checked for conversations where you haven\'t replied yet and no draft is ready.',
+        content: waiting.length > 0 ? (waiting.length + ' people are still waiting for a reply:') : 'Everyone has been replied to or has a draft ready!',
+        cardLabel: 'waiting for reply',
+        cardSubtitle: 'No reply sent yet',
+        cards: waiting.slice(0,4).map(item => ({ user: item.user, name: item.name, avatar: item.avatar, _item: item })),
+      };
+    }
+
+    // --- New / Today ---
+    if (q.match(/\bnew\b|today|recent|latest|just came|overnight|morning/)) {
+      const recent = allItems.filter(i => i.time && i.time.match(/just now|min|[1-5]h/));
+      return {
+        reasoning: 'I filtered for messages that arrived in the last few hours.',
+        content: recent.length > 0 ? (recent.length + ' new messages came in today:') : 'No brand new messages right now. Here are the most recent:',
+        cardLabel: 'new today',
+        cardSubtitle: 'Arrived recently',
+        cards: (recent.length > 0 ? recent : allItems).slice(0,4).map(item => ({ user: item.user, name: item.name, avatar: item.avatar, _item: item })),
+      };
+    }
+
+    // --- Returning clients ---
+    if (q.match(/return|came back|repeat|again|upgrade|previous|past client|vip/)) {
+      const returning = INTERESTED_ITEMS.filter(i => (i.context + ' ' + (i.summary||'')).toLowerCase().match(/return|upgrade|previous|came back|past|vip/));
+      return {
+        reasoning: 'I looked for contacts who have purchased before or are coming back for an upgrade.',
+        content: returning.length > 0 ? 'These are returning clients:' : 'No returning clients in today\'s messages. Here are your top leads instead:',
+        cardLabel: 'returning clients',
+        cardSubtitle: 'Previous customers',
+        cards: (returning.length > 0 ? returning : INTERESTED_ITEMS).slice(0,4).map(item => ({ user: item.user, name: item.name, avatar: item.avatar, _item: item })),
+      };
+    }
+
+    // --- Testimonials ---
+    if (q.match(/testimonial|review|feedback|result|success|proof|screenshot/)) {
+      const testimonials = COMMUNITY_ITEMS.filter(i => (i.msg + ' ' + (i.summary||'')).toLowerCase().match(/result|kg|lb|invest|change|transform|work|best|proud|finish|complet/));
+      return {
+        reasoning: 'I looked for messages with positive results or unprompted praise \u2014 these are your best testimonial candidates.',
+        content: testimonials.length > 0 ? 'These could be great testimonials:' : 'I didn\'t find strong testimonial candidates today.',
+        cardLabel: 'testimonial candidates',
+        cardSubtitle: 'Great results to share',
+        cards: (testimonials.length > 0 ? testimonials : COMMUNITY_ITEMS).slice(0,4).map(item => ({ user: item.user, name: item.name, avatar: item.avatar, _item: item })),
+      };
+    }
+
+    // --- Stats / Overview ---
+    if (q.match(/how many|stats|overview|summary|number|report|total|count/)) {
+      return {
+        reasoning: 'Here\'s a snapshot of your current inbox state.',
+        content: 'Here\'s your inbox overview:\n\n' +
+          '\u2022 ' + STATS.totalHandled + ' messages processed\n' +
+          '\u2022 ' + STATS.interested + ' active leads (' + INTERESTED_ITEMS.filter(i=>i.draft).length + ' with replies ready)\n' +
+          '\u2022 ' + STATS.attention + ' support issues pending\n' +
+          '\u2022 ' + STATS.community + ' community messages\n' +
+          '\u2022 ' + STATS.spamFiltered + ' spam filtered\n' +
+          '\u2022 Estimated ' + STATS.timeSaved + ' minutes saved today',
+      };
+    }
+
+    // --- What should I do / Priority ---
+    if (q.match(/what should|where do i|start|next|suggest|recommend|priorit|first/)) {
+      const topAttention = ATTENTION_ITEMS[0];
+      const topLead = INTERESTED_ITEMS[0];
+      return {
+        reasoning: 'I prioritized by urgency first, then revenue impact, then engagement value.',
+        content: 'Here\'s what I\'d prioritize:\n\n' +
+          '1. **' + (topAttention ? topAttention.name : '') + '** \u2014 ' + (topAttention ? topAttention.summary : '') + '. This is urgent.\n' +
+          '2. Your top leads \u2014 ' + INTERESTED_ITEMS.filter(i=>i.draft).length + ' have replies ready to send.\n' +
+          '3. Community engagement when you have time.',
+        cardLabel: 'top priority',
+        cardSubtitle: 'Start here',
+        cards: [
+          ...(topAttention ? [{ user: topAttention.user, name: topAttention.name, avatar: topAttention.avatar, _item: topAttention }] : []),
+          { user: topLead.user, name: topLead.name, avatar: topLead.avatar, _item: topLead },
+        ],
+      };
+    }
+
+    // --- Spam ---
+    if (q.match(/spam|filter|block|junk/)) {
+      return {
+        reasoning: 'I automatically filter spam, bot messages, and generic greetings with no follow-up.',
+        content: 'I filtered ' + STATS.spamFiltered + ' spam messages today. Your inbox only shows real conversations that need your attention.\n\nI filter:\n\u2022 Bot messages and automated DMs\n\u2022 Generic greetings with no follow-up\n\u2022 Duplicate messages\n\u2022 Known spam patterns',
+      };
+    }
+
+    // --- Business context ---
+    if (q.match(/business|my brand|my audience|my niche|who am i|about me|my product|my program/)) {
+      return {
+        reasoning: 'I\'m sharing what I know about your business based on the messages and interactions I\'ve analyzed.',
+        content: 'Based on what I see in your DMs:\n\n' +
+          '\u2022 You run fitness coaching programs: a 4-Week Kickstart ($197) and a 12-Week Reboot ($597 or 3x$197).\n' +
+          '\u2022 Your audience is mostly women aged 25-40, interested in transformation and wellness.\n' +
+          '\u2022 About 30% of inquiries come from men.\n' +
+          '\u2022 Your strongest conversion content: transformation reels and before/after posts.\n' +
+          '\u2022 Common objections: pricing, beginner-friendliness, and program format.\n\n' +
+          'Want me to dig deeper?',
+        suggestions: ['Show me leads', 'Who are my most loyal fans?', 'Any unanswered messages?'],
+      };
+    }
+
+    // --- Fallback with suggestion chips ---
     return {
-      content: 'I\'m not sure what you\'re looking for. Try asking about:\n• Most engaged followers\n• Support issues\n• Collaboration opportunities\n• High-intent leads',
+      content: 'I\'m not sure what you\'re looking for. Here are some things I can help with:',
+      suggestions: ['Show me leads', 'Who needs support?', 'Any new messages?', 'What should I do first?', 'Show me my fans', 'Any testimonials?', 'Tell me about my business'],
     };
   };
 
@@ -2167,6 +2836,7 @@ function AgentChatHome({ onOverlayChange }) {
           cardLabel: response.cardLabel,
           cardSubtitle: response.cardSubtitle,
           reasoning: response.reasoning,
+          suggestions: response.suggestions,
           id: Date.now()+2,
         }];
       });
@@ -2221,6 +2891,37 @@ function AgentChatHome({ onOverlayChange }) {
                 })}
               </div>
 
+              {/* Suggestion chips */}
+              {msg.suggestions && (
+                <div style={{ display:'flex', flexWrap:'wrap', gap:8, marginTop:12 }}>
+                  {msg.suggestions.map((s, i) => (
+                    <div key={i} onClick={() => { setInputVal(''); setTimeout(() => {
+                      setMessages(prev => [...prev, { type:'user', content: s, id: Date.now() }]);
+                      setTimeout(() => {
+                        setMessages(prev => [...prev, { type:'thinking', id: Date.now() }]);
+                        setTimeout(() => {
+                          const resp = getResponse(s);
+                          setMessages(prev => {
+                            const filtered = prev.filter(m => m.type !== 'thinking');
+                            return [...filtered, {
+                              type: 'agent', content: resp.content, id: Date.now(),
+                              ...(resp.reasoning ? { reasoning: resp.reasoning } : {}),
+                              ...(resp.suggestions ? { suggestions: resp.suggestions } : {}),
+                              ...(resp.cards ? { cardLabel: resp.cardLabel, cardSubtitle: resp.cardSubtitle, cards: resp.cards } : {}),
+                            }];
+                          });
+                        }, 1500);
+                      }, 300);
+                    }, 10); }}
+                      style={{ padding:'8px 14px', background:'#F5F5F5', border:'1px solid #E0E2E5',
+                        borderRadius:100, fontSize:13, fontWeight:500, color:T.ink, cursor:'pointer',
+                        WebkitTapHighlightColor:'transparent' }}>
+                      {s}
+                    </div>
+                  ))}
+                </div>
+              )}
+
               {/* Reasoning disclosure — only for user-initiated queries */}
               {msg.reasoning && (
                 <div onClick={() => setReasoningSheet({ title:'Thought', body: msg.reasoning })}
@@ -2234,7 +2935,10 @@ function AgentChatHome({ onOverlayChange }) {
               )}
 
               {/* Compact grouped contact card */}
-              {msg.cards && msg.cards.length > 0 && (
+              {msg.cards && msg.cards.length > 0 && (() => {
+                const allSent = msg.cards.every(c => globalSentSet.has(c.user));
+                const sentCount = msg.cards.filter(c => globalSentSet.has(c.user)).length;
+                return (
                 <div onClick={() => { setFocusMode({ title: msg.cardLabel || 'Contacts', items: msg.cards.map(c => c._item) }); if (onOverlayChange) onOverlayChange(true); }}
                   style={{ border:'1px solid #D6D6D6', borderRadius:12, boxShadow:'0 8px 16px rgba(132,146,166,0.08)', padding:16, display:'flex', alignItems:'center', gap:12, cursor:'pointer' }}>
                   {/* Stacked avatars */}
@@ -2247,10 +2951,19 @@ function AgentChatHome({ onOverlayChange }) {
                   <div style={{ flex:1, minWidth:0 }}>
                     <div style={{ fontSize:14, fontWeight:500, color:'#292929', lineHeight:'20px' }}>{msg.cards.length} {msg.cardLabel || 'contacts'}</div>
                     <div style={{ fontSize:12, fontWeight:400, color:'#707070', lineHeight:'16px' }}>{msg.cardSubtitle || 'Tap to view'}</div>
+                    {allSent ? (
+                      <div style={{ background:'#DEFFE6', borderRadius:8, padding:'4px 10px', display:'inline-flex', alignItems:'center', gap:4, marginTop:4 }}>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0C8143" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        <span style={{ fontSize:12, fontWeight:500, color:'#0C8143' }}>All done</span>
+                      </div>
+                    ) : sentCount > 0 ? (
+                      <span style={{ fontSize:12, fontWeight:400, color:'#707070', marginTop:4, display:'block' }}>{sentCount}/{msg.cards.length} handled</span>
+                    ) : null}
                   </div>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D6D6D6" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
                 </div>
-              )}
+                );
+              })()}
             </div>
           );
         })}
@@ -2281,8 +2994,26 @@ function AgentChatHome({ onOverlayChange }) {
         <FocusMode
           title={focusMode.title}
           items={focusMode.items}
-          onClose={() => { setFocusMode(null); if (onOverlayChange) onOverlayChange(false); }}
-          onSent={(user) => {}}
+          initialSentSet={globalSentSet}
+          onClose={(finalSentSet) => {
+            if (finalSentSet && finalSentSet.size > 0) {
+              const newlySent = [...finalSentSet].filter(u => !globalSentSet.has(u));
+              setGlobalSentSet(new Set([...globalSentSet, ...finalSentSet]));
+              if (newlySent.length > 0) {
+                const remaining = focusMode.items.length - finalSentSet.size;
+                setMessages(prev => [...prev, {
+                  type: 'agent',
+                  content: remaining > 0
+                    ? 'Done! You sent ' + newlySent.length + ' replies. ' + remaining + ' still pending when you\'re ready.'
+                    : 'All done! You handled all ' + finalSentSet.size + ' conversations.',
+                  id: Date.now(),
+                }]);
+              }
+            }
+            setFocusMode(null);
+            if (onOverlayChange) onOverlayChange(false);
+          }}
+          onSent={(user) => { setGlobalSentSet(prev => new Set([...prev, user])); }}
         />
       )}
 
