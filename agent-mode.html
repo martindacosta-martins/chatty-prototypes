@@ -2633,7 +2633,7 @@ function AgentChatHome({ onOverlayChange }) {
       { type:'agent', content:'Morning, Sofia', delay:300 },
       { type:'agent', content: leadsWithDrafts + ' leads are ready to buy \u2014 ' + INTERESTED_ITEMS[0].name + ' has been following you for 2 years and just asked about the 12-week program. Replies are ready.', delay:800,
         cardLabel: 'ready to buy',
-        cardSubtitle: leadsWithDrafts + ' replies ready',
+        cardSubtitle: 'They asked about pricing or signing up',
         cards: INTERESTED_ITEMS.slice(0,3).map(item => ({
           user: item.user, name: item.name, avatar: item.avatar, _item: item,
         })),
@@ -2682,7 +2682,7 @@ function AgentChatHome({ onOverlayChange }) {
         reasoning: 'I prioritized by urgency \u2014 clients who need immediate help, can\'t access their purchases, or have unresolved issues that could escalate.',
         content: 'These contacts need your help:',
         cardLabel: 'need your attention',
-        cardSubtitle: ATTENTION_ITEMS.length + ' support issues',
+        cardSubtitle: 'They need personal support from you',
         cards: ATTENTION_ITEMS.slice(0,4).map(item => ({ user: item.user, name: item.name, avatar: item.avatar, _item: item })),
       };
     }
@@ -2693,7 +2693,7 @@ function AgentChatHome({ onOverlayChange }) {
         reasoning: 'I ranked by purchase intent \u2014 people who mentioned pricing, asked how to sign up, or showed strong buying signals in their messages.',
         content: 'These are your highest-intent leads:',
         cardLabel: 'ready to buy',
-        cardSubtitle: INTERESTED_ITEMS.length + ' leads',
+        cardSubtitle: 'They asked about pricing or signing up',
         cards: INTERESTED_ITEMS.slice(0,4).map(item => ({ user: item.user, name: item.name, avatar: item.avatar, _item: item })),
       };
     }
@@ -2704,7 +2704,7 @@ function AgentChatHome({ onOverlayChange }) {
         reasoning: 'I looked at engagement signals \u2014 comments, saves, shares, and DM frequency. These followers interact with your content the most consistently.',
         content: 'Here are your most engaged followers:',
         cardLabel: 'engaged followers',
-        cardSubtitle: COMMUNITY_ITEMS.length + ' active members',
+        cardSubtitle: 'Good chance to build relationships',
         cards: COMMUNITY_ITEMS.slice(0,4).map(item => ({ user: item.user, name: item.name, avatar: item.avatar, _item: item })),
       };
     }
@@ -2717,7 +2717,7 @@ function AgentChatHome({ onOverlayChange }) {
         reasoning: 'I filtered for contacts mentioning collaborations, partnerships, or brand deals.',
         content: collabs.length > 0 ? 'Here are potential partnerships:' : 'No explicit collab requests today. Here are engaged creators who might be open to it:',
         cardLabel: 'potential partnerships',
-        cardSubtitle: 'Collaboration opportunities',
+        cardSubtitle: 'Could drive new audience to you',
         cards: items.slice(0,4).map(item => ({ user: item.user, name: item.name, avatar: item.avatar, _item: item })),
       };
     }
@@ -2729,7 +2729,7 @@ function AgentChatHome({ onOverlayChange }) {
         reasoning: 'I checked for conversations where you haven\'t replied yet and no draft is ready.',
         content: waiting.length > 0 ? (waiting.length + ' people are still waiting for a reply:') : 'Everyone has been replied to or has a draft ready!',
         cardLabel: 'waiting for reply',
-        cardSubtitle: 'No reply sent yet',
+        cardSubtitle: 'Don\'t leave them hanging',
         cards: waiting.slice(0,4).map(item => ({ user: item.user, name: item.name, avatar: item.avatar, _item: item })),
       };
     }
@@ -2745,7 +2745,7 @@ function AgentChatHome({ onOverlayChange }) {
           reasoning: 'Showing the next priority — support issues that need personal attention.',
           content: ATTENTION_ITEMS.length + ' people need your help \u2014 ' + ATTENTION_ITEMS[0].name + ' has been locked out since yesterday.',
           cardLabel: 'need your attention',
-          cardSubtitle: ATTENTION_ITEMS.length + ' support issues',
+          cardSubtitle: 'They need personal support from you',
           cards: ATTENTION_ITEMS.slice(0,3).map(item => ({
             user: item.user, name: item.name, avatar: item.avatar, _item: item,
           })),
@@ -2758,7 +2758,7 @@ function AgentChatHome({ onOverlayChange }) {
           reasoning: 'Community messages — fans and engagement worth acknowledging.',
           content: withDrafts + ' community messages have replies ready. The rest are good vibes I filtered for you.',
           cardLabel: 'community',
-          cardSubtitle: withDrafts + ' replies ready',
+          cardSubtitle: 'A little love goes a long way',
           cards: COMMUNITY_ITEMS.filter(i => i.draft).slice(0,3).map(item => ({
             user: item.user, name: item.name, avatar: item.avatar, _item: item,
           })),
@@ -2776,7 +2776,7 @@ function AgentChatHome({ onOverlayChange }) {
         reasoning: 'I filtered for messages that arrived in the last few hours.',
         content: recent.length > 0 ? (recent.length + ' new messages came in today:') : 'No brand new messages right now. Here are the most recent:',
         cardLabel: 'new today',
-        cardSubtitle: 'Arrived recently',
+        cardSubtitle: 'Fresh conversations to review',
         cards: (recent.length > 0 ? recent : allItems).slice(0,4).map(item => ({ user: item.user, name: item.name, avatar: item.avatar, _item: item })),
       };
     }
@@ -2788,7 +2788,7 @@ function AgentChatHome({ onOverlayChange }) {
         reasoning: 'I looked for contacts who have purchased before or are coming back for an upgrade.',
         content: returning.length > 0 ? 'These are returning clients:' : 'No returning clients in today\'s messages. Here are your top leads instead:',
         cardLabel: 'returning clients',
-        cardSubtitle: 'Previous customers',
+        cardSubtitle: 'They already trust you \u2014 easy upsell',
         cards: (returning.length > 0 ? returning : INTERESTED_ITEMS).slice(0,4).map(item => ({ user: item.user, name: item.name, avatar: item.avatar, _item: item })),
       };
     }
@@ -2800,7 +2800,7 @@ function AgentChatHome({ onOverlayChange }) {
         reasoning: 'I looked for messages with positive results or unprompted praise \u2014 these are your best testimonial candidates.',
         content: testimonials.length > 0 ? 'These could be great testimonials:' : 'I didn\'t find strong testimonial candidates today.',
         cardLabel: 'testimonial candidates',
-        cardSubtitle: 'Great results to share',
+        cardSubtitle: 'Turn their wins into social proof',
         cards: (testimonials.length > 0 ? testimonials : COMMUNITY_ITEMS).slice(0,4).map(item => ({ user: item.user, name: item.name, avatar: item.avatar, _item: item })),
       };
     }
@@ -2830,7 +2830,7 @@ function AgentChatHome({ onOverlayChange }) {
           '2. Your top leads \u2014 ' + INTERESTED_ITEMS.filter(i=>i.draft).length + ' have replies ready to send.\n' +
           '3. Community engagement when you have time.',
         cardLabel: 'top priority',
-        cardSubtitle: 'Start here',
+        cardSubtitle: 'Highest impact right now',
         cards: [
           ...(topAttention ? [{ user: topAttention.user, name: topAttention.name, avatar: topAttention.avatar, _item: topAttention }] : []),
           { user: topLead.user, name: topLead.name, avatar: topLead.avatar, _item: topLead },
@@ -3115,7 +3115,7 @@ function AgentChatHome({ onOverlayChange }) {
                   type: 'agent',
                   content: 'Next up: ' + ATTENTION_ITEMS.length + ' people need your help \u2014 ' + ATTENTION_ITEMS[0].name + ' has been waiting since yesterday.',
                   cardLabel: 'need your attention',
-                  cardSubtitle: ATTENTION_ITEMS.length + ' support issues',
+                  cardSubtitle: 'They need personal support from you',
                   cards: ATTENTION_ITEMS.slice(0,3).map(item => ({ user: item.user, name: item.name, avatar: item.avatar, _item: item })),
                   id: Date.now() + 1,
                 }]);
@@ -3125,7 +3125,7 @@ function AgentChatHome({ onOverlayChange }) {
                   type: 'agent',
                   content: 'When you have a moment: ' + withDrafts + ' community messages have replies ready.',
                   cardLabel: 'community',
-                  cardSubtitle: withDrafts + ' replies ready',
+                  cardSubtitle: 'A little love goes a long way',
                   cards: COMMUNITY_ITEMS.filter(i => i.draft).slice(0,3).map(item => ({ user: item.user, name: item.name, avatar: item.avatar, _item: item })),
                   id: Date.now() + 1,
                 }]);
