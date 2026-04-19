@@ -2601,7 +2601,7 @@ function AgentChatHome({ onOverlayChange }) {
     const leadsWithDrafts = INTERESTED_ITEMS.filter(i => i.draft).length;
     const initial = [
       { type:'agent', content:'Morning, Sofia \u2615', delay:300 },
-      { type:'agent', content:'This happened overnight:\n\u2022 ' + INTERESTED_ITEMS.length + ' new leads with replies ready, including ' + INTERESTED_ITEMS[0].name + ' who\'s been following for 2 years.\n\u2022 ' + ATTENTION_ITEMS.length + ' people need your attention \u2014 ' + ATTENTION_ITEMS[0].name + ' has been waiting since yesterday.\n\u2022 ' + STATS.spamFiltered + ' spam messages filtered.', delay:800 },
+      { type:'agent', content:'This happened overnight:\n\u2022 ' + INTERESTED_ITEMS.filter(i=>i.draft).length + ' new leads with replies ready, including ' + INTERESTED_ITEMS[0].name + ' who\'s been following for 2 years.\n\u2022 ' + ATTENTION_ITEMS.length + ' people need your attention \u2014 ' + ATTENTION_ITEMS[0].name + ' has been waiting since yesterday.\n\u2022 ' + STATS.spamFiltered + ' spam messages filtered.', delay:800 },
       { type:'agent', content:'I\'d start with the urgent ones \u2014 a client has been waiting since yesterday:', delay:1400,
         cardLabel: 'need your attention',
         cardSubtitle: ATTENTION_ITEMS.length + ' support issues',
@@ -2769,7 +2769,7 @@ function AgentChatHome({ onOverlayChange }) {
       return {
         reasoning: 'I prioritized by urgency first, then revenue impact, then engagement value.',
         content: 'Here\'s what I\'d prioritize:\n\n' +
-          '1. **' + (topAttention ? topAttention.name : '') + '** \u2014 ' + (topAttention ? topAttention.summary : '') + '. This is urgent.\n' +
+          '1. ' + (topAttention ? topAttention.name : '') + ' \u2014 ' + (topAttention ? topAttention.summary : '') + '. This is urgent.\n' +
           '2. Your top leads \u2014 ' + INTERESTED_ITEMS.filter(i=>i.draft).length + ' have replies ready to send.\n' +
           '3. Community engagement when you have time.',
         cardLabel: 'top priority',
