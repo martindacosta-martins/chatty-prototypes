@@ -2385,7 +2385,7 @@ function FocusMode({ title, items, initialSentSet, onClose, onSent }) {
               {item.tag && (
                 <div style={{ display:'inline-flex', alignItems:'center', gap:4, background: item.category === 'important' ? (item.severity === 'high' ? '#FFF0F0' : '#F0F0F0') : '#F0F5FF', borderRadius:4, padding:'2px 8px', marginTop:4 }}>
                   {item.category === 'important' && item.severity === 'high' && (
-                    <span style={{ fontSize:10 }}>🔴</span>
+                    <span style={{ width:6, height:6, borderRadius:3, background:'#CC3333', flexShrink:0 }} />
                   )}
                   <span style={{ fontSize:12, fontWeight:400, color: item.category === 'important' ? (item.severity === 'high' ? '#CC3333' : '#707070') : '#4A7FBF' }}>
                     {item.tag.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
@@ -2609,14 +2609,14 @@ function AgentChatHome({ onOverlayChange }) {
   useEffect(() => {
     const leadsWithDrafts = INTERESTED_ITEMS.filter(i => i.draft).length;
     const initial = [
-      { type:'agent', content:'Morning, Sofia \u2615', delay:300 },
-      { type:'agent', content: ATTENTION_ITEMS.length + ' people need your attention \u2014 ' + ATTENTION_ITEMS[0].name + ' has been locked out since yesterday. I\'d start here.', delay:800,
-        cardLabel: 'need your attention',
-        cardSubtitle: ATTENTION_ITEMS.length + ' support issues',
-        cards: ATTENTION_ITEMS.slice(0,4).map(item => ({
+      { type:'agent', content:'Morning, Sofia', delay:300 },
+      { type:'agent', content: leadsWithDrafts + ' leads are ready to buy \u2014 ' + INTERESTED_ITEMS[0].name + ' has been following you for 2 years and just asked about the 12-week program. Replies are ready.', delay:800,
+        cardLabel: 'ready to buy',
+        cardSubtitle: leadsWithDrafts + ' replies ready',
+        cards: INTERESTED_ITEMS.slice(0,3).map(item => ({
           user: item.user, name: item.name, avatar: item.avatar, _item: item,
         })),
-        suggestions: ['Show me what else you have for today'],
+        suggestions: ['What else for today?'],
       },
     ];
     initial.forEach((msg, i) => {
@@ -2808,11 +2808,11 @@ function AgentChatHome({ onOverlayChange }) {
     // --- Show me more / What else / Today's overview ---
     if (q.match(/what else|show me more|else.*today|what.*today|more for today/)) {
       return {
-        reasoning: 'Here is the full picture of what came in while you were away.',
-        content: leadsWithDrafts + ' leads with replies ready. Plus ' + COMMUNITY_ITEMS.length + ' community messages.',
-        cardLabel: 'ready to buy',
-        cardSubtitle: leadsWithDrafts + ' replies ready',
-        cards: INTERESTED_ITEMS.slice(0,3).map(item => ({
+        reasoning: 'Showing the rest of what came in overnight — support issues and community messages.',
+        content: ATTENTION_ITEMS.length + ' people need your help \u2014 ' + ATTENTION_ITEMS[0].name + ' has been locked out since yesterday. Plus ' + COMMUNITY_ITEMS.length + ' community messages.',
+        cardLabel: 'need your attention',
+        cardSubtitle: ATTENTION_ITEMS.length + ' support issues',
+        cards: ATTENTION_ITEMS.slice(0,3).map(item => ({
           user: item.user, name: item.name, avatar: item.avatar, _item: item,
         })),
       };
@@ -2898,14 +2898,62 @@ function AgentChatHome({ onOverlayChange }) {
                   if (line.startsWith('\u2022')) {
                     return <div key={li} style={{ paddingLeft:8, display:'flex', gap:8 }}><span>{'\u2022'}</span><span>{line.substring(1).trim()}</span></div>;
                   }
-                  if (li === 0 && msg.content.includes('\u2615')) {
+                  if (li === 0 && msg.content.startsWith('Morning')) {
                     return <div key={li} style={{ fontSize:28, fontWeight:700, lineHeight:'36px', letterSpacing:'-0.5px' }}>{line}</div>;
                   }
                   return <div key={li}>{line}</div>;
                 })}
               </div>
 
-              {/* Suggestion chips */}
+              {/* Reasoning disclosure — only for user-initiated queries */}
+              {msg.reasoning && (
+                <div onClick={() => setReasoningSheet({ title:'Thought', body: msg.reasoning })}
+                  style={{ display:'flex', alignItems:'center', gap:6, cursor:'pointer', padding:'8px 0' }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#707070" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                  </svg>
+                  <span style={{ fontSize:13, fontWeight:400, color:'#707070' }}>Thought</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#707070" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
+              )}
+
+              {/* Compact grouped contact card */}
+              {msg.cards && msg.cards.length > 0 && (() => {
+                const allSent = msg.cards.every(c => globalSentSet.has(c.user));
+                const sentCount = msg.cards.filter(c => globalSentSet.has(c.user)).length;
+                return (
+                <div onClick={() => { setFocusMode({ title: msg.cardLabel || 'Contacts', items: msg.cards.map(c => c._item) }); if (onOverlayChange) onOverlayChange(true); }}
+                  style={{ border:'1px solid #D6D6D6', borderRadius:12, boxShadow:'0 8px 16px rgba(132,146,166,0.08)', padding:16, display:'flex', alignItems:'center', gap:12, cursor:'pointer' }}>
+                  {/* Stacked avatars — max 2 + count */}
+                  <div style={{ display:'flex', alignItems:'center', flexShrink:0 }}>
+                    {msg.cards.slice(0, 2).map((card, ci) => (
+                      <img key={ci} src={card.avatar} alt="" style={{ width:40, height:40, borderRadius:400, objectFit:'cover', border:'2px solid #fff', marginLeft: ci > 0 ? -12 : 0, position:'relative', zIndex: 3 - ci }} />
+                    ))}
+                    {msg.cards.length > 2 && (
+                      <div style={{ width:40, height:40, borderRadius:400, background:'#F0F0F0', border:'2px solid #fff', marginLeft:-12, position:'relative', zIndex:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                        <span style={{ fontSize:13, fontWeight:600, color:'#707070' }}>+{msg.cards.length - 2}</span>
+                      </div>
+                    )}
+                  </div>
+                  {/* Text */}
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontSize:14, fontWeight:500, color:'#292929', lineHeight:'20px' }}>{msg.cards.length} {msg.cardLabel || 'contacts'}</div>
+                    <div style={{ fontSize:12, fontWeight:400, color:'#707070', lineHeight:'16px' }}>{msg.cardSubtitle || 'Tap to view'}</div>
+                    {allSent ? (
+                      <div style={{ background:'#DEFFE6', borderRadius:8, padding:'4px 10px', display:'inline-flex', alignItems:'center', gap:4, marginTop:4 }}>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0C8143" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        <span style={{ fontSize:12, fontWeight:500, color:'#0C8143' }}>All done</span>
+                      </div>
+                    ) : sentCount > 0 ? (
+                      <span style={{ fontSize:12, fontWeight:400, color:'#707070', marginTop:4, display:'block' }}>{sentCount}/{msg.cards.length} handled</span>
+                    ) : null}
+                  </div>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D6D6D6" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
+                );
+              })()}
+
+              {/* Suggestion chips — below cards, close to input */}
               {msg.suggestions && (
                 <div style={{ display:'flex', flexWrap:'wrap', gap:8, marginTop:12 }}>
                   {msg.suggestions.map((s, i) => (
@@ -2935,49 +2983,6 @@ function AgentChatHome({ onOverlayChange }) {
                   ))}
                 </div>
               )}
-
-              {/* Reasoning disclosure — only for user-initiated queries */}
-              {msg.reasoning && (
-                <div onClick={() => setReasoningSheet({ title:'Thought', body: msg.reasoning })}
-                  style={{ display:'flex', alignItems:'center', gap:6, cursor:'pointer', padding:'8px 0' }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#707070" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
-                  </svg>
-                  <span style={{ fontSize:13, fontWeight:400, color:'#707070' }}>Thought</span>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#707070" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
-                </div>
-              )}
-
-              {/* Compact grouped contact card */}
-              {msg.cards && msg.cards.length > 0 && (() => {
-                const allSent = msg.cards.every(c => globalSentSet.has(c.user));
-                const sentCount = msg.cards.filter(c => globalSentSet.has(c.user)).length;
-                return (
-                <div onClick={() => { setFocusMode({ title: msg.cardLabel || 'Contacts', items: msg.cards.map(c => c._item) }); if (onOverlayChange) onOverlayChange(true); }}
-                  style={{ border:'1px solid #D6D6D6', borderRadius:12, boxShadow:'0 8px 16px rgba(132,146,166,0.08)', padding:16, display:'flex', alignItems:'center', gap:12, cursor:'pointer' }}>
-                  {/* Stacked avatars */}
-                  <div style={{ display:'flex', flexShrink:0, paddingRight: (msg.cards.length - 1) * 12 }}>
-                    {msg.cards.slice(0,4).map((card, ci) => (
-                      <img key={ci} src={card.avatar} alt="" style={{ width:40, height:40, borderRadius:400, objectFit:'cover', border:'2px solid #fff', marginLeft: ci > 0 ? -12 : 0, position:'relative', zIndex: msg.cards.length - ci }} />
-                    ))}
-                  </div>
-                  {/* Text */}
-                  <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ fontSize:14, fontWeight:500, color:'#292929', lineHeight:'20px' }}>{msg.cards.length} {msg.cardLabel || 'contacts'}</div>
-                    <div style={{ fontSize:12, fontWeight:400, color:'#707070', lineHeight:'16px' }}>{msg.cardSubtitle || 'Tap to view'}</div>
-                    {allSent ? (
-                      <div style={{ background:'#DEFFE6', borderRadius:8, padding:'4px 10px', display:'inline-flex', alignItems:'center', gap:4, marginTop:4 }}>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0C8143" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                        <span style={{ fontSize:12, fontWeight:500, color:'#0C8143' }}>All done</span>
-                      </div>
-                    ) : sentCount > 0 ? (
-                      <span style={{ fontSize:12, fontWeight:400, color:'#707070', marginTop:4, display:'block' }}>{sentCount}/{msg.cards.length} handled</span>
-                    ) : null}
-                  </div>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D6D6D6" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
-                </div>
-                );
-              })()}
             </div>
           );
         })}
