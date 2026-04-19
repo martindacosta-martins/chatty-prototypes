@@ -3622,7 +3622,7 @@ function App() {
       )}
 
       {/* Bottom Nav — visible on welcome + main inbox, hidden on loading/results/overlays */}
-      {(screen === 'ob-welcome' || screen === 'main') && <BottomNav hidden={hideNav} />}
+      {(screen === 'ob-welcome' || (screen === 'main' && !hideNav)) && <BottomNav />}
     </div>
   );
 }
