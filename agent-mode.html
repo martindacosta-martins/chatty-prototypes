@@ -3011,13 +3011,24 @@ function FocusMode({ title, items, onClose, onSent }) {
             </div>
           </div>
 
-          {/* Message count hint */}
-          {item.chatHistory && item.chatHistory.length > 1 && (
-            <div style={{ fontSize:12, fontWeight:400, color:'#707070', marginTop:8, display:'flex', alignItems:'center', gap:2, cursor:'pointer' }}>
-              <span>{item.chatHistory.length - 1} previous messages</span>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#707070" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
-            </div>
-          )}
+          {/* Message count hint — counts from chatHistory or timeline */}
+          {(() => {
+            let count = 0;
+            if (item.chatHistory && item.chatHistory.length > 0) count = item.chatHistory.length - 1;
+            if (item.timeline) {
+              item.timeline.forEach(t => {
+                if (t.type === 'session' && t.messages) count += t.messages.length;
+                if (t.type === 'comment') count += 1;
+              });
+            }
+            if (count <= 0) return null;
+            return (
+              <div style={{ fontSize:12, fontWeight:400, color:'#707070', marginTop:8, display:'flex', alignItems:'center', gap:2, cursor:'pointer' }}>
+                <span>{count} previous messages</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#707070" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
+              </div>
+            );
+          })()}
 
           {/* Draft section — hidden in reply mode */}
           {!replyMode && !customSentMsg && (
