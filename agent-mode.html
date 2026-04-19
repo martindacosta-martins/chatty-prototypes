@@ -2846,7 +2846,22 @@ function FocusMode({ title, items, onClose, onSent }) {
   const touchDeltaX = useRef(0);
 
   const item = items[currentIdx];
-  if (!item) return null;
+  const allDone = !item || currentIdx >= items.length;
+
+  // Completion state
+  if (allDone) {
+    return (
+      <div className="screen-slide-in" style={{ position:'absolute', inset:0, zIndex:100, background:'#fff', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:32 }}>
+        <div style={{ fontSize:48, marginBottom:24 }}>✅</div>
+        <div style={{ fontSize:24, fontWeight:700, color:'#292929', textAlign:'center', lineHeight:'32px', marginBottom:8 }}>All done!</div>
+        <div style={{ fontSize:16, fontWeight:400, color:'#707070', textAlign:'center', lineHeight:'24px', marginBottom:40 }}>You've covered all {items.length} conversations.</div>
+        <button onClick={onClose}
+          style={{ padding:'14px 48px', background:'#292929', border:'none', borderRadius:12, fontSize:17, fontWeight:500, color:'#fff', cursor:'pointer', lineHeight:'24px' }}>
+          Go back
+        </button>
+      </div>
+    );
+  }
 
   // Split draft into 2 messages
   const splitDraft = (draft) => {
@@ -2860,7 +2875,7 @@ function FocusMode({ title, items, onClose, onSent }) {
   const isSent = sentSet.has(item.user);
 
   const goNext = () => {
-    if (currentIdx < items.length - 1) {
+    if (currentIdx < items.length) {
       setSlideDir('left');
       setAnimKey(k => k + 1);
       setExpandedSummary(false);
@@ -2890,9 +2905,9 @@ function FocusMode({ title, items, onClose, onSent }) {
     setShowToast(true);
     clearTimeout(undoTimerRef.current);
     undoTimerRef.current = setTimeout(() => setShowToast(false), 5000);
-    // Step 2: After 1s, slide to next card
+    // Step 2: After 1s, slide to next card (or completion)
     setTimeout(() => {
-      if (currentIdx < items.length - 1) {
+      if (currentIdx < items.length) {
         goNext();
       }
     }, 1000);
