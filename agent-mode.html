@@ -2026,7 +2026,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
     )}
 
     {/* ═══ Message Input — always visible ═══ */}
-    <div style={{ margin:'0 16px 8px', flexShrink:0 }}>
+    {true && (<div style={{ margin:'0 16px 8px', flexShrink:0 }}>
         {/* Follow-up question — shows after user edits/dismisses/types instead of sending directly */}
         {/* Edit feedback — same style as follow-up card */}
         {editFeedback === 'asking' && (
@@ -2121,7 +2121,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
           )}
         </div>
       </div>
-    </div>
+    )}
 
     {/* Ask me about this DM — agent overlay trigger */}
     <div onClick={() => setAgentOverlayOpen(true)} style={{ margin:'0 16px 16px', background:'#fff', border:'1px solid #D6D6D6', borderRadius:12, padding:'8px 16px', display:'flex', alignItems:'center', gap:8, flexShrink:0, cursor:'pointer' }}>
