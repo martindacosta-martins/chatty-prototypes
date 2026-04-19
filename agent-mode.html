@@ -342,7 +342,7 @@ const INTERESTED_ITEMS = [
       { from:'them', text:"Hey! When would the next group for the program be?", time:'8:00 PM' },
     ],
     context:"Asking about cohort timing — may think it's a group program with fixed start dates. Clarify it's self-paced.",
-    draft:"",
+    draft:"",noDraftReason:"I wasn't sure if the next cohort has a start date — you know your schedule best.",
     styleReason:"",
     agentRead:'Timing question · No draft' },
   { user:'@lenafit2024', name:'Lena H.', avatar:'https://i.pravatar.cc/88?u=lenafit2024', msg:"Do you offer nutrition coaching only without workouts?", source:'DM', time:'14h ago', unread:1, intent:'Opportunities', mode:'confident',
@@ -355,7 +355,7 @@ const INTERESTED_ITEMS = [
       { from:'them', text:"Do you offer nutrition coaching only without workouts?", time:'6:00 PM' },
     ],
     context:"Specific ask for nutrition-only — worth a direct answer. This isn't a standard offering so needs your input.",
-    draft:"",
+    draft:"",noDraftReason:"This is a custom request I don't have info on — nutrition-only isn't in your standard offerings.",
     styleReason:"",
     agentRead:'Custom request · Needs your input' },
   { user:'@valentinap.mx', name:'Valentina P.', avatar:'https://i.pravatar.cc/88?u=valentinapmx', msg:"Hey Sofia! I did the Kickstart 6 months ago. Can I do the Reboot now?", source:'DM', time:'16h ago', unread:1, intent:'Opportunities', mode:'confident',
@@ -402,7 +402,7 @@ const INTERESTED_ITEMS = [
       { from:'them', text:"Hi! I'm a runner, does your program work for endurance athletes?", time:'2:00 PM' },
     ],
     context:"Niche question about compatibility with endurance sports — specific enough that a custom reply from you is better than a draft.",
-    draft:"",
+    draft:"",noDraftReason:"This is a niche question about endurance athletes — your personal experience is better than anything I could write.",
     styleReason:"",
     agentRead:'Niche question · Needs your reply' },
 ];
@@ -419,7 +419,7 @@ const ATTENTION_ITEMS = [
       { from:'them', text:"Sofia I can't access module 3, it keeps giving me an error since yesterday", time:'8:45 AM' },
     ],
     context:"Paying client blocked from course content for 24+ hours. Two messages, growing frustration. This needs your reply today — don't lose her trust over a tech issue.",
-    draft:"",
+    draft:"",noDraftReason:"This is a sensitive support issue — a personal reply from you will mean more than anything I could write.",
     styleReason:"",
     agentRead:'Urgent · Client blocked from content',
     timeline:[
@@ -445,7 +445,7 @@ const ATTENTION_ITEMS = [
       { from:'them', text:'I need to pause my subscription for 2 weeks, is that possible?', time:'6:00 AM' },
     ],
     context:"Client asking to pause — often a sign of reduced engagement. Agreeing warmly and checking in shows you care, which keeps them in the program.",
-    draft:"",
+    draft:"",noDraftReason:"Pause requests need a personal touch — how you respond here could determine if he stays.",
     styleReason:"",
     agentRead:'Churn risk · Pause request' },
   { user:'@camilasoto.fit', name:'Camila Soto', avatar:'https://i.pravatar.cc/88?u=camilasoto', msg:"I feel like I'm not seeing results after 4 weeks 😔", source:'DM', time:'5h ago', unread:1, intent:'Support', mode:'confident',
@@ -458,7 +458,7 @@ const ATTENTION_ITEMS = [
       { from:'them', text:"It is hard to say this but I feel like I am not seeing results after 4 weeks 😔", time:'3:31 AM' },
     ],
     context:"Four weeks in and feeling discouraged — this is a vulnerable moment. A personal, empathetic reply now could be the thing that keeps her in the program.",
-    draft:"",
+    draft:"",noDraftReason:"She's in a vulnerable moment — this needs your empathy, not an AI reply.",
     styleReason:"",
     agentRead:'Emotional · Personal reply needed' },
   { user:'@rafaelm.client', name:'Rafael M.', avatar:'https://i.pravatar.cc/88?u=rafaelm', msg:"The checkout page is broken, I can't complete my purchase", source:'DM', time:'6h ago', unread:1, intent:'Support', mode:'confident',
@@ -471,7 +471,7 @@ const ATTENTION_ITEMS = [
       { from:'them', text:"The checkout page is broken, I can't complete my purchase. I've tried 3 times", time:'2:00 AM' },
     ],
     context:"Active purchase attempt blocked by a tech issue — 3 tries means real intent. Every hour this goes unanswered is money lost.",
-    draft:"",
+    draft:"",noDraftReason:"This is a technical issue — you'll need to check the checkout page and give him a specific answer.",
     styleReason:"",
     agentRead:'Revenue at risk · Checkout broken' },
   { user:'@simoneb.fit', name:'Simone B.', avatar:'https://i.pravatar.cc/88?u=simonebfit', msg:"I asked for a refund 5 days ago and haven't heard back", source:'DM', time:'1d ago', unread:1, intent:'Support', mode:'confident',
@@ -484,7 +484,7 @@ const ATTENTION_ITEMS = [
       { from:'them', text:"I asked for a refund 5 days ago and haven't heard back", time:'Yesterday 2:00 PM' },
     ],
     context:"Refund requests left unanswered become chargebacks and public complaints. This is urgent — even a 'we're looking into it' reply buys goodwill.",
-    draft:"",
+    draft:"",noDraftReason:"Refund conversations are sensitive — your personal response sets the tone for how this resolves.",
     styleReason:"",
     agentRead:'Escalation risk · Refund pending' },
   { user:'@annakowalski.run', name:'Anna Kowalski', avatar:'https://i.pravatar.cc/88?u=annakowalski', msg:"My meal plan isn't loading in the app, it's been 2 days", source:'DM', time:'2d ago', unread:1, intent:'Support', mode:'confident',
@@ -498,7 +498,7 @@ const ATTENTION_ITEMS = [
       { from:'them', text:"My meal plan isn't loading in the app, it's been 2 days", time:'Yesterday 8:00 AM' },
     ],
     context:"Two days without their meal plan means they can't follow the program properly. Sent two messages — patience is running out. Needs an urgent fix or workaround.",
-    draft:"",
+    draft:"",noDraftReason:"This is a technical issue that's been open 2 days — she needs a specific fix, not a generic reply.",
     styleReason:"",
     agentRead:'2d unresolved · Urgent fix needed' },
 ];
@@ -2299,18 +2299,14 @@ function FocusMode({ title, items, initialSentSet, onClose, onSent }) {
     if (!replyVal.trim()) return;
     setCustomSentMsg(replyVal);
     setReplyVal('');
+    setSentSet(prev => new Set([...prev, item.user]));
     setToastUser(item.name || item.user);
     prevIdxRef.current = currentIdx;
     if (onSent) onSent(item.user);
-    // Wait for blue transition, then slide
-    setTimeout(() => {
-      if (currentIdx < items.length - 1) goNext();
-    }, 1200);
-    setTimeout(() => {
-      setShowToast(true);
-      clearTimeout(undoTimerRef.current);
-      undoTimerRef.current = setTimeout(() => setShowToast(false), 5000);
-    }, 1500);
+    // NO auto-advance — user stays on this card and sees a "Next" button
+    setShowToast(true);
+    clearTimeout(undoTimerRef.current);
+    undoTimerRef.current = setTimeout(() => setShowToast(false), 5000);
   };
 
   // Auto-focus removed — input is always visible
@@ -2450,11 +2446,19 @@ function FocusMode({ title, items, initialSentSet, onClose, onSent }) {
               )}
 
               {/* Why this reply */}
-              {item.styleReason && !isSent && (
+              {item.styleReason && !isSent && draftParts.length > 0 && (
                 <div onClick={() => setReasoningSheet({ title:'Why this reply', body: item.styleReason })}
                   style={{ display:'flex', alignItems:'center', justifyContent:'flex-end', gap:4, cursor:'pointer' }}>
                   <span style={{ fontSize:13, fontWeight:400, color:'#707070' }}>Why this reply</span>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#707070" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
+              )}
+
+              {/* No draft explanation */}
+              {draftParts.length === 0 && !isSent && item.noDraftReason && (
+                <div style={{ display:'flex', alignItems:'flex-start', gap:8, padding:'12px 0 4px' }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#707070" strokeWidth="2" strokeLinecap="round" style={{ flexShrink:0, marginTop:1 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                  <span style={{ fontSize:13, fontWeight:400, color:'#707070', lineHeight:'18px' }}>{item.noDraftReason}</span>
                 </div>
               )}
             </>
@@ -2474,8 +2478,17 @@ function FocusMode({ title, items, initialSentSet, onClose, onSent }) {
 
       {/* Bottom section — action buttons + tabbed input */}
       <div style={{ flexShrink:0 }}>
-        {/* Action buttons: Later + Send replies (Send only when draft exists) */}
-        {!isSent && (
+        {/* Action buttons */}
+        {isSent ? (
+          /* After sending (custom reply) — show Next button */
+          <div style={{ padding:'8px 16px', display:'flex', gap:8 }}>
+            <button onClick={() => goNext()}
+              style={{ flex:1, padding:'14px 0', background:'#292929', border:'none', borderRadius:12, fontSize:17, fontWeight:500, color:'#fff', cursor:'pointer', lineHeight:'24px' }}>
+              Next
+            </button>
+          </div>
+        ) : (
+          /* Before sending — Later + Send replies */
           <div style={{ padding:'8px 16px', display:'flex', gap:8 }}>
             <button onClick={() => goNext()}
               style={{ flex: draftParts.length > 0 ? 1 : 'none', padding:'14px 24px', background:'#F0F0F0', border:'none', borderRadius:12, fontSize:17, fontWeight:500, color:'#292929', cursor:'pointer', lineHeight:'24px' }}>
