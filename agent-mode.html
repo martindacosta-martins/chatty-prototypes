@@ -2754,7 +2754,7 @@ function AgentOverlay({ item, draft, onChangeDraft, onClose }) {
   };
 
   return (
-    <div className="fade-in" style={{ position:'absolute', inset:0, zIndex:60, background:'rgba(0,0,0,0.55)', backdropFilter:'blur(6px)', WebkitBackdropFilter:'blur(6px)', display:'flex', flexDirection:'column' }}
+    <div className="fade-in" style={{ position:'absolute', inset:0, zIndex:150, background:'rgba(0,0,0,0.55)', backdropFilter:'blur(6px)', WebkitBackdropFilter:'blur(6px)', display:'flex', flexDirection:'column' }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
 
       {/* Done button — top right */}
@@ -2817,7 +2817,9 @@ function AgentOverlay({ item, draft, onChangeDraft, onClose }) {
           onKeyDown={e => { if (e.key === 'Enter') send(); }}
           placeholder="Talk to the agent..."
           style={{ flex:1, background:'rgba(255,255,255,0.12)', border:'1px solid rgba(255,255,255,0.25)', borderRadius:100, padding:'12px 16px', fontSize:13.5, color:'#FFF', outline:'none', backdropFilter:'blur(10px)', fontFamily:'Inter, system-ui, sans-serif' }} />
-        <button onClick={send} style={{ width:38, height:38, borderRadius:'50%', background:'#FFF', border:'none', color:'#292929', fontSize:16, fontWeight:600, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>\u2191</button>
+        <button onClick={send} style={{ width:38, height:38, borderRadius:'50%', background:'#FFF', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+        </button>
       </div>
     </div>
   );
