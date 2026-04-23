@@ -128,6 +128,10 @@
 <body>
 <div id="root"></div>
 <script type="text/babel">
+// ⚠️  DEPLOYED COPY — do not edit here.
+// Source of truth: WorkBrain/team/manychat-inbound-agents-pm/vibe-code-prototypes/
+//   ai-native-inbox-prototypes/inbox-mini-v1-final/agent-mode.html
+// Workflow: edit WorkBrain → copy to chatty-prototypes → git push
 const { useState, useEffect, useRef, useCallback } = React;
 
 /* ═══ DESIGN TOKENS ═══ */
@@ -3459,6 +3463,7 @@ function AgentChatHome({ onOverlayChange, firstRun }) {
   const [globalLaterSet, setGlobalLaterSet] = useState(new Set());
   const [showMenu, setShowMenu] = useState(false);
   const [homeInputFocused, setHomeInputFocused] = useState(false);
+  const [pendingFocusItems, setPendingFocusItems] = useState(null); // unanswered items from last FocusMode session
   const chatRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -3988,6 +3993,52 @@ function AgentChatHome({ onOverlayChange, firstRun }) {
         if (!activeSuggestions || activeSuggestions.length === 0) return null;
 
         const runSuggestion = (s) => {
+          // ── Special chips: reopen FocusMode with unanswered items ──
+          if ((s.startsWith('Show remaining') || s === 'Pick up where I left off') && pendingFocusItems) {
+            setMessages(prev => prev.map(m => m.suggestions ? { ...m, suggestions: null } : m));
+            setMessages(prev => [...prev, { type:'user', content: s, id: Date.now() }]);
+            setFocusMode(pendingFocusItems);
+            setPendingFocusItems(null);
+            if (onOverlayChange) onOverlayChange(true);
+            return;
+          }
+          // ── Special chips: move on to next category ──
+          if (s === "What's next?" || s === 'Show me something else') {
+            setMessages(prev => prev.map(m => m.suggestions ? { ...m, suggestions: null } : m));
+            setMessages(prev => [...prev, { type:'user', content: s, id: Date.now() }]);
+            setPendingFocusItems(null);
+            const shownCards = messages.filter(m => m.cardLabel).map(m => m.cardLabel);
+            setTimeout(() => {
+              setMessages(prev => [...prev, { type:'thinking', id: Date.now() }]);
+              setTimeout(() => {
+                setMessages(prev => prev.filter(m => m.type !== 'thinking'));
+                if (!shownCards.includes('need your attention') && ATTENTION_ITEMS.length > 0) {
+                  setMessages(prev => [...prev, {
+                    type: 'agent',
+                    content: 'Next up: ' + ATTENTION_ITEMS.length + ' people need your help \u2014 ' + ATTENTION_ITEMS[0].name + ' has been waiting since yesterday.',
+                    cardLabel: 'need your attention',
+                    cardSubtitle: 'They need personal support from you',
+                    cards: ATTENTION_ITEMS.slice(0,3).map(item => ({ user: item.user, name: item.name, avatar: item.avatar, _item: item })),
+                    id: Date.now(),
+                  }]);
+                } else if (!shownCards.includes('community')) {
+                  const withDrafts = COMMUNITY_ITEMS.filter(i => i.draft).length;
+                  setMessages(prev => [...prev, {
+                    type: 'agent',
+                    content: 'When you have a moment: ' + withDrafts + ' community messages have replies ready.',
+                    cardLabel: 'community',
+                    cardSubtitle: 'A little love goes a long way',
+                    cards: COMMUNITY_ITEMS.filter(i => i.draft).slice(0,3).map(item => ({ user: item.user, name: item.name, avatar: item.avatar, _item: item })),
+                    id: Date.now(),
+                  }]);
+                } else {
+                  setMessages(prev => [...prev, { type:'agent', content:"You're all caught up for now. I'll let you know when something new comes in.", id: Date.now() }]);
+                }
+              }, 1200);
+            }, 300);
+            return;
+          }
+          // ── Default: route through getResponse ──
           setMessages(prev => prev.map(m => m.suggestions ? { ...m, suggestions: null } : m));
           setMessages(prev => [...prev, { type:'user', content: s, id: Date.now() }]);
           setTimeout(() => {
@@ -4038,7 +4089,7 @@ function AgentChatHome({ onOverlayChange, firstRun }) {
           </div>
         ) : (
           <div style={{ width:32, height:32, borderRadius:16, background:'#F0F0F0', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, cursor:'pointer' }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
           </div>
         )}
       </div>
@@ -4062,8 +4113,16 @@ function AgentChatHome({ onOverlayChange, firstRun }) {
             if (finalSentSet) setGlobalSentSet(new Set([...globalSentSet, ...finalSentSet]));
             if (finalLaterSet) setGlobalLaterSet(new Set([...globalLaterSet, ...finalLaterSet]));
 
+            // How many items from this focus session were left unanswered?
+            const totalItems = focusMode ? focusMode.items.length : 0;
+            const addressed = newlySent.length + newlyLater.length;
+            const skipped = totalItems - addressed;
+            const remainingItems = focusMode ? focusMode.items.filter(
+              item => !finalSentSet?.has(item.user) && !finalLaterSet?.has(item.user)
+            ) : [];
+
             // Smart summary message
-            if (newlySent.length > 0 || newlyLater.length > 0) {
+            if (addressed > 0) {
               const parts = [];
               if (newlySent.length > 0) parts.push(newlySent.length + ' replied');
               if (newlyLater.length > 0) parts.push(newlyLater.length + ' snoozed for later');
@@ -4074,37 +4133,61 @@ function AgentChatHome({ onOverlayChange, firstRun }) {
               }]);
             }
 
-            // Proactive next step — find what hasn't been shown yet
             const shownCards = messages.filter(m => m.cardLabel).map(m => m.cardLabel);
-            const allHandled = [...(finalSentSet || []), ...(finalLaterSet || [])];
-            setTimeout(() => {
-              if (!shownCards.includes('need your attention') && ATTENTION_ITEMS.length > 0) {
+
+            if (skipped === 0) {
+              // All done — suggest the next category after a short pause
+              setTimeout(() => {
+                if (!shownCards.includes('need your attention') && ATTENTION_ITEMS.length > 0) {
+                  setMessages(prev => [...prev, {
+                    type: 'agent',
+                    content: 'Next up: ' + ATTENTION_ITEMS.length + ' people need your help \u2014 ' + ATTENTION_ITEMS[0].name + ' has been waiting since yesterday.',
+                    cardLabel: 'need your attention',
+                    cardSubtitle: 'They need personal support from you',
+                    cards: ATTENTION_ITEMS.slice(0,3).map(item => ({ user: item.user, name: item.name, avatar: item.avatar, _item: item })),
+                    id: Date.now() + 1,
+                  }]);
+                } else if (!shownCards.includes('community')) {
+                  const withDrafts = COMMUNITY_ITEMS.filter(i => i.draft).length;
+                  setMessages(prev => [...prev, {
+                    type: 'agent',
+                    content: 'When you have a moment: ' + withDrafts + ' community messages have replies ready.',
+                    cardLabel: 'community',
+                    cardSubtitle: 'A little love goes a long way',
+                    cards: COMMUNITY_ITEMS.filter(i => i.draft).slice(0,3).map(item => ({ user: item.user, name: item.name, avatar: item.avatar, _item: item })),
+                    id: Date.now() + 1,
+                  }]);
+                } else {
+                  setMessages(prev => [...prev, {
+                    type: 'agent',
+                    content: 'You\'re all caught up for now. I\'ll let you know when something new comes in.',
+                    id: Date.now() + 1,
+                  }]);
+                }
+              }, 800);
+            } else if (addressed > 0) {
+              // Partially done — acknowledge what's left, offer to go back or move on
+              setTimeout(() => {
+                setPendingFocusItems({ title: focusMode.title, items: remainingItems });
                 setMessages(prev => [...prev, {
                   type: 'agent',
-                  content: 'Next up: ' + ATTENTION_ITEMS.length + ' people need your help \u2014 ' + ATTENTION_ITEMS[0].name + ' has been waiting since yesterday.',
-                  cardLabel: 'need your attention',
-                  cardSubtitle: 'They need personal support from you',
-                  cards: ATTENTION_ITEMS.slice(0,3).map(item => ({ user: item.user, name: item.name, avatar: item.avatar, _item: item })),
+                  content: addressed + ' done \u2014 nice. You still have ' + skipped + (skipped === 1 ? ' conversation' : ' conversations') + ' you haven\'t replied to yet.',
+                  suggestions: ['Show remaining ' + skipped, "What's next?"],
                   id: Date.now() + 1,
                 }]);
-              } else if (!shownCards.includes('community')) {
-                const withDrafts = COMMUNITY_ITEMS.filter(i => i.draft).length;
+              }, 500);
+            } else {
+              // Nothing done — went back immediately
+              setTimeout(() => {
+                setPendingFocusItems({ title: focusMode.title, items: remainingItems });
                 setMessages(prev => [...prev, {
                   type: 'agent',
-                  content: 'When you have a moment: ' + withDrafts + ' community messages have replies ready.',
-                  cardLabel: 'community',
-                  cardSubtitle: 'A little love goes a long way',
-                  cards: COMMUNITY_ITEMS.filter(i => i.draft).slice(0,3).map(item => ({ user: item.user, name: item.name, avatar: item.avatar, _item: item })),
+                  content: 'No problem \u2014 those ' + skipped + (skipped === 1 ? ' conversation is' : ' conversations are') + ' still waiting whenever you\'re ready.',
+                  suggestions: ['Pick up where I left off', 'Show me something else'],
                   id: Date.now() + 1,
                 }]);
-              } else {
-                setMessages(prev => [...prev, {
-                  type: 'agent',
-                  content: 'You\'re all caught up for now. I\'ll let you know when something new comes in.',
-                  id: Date.now() + 1,
-                }]);
-              }
-            }, 800);
+              }, 500);
+            }
 
             setFocusMode(null);
             if (onOverlayChange) onOverlayChange(false);
