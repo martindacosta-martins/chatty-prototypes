@@ -3838,9 +3838,20 @@ function AgentChatHome({ onOverlayChange, firstRun }) {
         body: JSON.stringify({ system: SOFIA_SYSTEM_PROMPT, messages: history }),
       });
       const data = await res.json();
-      return (data.content && data.content[0] && data.content[0].text) || 'Something went wrong — try again.';
+      const text = (data.content && data.content[0] && data.content[0].text) || 'Something went wrong — try again.';
+
+      // If the response clearly focuses on one specific contact, surface their card
+      const allItems = [...INTERESTED_ITEMS, ...ATTENTION_ITEMS, ...COMMUNITY_ITEMS];
+      const lower = text.toLowerCase();
+      const mentioned = allItems.filter(item => {
+        const first = item.name.split(' ')[0];
+        return first.length > 2 && lower.includes(first.toLowerCase());
+      });
+      const contact = mentioned.length === 1 ? mentioned[0] : null;
+
+      return { text, contact };
     } catch {
-      return 'Couldn\'t reach the AI right now. Try again in a moment.';
+      return { text: 'Couldn\'t reach the AI right now. Try again in a moment.', contact: null };
     }
   };
 
@@ -3870,10 +3881,17 @@ function AgentChatHome({ onOverlayChange, firstRun }) {
       }, 1800);
     } else {
       // No keyword match — call real Claude API
-      const aiText = await callClaudeAPI(query);
+      const { text: aiText, contact: aiContact } = await callClaudeAPI(query);
       setMessages(prev => {
         const withoutThinking = prev.filter(m => m.type !== 'thinking');
-        return [...withoutThinking, { type:'agent', content: aiText, id: Date.now()+2 }];
+        return [...withoutThinking, {
+          type: 'agent', content: aiText, id: Date.now()+2,
+          ...(aiContact ? {
+            cardLabel: aiContact.name,
+            cardSubtitle: aiContact.agentRead || aiContact.summary || 'Tap to open DM',
+            cards: [{ user: aiContact.user, name: aiContact.name, avatar: aiContact.avatar, _item: aiContact }],
+          } : {}),
+        }];
       });
     }
   };
@@ -4120,6 +4138,23 @@ function AgentChatHome({ onOverlayChange, firstRun }) {
             }, 300);
             return;
           }
+          // ── "I'll explain why" — Sofia explains why she skipped certain contacts ──
+          if (s === "I'll explain why" && pendingFocusItems) {
+            const skippedNames = pendingFocusItems.items.slice(0, 4).map(i => i.name.split(' ')[0]).join(', ');
+            const prompt = `[AGENT NOTE — do not show this text to the user] Sofia just returned from reviewing her inbox without replying to: ${skippedNames}. She wants to explain her reasons. Ask her one warm, short question about what held her back. Be understanding, not judgmental. Two sentences max.`;
+            setMessages(prev => prev.map(m => m.suggestions ? { ...m, suggestions: null } : m));
+            setTimeout(() => {
+              setMessages(prev => [...prev, { type:'thinking', id: Date.now() }]);
+            }, 300);
+            callClaudeAPI(prompt).then(({ text: aiText }) => {
+              setMessages(prev => {
+                const filtered = prev.filter(m => m.type !== 'thinking');
+                return [...filtered, { type: 'agent', content: aiText, id: Date.now() }];
+              });
+            });
+            return;
+          }
+
           // ── Default: keyword match first, real AI as fallback ──
           setMessages(prev => prev.map(m => m.suggestions ? { ...m, suggestions: null } : m));
           setMessages(prev => [...prev, { type:'user', content: s, id: Date.now() }]);
@@ -4140,10 +4175,17 @@ function AgentChatHome({ onOverlayChange, firstRun }) {
               });
             }, 1500);
           } else {
-            callClaudeAPI(s).then(aiText => {
+            callClaudeAPI(s).then(({ text: aiText, contact: aiContact }) => {
               setMessages(prev => {
                 const filtered = prev.filter(m => m.type !== 'thinking');
-                return [...filtered, { type: 'agent', content: aiText, id: Date.now() }];
+                return [...filtered, {
+                  type: 'agent', content: aiText, id: Date.now(),
+                  ...(aiContact ? {
+                    cardLabel: aiContact.name,
+                    cardSubtitle: aiContact.agentRead || aiContact.summary || 'Tap to open DM',
+                    cards: [{ user: aiContact.user, name: aiContact.name, avatar: aiContact.avatar, _item: aiContact }],
+                  } : {}),
+                }];
               });
             });
           }
@@ -4246,30 +4288,48 @@ function AgentChatHome({ onOverlayChange, firstRun }) {
               // Just move on to the next category.
               setTimeout(suggestNextCategory, 800);
             } else if (addressed > 0) {
-              // Partial — one clear message: what was handled + what still needs a reply.
-              // Snoozed items are counted separately from replied ones (they're not "done").
+              // Partial — one clear message with real names: what was handled + what still needs a reply.
+              const shortNames = (items, max = 3) => {
+                if (!items || items.length === 0) return '';
+                const names = items.slice(0, max).map(i => (i.name || i.user).split(' ')[0]);
+                const extra = items.length - max;
+                if (extra > 0) names.push(extra + ' more');
+                return names.length === 1 ? names[0] : names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
+              };
+              const sentItems = newlySent.map(u => focusMode.items.find(i => i.user === u)).filter(Boolean);
+              const laterItems = newlyLater.map(u => focusMode.items.find(i => i.user === u)).filter(Boolean);
               const parts = [];
-              if (newlySent.length > 0) parts.push(newlySent.length === 1 ? '1 replied' : newlySent.length + ' replied');
-              if (newlyLater.length > 0) parts.push(newlyLater.length === 1 ? '1 saved for later' : newlyLater.length + ' saved for later');
-              const remainingText = skipped === 1 ? '1 still needs a reply' : skipped + ' still need a reply';
-              const question = skipped === 1 ? 'Want to see it or move on?' : 'Want to see them or move on?';
+              if (sentItems.length > 0) parts.push('Replied to ' + shortNames(sentItems));
+              if (laterItems.length > 0) parts.push('saved ' + shortNames(laterItems) + ' for later');
+              const remainingNames = shortNames(remainingItems);
+              const remainingText = skipped === 1
+                ? remainingNames + ' still needs a reply'
+                : remainingNames + ' still need replies';
               setTimeout(() => {
                 setPendingFocusItems({ title: focusMode.title, items: remainingItems });
                 setMessages(prev => [...prev, {
                   type: 'agent',
-                  content: parts.join(', ') + ' \u2014 ' + remainingText + '. ' + question,
-                  suggestions: ['Show remaining ' + skipped, "What's next?"],
+                  content: parts.join(', ') + ' \u2014 ' + remainingText + '. Want to see ' + (skipped === 1 ? 'it' : 'them') + ', or tell me why you skipped ' + (skipped === 1 ? 'them' : 'them') + '?',
+                  suggestions: ['Show remaining ' + skipped, "What's next?", "I'll explain why"],
                   id: Date.now() + 1,
                 }]);
               }, 400);
             } else {
               // Nothing done — went back immediately
+              const shortNames = (items, max = 3) => {
+                if (!items || items.length === 0) return '';
+                const names = items.slice(0, max).map(i => (i.name || i.user).split(' ')[0]);
+                const extra = items.length - max;
+                if (extra > 0) names.push(extra + ' more');
+                return names.length === 1 ? names[0] : names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
+              };
+              const allNames = shortNames(remainingItems);
               setTimeout(() => {
                 setPendingFocusItems({ title: focusMode.title, items: remainingItems });
                 setMessages(prev => [...prev, {
                   type: 'agent',
-                  content: 'No problem \u2014 ' + (skipped === 1 ? 'that one is' : 'those ' + skipped + ' are') + ' still waiting whenever you\'re ready.',
-                  suggestions: ['Pick up where I left off', 'Show me something else'],
+                  content: 'No problem \u2014 ' + allNames + (skipped === 1 ? ' is' : ' are') + ' still waiting whenever you\'re ready.',
+                  suggestions: ['Pick up where I left off', 'Show me something else', "I'll explain why"],
                   id: Date.now() + 1,
                 }]);
               }, 400);
