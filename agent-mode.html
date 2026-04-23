@@ -9,6 +9,13 @@
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <style>
+  @font-face {
+    font-family: 'Manychat Gravity';
+    src: url('assets/ManychatGravity.otf') format('opentype');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+  }
   /* ═══ STYLES ═══ */
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   body { font-family:'Inter',-apple-system,system-ui,sans-serif; background:#E0E0E0; display:flex; justify-content:center; align-items:center; min-height:100vh; overflow:hidden; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
@@ -23,6 +30,34 @@
   @keyframes screenSlideOut { from { transform:translateX(0); } to { transform:translateX(100%); } }
   .screen-slide-in  { animation: screenSlideIn  .35s cubic-bezier(.32,.72,.35,1) both; }
   .screen-slide-out { animation: screenSlideOut .32s cubic-bezier(.32,.72,0,1)   both; }
+  /* Tinder/Slack-style card swap — next card rises from a stack behind */
+  @keyframes cardRiseIn {
+    0%   { opacity: 0; transform: translateY(22px) scale(0.94); }
+    60%  { opacity: 1; }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  /* Coming back (undo) — card swoops in from the left with a slight tilt */
+  @keyframes cardReturnIn {
+    0%   { opacity: 0; transform: translateX(-44px) rotate(-6deg) scale(0.97); }
+    100% { opacity: 1; transform: translateX(0) rotate(0) scale(1); }
+  }
+  /* The "ghost" of the previous card flying off to the left while the new one rises */
+  @keyframes cardFlyOutLeft {
+    0%   { opacity: 1; transform: translateX(0) rotate(0) scale(1); }
+    100% { opacity: 0; transform: translateX(-120%) rotate(-10deg) scale(0.95); }
+  }
+  @keyframes cardFlyOutRight {
+    0%   { opacity: 1; transform: translateX(0) rotate(0) scale(1); }
+    100% { opacity: 0; transform: translateX(120%) rotate(10deg) scale(0.95); }
+  }
+  @keyframes menuSlideIn { from { transform:translateX(-100%); } to { transform:translateX(0); } }
+  @keyframes menuSlideOut { from { transform:translateX(0); } to { transform:translateX(-100%); } }
+  .menu-slide-out { animation: menuSlideOut .28s cubic-bezier(.32,.72,0,1) both; }
+  @keyframes menuPulseRing {
+    0%   { transform: scale(1); opacity: 0.55; }
+    80%  { transform: scale(2.6); opacity: 0; }
+    100% { transform: scale(2.6); opacity: 0; }
+  }
   @keyframes sheetDown { from { transform:translateY(0); opacity:1; } to { transform:translateY(100%); opacity:0; } }
   .sheet-down { animation: sheetDown .28s cubic-bezier(.32,.72,0,1) both; }
   @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
@@ -116,7 +151,7 @@ const AGENT_PROMPT = `You are an AI inbox manager for a creator's Instagram acco
 1. PRIORITIZE — Surface only messages that need the creator's attention: people asking about products or services, meaningful engagement (compliments, collaboration asks, genuine interactions), and questions the creator needs to answer directly. Filter everything else silently.
 
 2. GROUP — Organize messages into three groups:
-   • Interested in your services — anyone asking about a course, price, format, schedule, or showing purchase intent
+   • Interested in your services — anyone asking about a program, 1-on-1 call, webinar, price, format, or showing purchase intent
    • Engaged — positive interactions, fans, people connecting warmly (not just a generic hello)
    • Questions — specific questions the creator needs to answer personally (info not in the automation)
 
@@ -197,10 +232,10 @@ const INTERESTED_ITEMS = [
   { user:'@jenna.transforms', name:'jenna \u2661', avatar:'https://i.pravatar.cc/88?u=jennatransforms', msg:"Is the 12 week program still open? I've been following you for 2 years and I think I'm finally ready", source:'DM', time:'1h ago', unread:1, intent:'Opportunities', category:'important', severity:'high', tag:'sales', mode:'confident',
     summary:'Long-time follower, ready to buy', status:'Reply ready',
     contactBio:'Follower since 2 yrs · 🇺🇸 US · Engages weekly with posts',
-    contactBioExpanded:'Has followed for 2 years and consistently likes your transformation content. Comments on motivational posts monthly. Never purchased before but saves every product-related story. High intent — long nurture coming to a close.',
+    contactBioExpanded:'Has followed for 2 years and consistently likes your transformation content. Comments on motivational posts monthly. Never purchased before but saves every product-related story. High intent — long nurture coming to a close. Attended the \'Fix Your Metabolism\' Wellness Reset webinar last week — that\'s what finally pushed her to DM.',
     chatHistory:[
       { from:'automation', text:'Thanks for reaching out! Sofia typically replies within a few hours. In the meantime, check out our free guide: bit.ly/sofia-guide', time:'7:25 AM' },
-      { from:'them', text:'Oh cool, I actually downloaded that months ago!', time:'7:27 AM' },
+      { from:'them', text:'I was actually at your webinar on Tuesday! That\'s what finally made me reach out 😊', time:'7:27 AM' },
       { from:'them', text:"Is the 12 week program still open? I've been following you for 2 years and I think I'm finally ready", time:'7:30 AM' },
     ],
     context:"Two-year follower, high trust already established. 'Finally ready' signals she's been on the fence — this is a conversion moment. Reply personally.",
@@ -225,33 +260,33 @@ const INTERESTED_ITEMS = [
       { type:'bridge' },
       { type:'session', date:'Today', messages:[
         { from:'automation', text:'Thanks for reaching out! Sofia typically replies within a few hours. In the meantime, check out our free guide: bit.ly/sofia-guide', time:'7:25 AM' },
-        { from:'them', text:'Oh cool, I actually downloaded that months ago!', time:'7:27 AM' },
+        { from:'them', text:'I was actually at your webinar on Tuesday! That\'s what finally made me reach out 😊', time:'7:27 AM' },
         { from:'them', text:"Is the 12 week program still open? I've been following you for 2 years and I think I'm finally ready", time:'7:30 AM' },
       ]},
     ]},
-  { user:'@carlosfit24', name:'Carlos 💪', avatar:'https://i.pravatar.cc/88?u=carlosfit24', msg:"How much is the program? I saw you have a 4-week one too", source:'DM', time:'2h ago', unread:1, intent:'Opportunities', category:'important', severity:'high', tag:'sales', mode:'confident',
-    summary:'Comparing programs, price-sensitive', status:'Reply ready',
+  { user:'@carlosfit24', name:'Carlos 💪', avatar:'https://i.pravatar.cc/88?u=carlosfit24', msg:"Before I commit to the 12 weeks, can I book a quick call with you first to see if this is a good fit for me?", source:'DM', time:'2h ago', unread:1, intent:'Opportunities', category:'important', severity:'high', tag:'coaching_call', mode:'confident',
+    summary:'Wants a discovery call before committing', status:'Reply ready',
     contactBio:'Follower since 3 months · 🇲🇽 Mexico · Likes workout reels',
     contactBioExpanded:'Started following 3 months ago after a workout reel went viral. Likes posts consistently but has never commented or engaged in stories. First time reaching out via DM. Price question suggests he is comparing options carefully.',
     chatHistory:[
       { from:'automation', text:'Thanks for reaching out! Sofia typically replies within a few hours. In the meantime, check out our free guide: bit.ly/sofia-guide', time:'6:40 AM' },
       { from:'them', text:'Thanks! Quick question though', time:'6:42 AM' },
-      { from:'them', text:"How much is the program? I saw you have a 4-week one too", time:'6:45 AM' },
+      { from:'them', text:"Before I commit to the 12 weeks, can I book a quick call with you first to see if this is a good fit for me?", time:'6:45 AM' },
     ],
     context:"Comparing both programs — likely cost-conscious. The 4-Week Kickstart is a good entry point if budget is a concern. Give him clear options.",
-    draft:"Hey Carlos! 💪 I have two options: the 4-week Kickstart ($197) is perfect for getting started and seeing quick results. The 12-week Reboot ($597 or 3x $197) is for a full transformation with weekly 1-on-1 calls and a personalized plan. What result are you looking for? I can help you pick the right fit.",
-    styleReason:"Presented both options clearly with prices. Question at end guides him toward the right fit without pushing.",
-    agentRead:'Comparing options · Reply ready' },
+    draft:"Hey Carlos! Love that you want to make sure it's the right fit — that's exactly the right approach 💪 I offer 1-on-1 coaching calls for $150/session — it's a 45-min call where we go through your goals, your current routine, and figure out the best path forward together. You can book directly here: calendly.com/sofia-reyes. Want to grab a spot this week?",
+    styleReason:"Validated his instinct to check fit first. Presented the call as the natural next step, included the booking link and price.",
+    agentRead:'Discovery call inquiry · Reply ready' },
   { user:'@mia.wellness', name:'Mia 🌿', avatar:'https://i.pravatar.cc/88?u=miawellness', msg:"Do you do 1 on 1 coaching or is it group?", source:'DM', time:'3h ago', unread:1, intent:'Opportunities', category:'important', severity:'high', tag:'sales', mode:'confident',
     summary:'Asking about 1-on-1 vs group', status:'Reply ready',
     contactBio:'Follower since 8 months · 🇺🇸 US · Watches all stories',
-    contactBioExpanded:'Follows for 8 months, watches every story but rarely likes posts. First DM ever. The format question suggests a preference for personal attention — possibly had a negative group coaching experience. High conversion potential if 1-on-1 element is highlighted.',
+    contactBioExpanded:'Follows for 8 months, watches every story but rarely likes posts. First DM ever. The format question suggests a preference for personal attention — possibly had a negative group coaching experience. High conversion potential if 1-on-1 element is highlighted. Attended the \'Stop Stress Eating\' webinar 10 days ago. First DM since then — the webinar triggered this inquiry.',
     chatHistory:[
       { from:'automation', text:'Thanks for reaching out! Sofia typically replies within a few hours. In the meantime, check out our free guide: bit.ly/sofia-guide', time:'5:48 AM' },
       { from:'them', text:'Thanks! One quick question before I look at that', time:'5:50 AM' },
       { from:'them', text:"Do you do 1 on 1 coaching or is it group?", time:'5:52 AM' },
     ],
-    context:"Format question suggests she's had a bad group experience before. The 12-Week Reboot's 1-on-1 element is a strong selling point here.",
+    context:"Came in via the free webinar. Format question suggests a preference for personal attention. The 12-Week Reboot's 1-on-1 element is a strong selling point here.",
     draft:"Both, actually! The 12-Week Reboot has weekly 1-on-1 calls with me personally, plus access to the community group. So you get both the personal attention AND the support network. The 4-Week Kickstart is more self-paced with group check-ins. Which sounds more like what you're looking for?",
     styleReason:"Answered directly, highlighted the 1-on-1 angle of the flagship program since that's what she's asking about.",
     agentRead:'Format question · Reply ready' },
@@ -322,7 +357,7 @@ const INTERESTED_ITEMS = [
   { user:'@nathaliebrown', name:'Nat B.', avatar:'https://i.pravatar.cc/88?u=nathaliebrown', msg:"Can I pay in installments?", source:'DM', time:'10h ago', unread:1, intent:'Opportunities', category:'important', severity:'high', tag:'sales', mode:'confident',
     summary:'Asking about installment options', status:'Reply ready',
     contactBio:'Follower since 10 months · 🇫🇷 France · Engages with pricing content',
-    contactBioExpanded:'Follower for 10 months. Saves every story that mentions pricing or promotions. Liked 3 posts in the last week — all transformation content. First DM is about payment, which signals real purchase intent with a budget constraint.',
+    contactBioExpanded:'Follower for 10 months. Saves every story that mentions pricing or promotions. Liked 3 posts in the last week — all transformation content. First DM is about payment, which signals real purchase intent with a budget constraint. Attended the free Wellness Reset webinar last month. The webinar triggered the pricing question — she\'s close to buying.',
     chatHistory:[
       { from:'automation', text:'Thanks for reaching out! Sofia typically replies within a few hours. In the meantime, check out our free guide: bit.ly/sofia-guide', time:'9:55 PM' },
       { from:'them', text:"Thanks! I've been eyeing the 12-week program for a while now", time:'9:57 PM' },
@@ -392,19 +427,19 @@ const INTERESTED_ITEMS = [
         { from:'them', text:"Hey Sofia! I did the Kickstart 6 months ago. Can I do the Reboot now?", time:'4:00 PM' },
       ]},
     ]},
-  { user:'@amykeller.runs', name:'Amy Keller', avatar:'https://i.pravatar.cc/88?u=amykellerruns', msg:"Hi! I'm a runner, does your program work for endurance athletes?", source:'DM', time:'18h ago', unread:1, intent:'Opportunities', category:'important', severity:'normal', tag:'product_inquiry', mode:'confident',
-    summary:'Runner, asking if program fits', status:'',
+  { user:'@amykeller.runs', name:'Amy Keller', avatar:'https://i.pravatar.cc/88?u=amykellerruns', msg:"Hi! I run marathons and I'm wondering if a 1-on-1 call would make sense for me before buying the program?", source:'DM', time:'18h ago', unread:1, intent:'Opportunities', category:'important', severity:'normal', tag:'coaching_call', mode:'confident',
+    summary:'Runner, asking if a coaching call fits', status:'Reply ready',
     contactBio:'Follower since 4 months · 🇺🇸 US · Engages with cardio content',
     contactBioExpanded:'Followed 4 months ago. Primarily engages with cardio and endurance-related content. Profile shows marathon finisher photos. The niche question needs a custom answer — Sofia should speak to how the program adapts for endurance athletes.',
     chatHistory:[
       { from:'automation', text:'Thanks for reaching out! Sofia typically replies within a few hours. In the meantime, check out our free guide: bit.ly/sofia-guide', time:'1:55 PM' },
       { from:'them', text:"Thanks! I'll check it out. But I had a specific question first", time:'1:57 PM' },
-      { from:'them', text:"Hi! I'm a runner, does your program work for endurance athletes?", time:'2:00 PM' },
+      { from:'them', text:"Hi! I run marathons and I'm wondering if a 1-on-1 call would make sense for me before buying the program?", time:'2:00 PM' },
     ],
     context:"Niche question about compatibility with endurance sports — specific enough that a custom reply from you is better than a draft.",
-    draft:"",noDraftReason:"This is a niche question about endurance athletes — your personal experience is better than anything I could write.",
-    styleReason:"",
-    agentRead:'Niche question · Needs your reply' },
+    draft:"Hi Amy! A 1-on-1 call is actually perfect for runners 🏃‍♀️ In 45 minutes we can look at your training schedule, your nutrition timing around long runs, and map out exactly how the Reboot would complement your marathon training — not compete with it. It's $150 and you can book here: calendly.com/sofia-reyes. Lots of endurance athletes in the community, you'd be in good company!",
+    styleReason:"Addressed the runner angle directly — yes the call works for her specific situation. Included social proof (other athletes in community). Booking link and price upfront.",
+    agentRead:'Coaching call inquiry · Reply ready' },
 ];
 
 const ATTENTION_ITEMS = [
@@ -448,29 +483,29 @@ const ATTENTION_ITEMS = [
     draft:"",noDraftReason:"Pause requests need a personal touch — how you respond here could determine if he stays.",
     styleReason:"",
     agentRead:'Churn risk · Pause request' },
-  { user:'@camilasoto.fit', name:'Camila Soto', avatar:'https://i.pravatar.cc/88?u=camilasoto', msg:"I feel like I'm not seeing results after 4 weeks 😔", source:'DM', time:'5h ago', unread:1, intent:'Support', category:'important', severity:'high', tag:'churn_risk', mode:'confident',
+  { user:'@camilasoto.fit', name:'Camila Soto', avatar:'https://i.pravatar.cc/88?u=camilasoto', msg:"I've been doing everything — the workouts, the meal guide, tracking my habits — and I'm just not seeing the change I expected 😔", source:'DM', time:'5h ago', unread:1, intent:'Support', category:'important', severity:'high', tag:'churn_risk', mode:'confident',
     summary:'Not seeing results, feeling discouraged', status:'',
     contactBio:'Active client · Kickstart · Week 4',
     contactBioExpanded:'Paying client in the 4-week Kickstart, final week. Has been engaged throughout but is now expressing frustration about results. This is a critical retention moment — her perception of results will determine if she upgrades to the Reboot.',
     chatHistory:[
       { from:'them', text:"Hey Sofia, I wanted to be honest with you...", time:'3:28 AM' },
       { from:'automation', text:'Thanks for reaching out! Sofia typically replies within a few hours.', time:'3:29 AM' },
-      { from:'them', text:"It is hard to say this but I feel like I am not seeing results after 4 weeks 😔", time:'3:31 AM' },
+      { from:'them', text:"It is hard to say this but I have been doing everything — workouts, the meal guide, habit tracking — and I am just not seeing the change I expected 😔", time:'3:31 AM' },
     ],
     context:"Four weeks in and feeling discouraged — this is a vulnerable moment. A personal, empathetic reply now could be the thing that keeps her in the program.",
-    draft:"",noDraftReason:"She's in a vulnerable moment — this needs your empathy, not an AI reply.",
+    draft:"",noDraftReason:"She's at a crossroads at the end of the Kickstart — this needs genuine empathy and your personal perspective, not a template.",
     styleReason:"",
     agentRead:'Emotional · Personal reply needed' },
-  { user:'@rafaelm.client', name:'Rafael 🇧🇷', avatar:'https://i.pravatar.cc/88?u=rafaelm', msg:"The checkout page is broken, I can't complete my purchase", source:'DM', time:'6h ago', unread:1, intent:'Support', category:'important', severity:'high', tag:'technical_issue', mode:'confident',
-    summary:'Checkout broken, tried 3 times', status:'',
+  { user:'@rafaelm.client', name:'Rafael 🇧🇷', avatar:'https://i.pravatar.cc/88?u=rafaelm', msg:"Hey, I've tried to buy the Kickstart 3 times and the checkout keeps saying there's an error. My bank doesn't even show an attempt", source:'DM', time:'6h ago', unread:1, intent:'Support', category:'important', severity:'high', tag:'technical_issue', mode:'confident',
+    summary:'Kickstart checkout broken, 3 attempts', status:'',
     contactBio:'New prospect · Trying to purchase · 🇧🇷 Brazil',
     contactBioExpanded:'Not yet a client — actively trying to buy. Has attempted checkout 3 times, which means very high purchase intent. Every hour this goes unresolved is lost revenue. Technical issue needs immediate attention.',
     chatHistory:[
-      { from:'them', text:'Hey, I am trying to sign up for the 12-week program but the page is not working', time:'1:50 AM' },
+      { from:'them', text:'Hey, I am trying to buy the 4-week Kickstart but the checkout page is not loading properly', time:'1:50 AM' },
       { from:'automation', text:'Sorry to hear that! Sofia will look into this for you.', time:'1:51 AM' },
-      { from:'them', text:"The checkout page is broken, I can't complete my purchase. I've tried 3 times", time:'2:00 AM' },
+      { from:'them', text:"I've tried 3 times with 2 different cards. My bank doesn't even show the attempts. The checkout is broken", time:'2:00 AM' },
     ],
-    context:"Active purchase attempt blocked by a tech issue — 3 tries means real intent. Every hour this goes unanswered is money lost.",
+    context:"Active purchase attempt for the Kickstart blocked by checkout error — 3 tries with 2 different cards means very high purchase intent. Every hour this goes unanswered is money lost.",
     draft:"",noDraftReason:"This is a technical issue — you'll need to check the checkout page and give him a specific answer.",
     styleReason:"",
     agentRead:'Revenue at risk · Checkout broken' },
@@ -487,20 +522,20 @@ const ATTENTION_ITEMS = [
     draft:"",noDraftReason:"Refund conversations are sensitive — your personal response sets the tone for how this resolves.",
     styleReason:"",
     agentRead:'Escalation risk · Refund pending' },
-  { user:'@annakowalski.run', name:'Anna K. 🏃\u200d♀️', avatar:'https://i.pravatar.cc/88?u=annakowalski', msg:"My meal plan isn't loading in the app, it's been 2 days", source:'DM', time:'2d ago', unread:1, intent:'Support', category:'important', severity:'high', tag:'technical_issue', mode:'confident',
-    summary:'Meal plan not loading, 2 days', status:'',
-    contactBio:'Active client · 12-Week Reboot · Week 3 · 🇵🇱 Poland',
-    contactBioExpanded:'Paying client in the 12-Week Reboot, week 3. Has been following the program closely. Two days without access to her meal plan means she cannot follow the nutrition program. Sent two messages — patience is wearing thin.',
+  { user:'@sophiaml.web', name:'Sophia L.', avatar:'https://i.pravatar.cc/88?u=sophiamlweb', msg:"Hi Sofia! I registered for the webinar last week and was promised a replay link but it's not working — it just takes me to a blank page", source:'DM', time:'2d ago', unread:1, intent:'Support', category:'important', severity:'high', tag:'technical_issue', mode:'confident',
+    summary:'Webinar replay link broken, 2 days', status:'',
+    contactBio:'Webinar registrant · "Stop Stress Eating" · 🇬🇧 UK',
+    contactBioExpanded:'Registered for the "Stop Stress Eating" Wellness Reset webinar last week. Was promised a replay link via email but the link leads to a blank page. She has messaged twice. She is a warm lead — attended the webinar because she is already interested. If left unresolved she may disengage.',
     chatHistory:[
-      { from:'them', text:"Hey Sofia, my meal plan in the app is not loading", time:'2 days ago 9:00 AM' },
-      { from:'automation', text:'Sorry to hear that! Sofia will look into this for you. In the meantime, try closing and reopening the app.', time:'2 days ago 9:01 AM' },
-      { from:'them', text:'Tried that, still nothing. Can you check on this?', time:'2 days ago 11:00 AM' },
-      { from:'them', text:"My meal plan isn't loading in the app, it's been 2 days", time:'Yesterday 8:00 AM' },
+      { from:'them', text:"Hi Sofia! I registered for the webinar and got the email with the replay link", time:'2 days ago 10:00 AM' },
+      { from:'automation', text:'Thanks for reaching out! Sofia typically replies within a few hours.', time:'2 days ago 10:01 AM' },
+      { from:'them', text:'The link is not working though — it just shows a blank page', time:'2 days ago 10:30 AM' },
+      { from:'them', text:"Hi Sofia! I registered for the webinar last week and was promised a replay link but it's not working — it just takes me to a blank page", time:'Yesterday 8:00 AM' },
     ],
-    context:"Two days without their meal plan means they can't follow the program properly. Sent two messages — patience is running out. Needs an urgent fix or workaround.",
-    draft:"",noDraftReason:"This is a technical issue that's been open 2 days — she needs a specific fix, not a generic reply.",
+    context:"Webinar replay link is broken — she registered for free but expected the replay. Two messages over 2 days. Fix it fast: she is a warm prospect who came in via the free funnel.",
+    draft:"",noDraftReason:"This needs a working replay link from you — I don't have access to fix that. Once you have the right link, just send it and she will be good to go.",
     styleReason:"",
-    agentRead:'2d unresolved · Urgent fix needed' },
+    agentRead:'Webinar issue · Replay link broken' },
 ];
 
 const COMMUNITY_ITEMS = [
@@ -590,7 +625,7 @@ const COMMUNITY_ITEMS = [
     context:"Genuine content feedback — follower is listening closely. Good insight for your content strategy.",
     draft:"",styleReason:"",agentRead:'Content feedback · Engaged follower' },
   /* ── New community items (22 additional) ── */
-  { user:'@luciana.health', name:'Luciana Marques', avatar:'https://i.pravatar.cc/88?u=lucianahealth', msg:"You genuinely inspire me every single day. Thank you for being so real 💛", source:'DM', time:'6h', unread:1, intent:'Fans', category:'other', tag:'feedback', mode:'confident',
+  { user:'@luciana.health', name:'Luciana Marques', avatar:'https://i.pravatar.cc/88?u=lucianahealth', msg:"You genuinely inspire me every single day. Thank you for being so real 💛", source:'DM', time:'6h', unread:1, intent:'Fans', category:'other', mode:'confident',
     summary:'Daily inspiration, genuine appreciation', status:'Filtered',
     contactBio:'Follower since 1 yr · 🇧🇷 Brazil · Daily story viewer',
     contactBioExpanded:'Consistent follower for a year who views every story and likes most posts. Never commented publicly but this DM shows deep connection to the content. Pure appreciation, no ask.',
@@ -621,7 +656,7 @@ const COMMUNITY_ITEMS = [
     draft:"Priya, this is exactly why I do what I do. Health is so much bigger than a number on the scale and I am so glad that message landed for you. Keep going 💛",
     styleReason:"Acknowledges the personal impact, reinforces the philosophy. Warm and affirming without being preachy.",
     agentRead:'Impact story · Reply ready' },
-  { user:'@emmawellness.uk', name:'Emma Clarke', avatar:'https://i.pravatar.cc/88?u=emmawellnessuk', msg:"Thank you for always being honest about the hard parts too. So refreshing", source:'DM', time:'8h', unread:1, intent:'Fans', category:'other', tag:'feedback', mode:'confident',
+  { user:'@emmawellness.uk', name:'Emma Clarke', avatar:'https://i.pravatar.cc/88?u=emmawellnessuk', msg:"Thank you for always being honest about the hard parts too. So refreshing", source:'DM', time:'8h', unread:1, intent:'Fans', category:'other', mode:'confident',
     summary:'Appreciates honesty in content', status:'Filtered',
     contactBio:'Follower since 5 months · 🇬🇧 UK · Comments regularly',
     contactBioExpanded:'UK-based follower for 5 months. Comments on posts about the realistic side of fitness — struggles, plateaus, honest moments. Values transparency over polished content.',
@@ -688,7 +723,7 @@ const COMMUNITY_ITEMS = [
     draft:"Dave this gave me chills. You put in the work every single day for 12 weeks and it paid off. I am so proud of you. What is next for you?",
     styleReason:"Gives full credit to his effort. Open-ended question to keep the relationship going and explore upsell.",
     agentRead:'Goal achieved · Reply ready' },
-  { user:'@samira.wellness', name:'Samira Al-Rashid', avatar:'https://i.pravatar.cc/88?u=samirawellness', msg:"Your reel about not needing to exercise every day actually relieved so much guilt. I needed that", source:'DM', time:'15h', unread:1, intent:'Fans', category:'other', tag:'feedback', mode:'confident',
+  { user:'@samira.wellness', name:'Samira Al-Rashid', avatar:'https://i.pravatar.cc/88?u=samirawellness', msg:"Your reel about not needing to exercise every day actually relieved so much guilt. I needed that", source:'DM', time:'15h', unread:1, intent:'Fans', category:'other', mode:'confident',
     summary:'Content relieved exercise guilt', status:'Filtered',
     contactBio:'Follower since 7 months · 🇦🇪 UAE · Engages with rest day content',
     contactBioExpanded:'Follower for 7 months from the UAE. Engages specifically with content about rest, recovery, and balanced approaches to fitness. The guilt relief message shows the content is hitting the right note for her audience segment.',
@@ -816,6 +851,30 @@ const COMMUNITY_ITEMS = [
     draft:"ALINA!! 🎉 4 weeks done and feeling stronger — that is what I love to hear! You should be so proud of yourself. Have you thought about what is next? The Reboot would be an amazing next step for you!",
     styleReason:"Celebrates completion, naturally introduces the Reboot as the next chapter. Not pushy.",
     agentRead:'Completion · Reply ready' },
+  { user:'@claire.wellness.co', name:'Claire M. 🌸', avatar:'https://i.pravatar.cc/88?u=clairewellnessco', msg:"Hey Sofia! I missed the last webinar — when is the next one? I saw the replay link but wanted to attend live if I can", source:'DM', time:'4h', unread:1, intent:'Fans', category:'interesting', tag:'webinar', mode:'confident',
+    summary:'Wants to attend next webinar live', status:'Reply ready',
+    contactBio:'Follower since 5 months · 🇨🇦 Canada · Attends lives when available',
+    contactBioExpanded:'Follows for 5 months, prefers live content over recorded. Missed the last Wellness Reset webinar and is actively asking about the next one. Strong intent signal — people who want to attend live are more likely to buy than passive replay viewers.',
+    chatHistory:[
+      { from:'them', text:'Hey Sofia! I missed the last one but I heard it was amazing', time:'3:55 AM' },
+      { from:'them', text:"When is the next webinar? I really want to attend live if I can", time:'4:00 AM' },
+    ],
+    context:"Actively looking to attend the next free webinar — this is a warm prospect who is already in the funnel.",
+    draft:"Hey Claire! The next Wellness Reset is in 4 days — the topic is 'Build Habits That Stick' 🌸 You can register here: bit.ly/wellness-reset. Can't wait to see you there live!",
+    styleReason:"Direct answer with the date and link. Welcoming tone for someone who is already engaged.",
+    agentRead:'Webinar inquiry · Reply ready' },
+  { user:'@hana.self.care', name:'Hana K.', avatar:'https://i.pravatar.cc/88?u=hanaselfcare', msg:"Hi Sofia! I'm not sure I'm ready to commit to a full program yet, but is there a way to have just a single call with you to figure out where to start?", source:'DM', time:'7h', unread:1, intent:'Fans', category:'important', severity:'normal', tag:'coaching_call', mode:'confident',
+    summary:'Not ready for full program, wants single call', status:'Reply ready',
+    contactBio:'Follower since 6 months · 🇯🇵 Japan · Saves program posts',
+    contactBioExpanded:'Follows for 6 months and has saved multiple program posts. Has never purchased but the "not sure I\'m ready" phrasing indicates she wants help deciding. A 1-on-1 call is the perfect low-barrier entry point for this profile.',
+    chatHistory:[
+      { from:'automation', text:'Thanks for reaching out! Sofia typically replies within a few hours.', time:'6:55 AM' },
+      { from:'them', text:"Hi Sofia! I'm not sure I'm ready to commit to a full program yet, but is there a way to have just a single call with you to figure out where to start?", time:'7:00 AM' },
+    ],
+    context:"Classic pre-purchase hesitation — she needs a lower commitment entry point. The 1-on-1 call is perfect here.",
+    draft:"Hi Hana! Yes — I offer standalone 1-on-1 coaching calls for exactly this reason 😊 It's a 45-min session where we look at where you are, what you want to achieve, and figure out the best path together. No pressure to commit to anything else. It's $150 and you can book whenever works for you: calendly.com/sofia-reyes",
+    styleReason:"Validated her hesitation as completely normal. Presented the call as the ideal no-pressure starting point. Included booking link and price.",
+    agentRead:'Coaching call inquiry · Reply ready' },
 ];
 
 const STATS = {
@@ -977,7 +1036,7 @@ function PurpleBg({ gridMode = 'idle' }) {
   );
 }
 
-/* ─── Step 2: Loading — grid motion via PurpleBg + cycling messages ─── */
+/* ─── Step 2: Loading — matrix lines drifting on white + cycling messages ─── */
 function ObSorting({ onNext }) {
   const [msgIdx, setMsgIdx] = useState(0);
   const [msgVis, setMsgVis] = useState(true);
@@ -998,18 +1057,19 @@ function ObSorting({ onNext }) {
     return () => clearInterval(iv);
   }, []);
 
-  // Auto-advance after 4s
+  // Auto-advance after 8s
   useEffect(() => {
-    const t = setTimeout(onNext, 4000);
+    const t = setTimeout(onNext, 8000);
     return () => clearTimeout(t);
   }, []);
 
   return (
-    <div style={{ height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', position:'relative' }}>
+    <div style={{ height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', position:'relative', overflow:'hidden' }}>
+      <MatrixLines />
       <div style={{ position:'relative', zIndex:2, opacity: msgVis ? 1 : 0, transition:'opacity 0.28s ease' }}>
         <span style={{
           fontSize:16, fontWeight:400,
-          background:'linear-gradient(90deg, rgba(255,255,255,0.65) 0%, rgba(255,255,255,1) 40%, rgba(255,255,255,0.65) 60%, rgba(255,255,255,0.65) 100%)',
+          background:'linear-gradient(90deg, rgba(40,40,40,0.35) 0%, rgba(40,40,40,1) 40%, rgba(40,40,40,0.35) 60%, rgba(40,40,40,0.35) 100%)',
           backgroundSize:'200% auto',
           WebkitBackgroundClip:'text',
           WebkitTextFillColor:'transparent',
@@ -1017,6 +1077,99 @@ function ObSorting({ onNext }) {
           animation:'textShimmer 2.5s linear infinite',
         }}>{messages[msgIdx]}</span>
       </div>
+    </div>
+  );
+}
+
+/* Matrix lines — soft pastel rainbow lines drifting H+V, constant opacity, self-building grid */
+const MATRIX_COLORS = ['#FFB3B3', '#FFDCA8', '#FFF3A8', '#B8F2C9', '#B8DCFF', '#D6B8FF', '#FFB8E3'];
+
+function MatrixLines() {
+  // Pre-generate 8 lines with randomized positions, directions, speeds, lengths
+  const lines = React.useMemo(() => {
+    const out = [];
+    // 4 horizontal
+    const hPositions = [12, 38, 62, 88]; // % from top
+    hPositions.forEach((topPct, i) => {
+      out.push({
+        orient: 'h',
+        pos: topPct,
+        color: MATRIX_COLORS[i % MATRIX_COLORS.length],
+        length: 30 + Math.random() * 30, // % of width
+        duration: 9 + Math.random() * 5,
+        delay: -Math.random() * 12,
+        dir: i % 2 === 0 ? 1 : -1,
+      });
+    });
+    // 4 vertical
+    const vPositions = [18, 45, 72, 92]; // % from left
+    vPositions.forEach((leftPct, i) => {
+      out.push({
+        orient: 'v',
+        pos: leftPct,
+        color: MATRIX_COLORS[(i + 3) % MATRIX_COLORS.length],
+        length: 25 + Math.random() * 30,
+        duration: 10 + Math.random() * 5,
+        delay: -Math.random() * 12,
+        dir: i % 2 === 0 ? -1 : 1,
+      });
+    });
+    return out;
+  }, []);
+
+  return (
+    <div style={{ position:'absolute', inset:0, zIndex:0, pointerEvents:'none', overflow:'hidden' }}>
+      <style>{`
+        @keyframes mlH {
+          from { transform: translateX(var(--start, -40%)); }
+          to   { transform: translateX(var(--end, 140%)); }
+        }
+        @keyframes mlV {
+          from { transform: translateY(var(--start, -40%)); }
+          to   { transform: translateY(var(--end, 140%)); }
+        }
+      `}</style>
+      {lines.map((ln, i) => {
+        if (ln.orient === 'h') {
+          const start = ln.dir > 0 ? '-60%' : '160%';
+          const end   = ln.dir > 0 ? '160%' : '-60%';
+          return (
+            <div key={i}
+              style={{
+                position:'absolute',
+                top: `${ln.pos}%`,
+                left:0,
+                width: `${ln.length}%`,
+                height: 1,
+                background: `linear-gradient(90deg, transparent 0%, ${ln.color} 20%, ${ln.color} 80%, transparent 100%)`,
+                opacity: 0.85,
+                '--start': start,
+                '--end': end,
+                animation: `mlH ${ln.duration}s linear ${ln.delay}s infinite`,
+              }}
+            />
+          );
+        } else {
+          const start = ln.dir > 0 ? '-60%' : '160%';
+          const end   = ln.dir > 0 ? '160%' : '-60%';
+          return (
+            <div key={i}
+              style={{
+                position:'absolute',
+                left: `${ln.pos}%`,
+                top:0,
+                height: `${ln.length}%`,
+                width: 1,
+                background: `linear-gradient(180deg, transparent 0%, ${ln.color} 20%, ${ln.color} 80%, transparent 100%)`,
+                opacity: 0.85,
+                '--start': start,
+                '--end': end,
+                animation: `mlV ${ln.duration}s linear ${ln.delay}s infinite`,
+              }}
+            />
+          );
+        }
+      })}
     </div>
   );
 }
@@ -1090,7 +1243,7 @@ function ReasoningSheet({ title, body, children, onClose, showSources, showFeedb
 
   return (
     <div style={{ position:'absolute', inset:0, zIndex:200, display:'flex', flexDirection:'column', justifyContent:'flex-end' }}>
-      {/* Scrim */}
+      {/* Scrim covers full viewport (including bottom nav) — iOS pattern */}
       <div onClick={onClose} style={{ position:'absolute', inset:0, background:'rgba(21,27,36,0.4)' }} />
       {/* Sheet */}
       <div className={closing ? 'sheet-down' : 'sheet-up'} style={{ position:'relative', zIndex:1, background:'#fff', borderRadius:'36px 36px 0 0', display:'flex', flexDirection:'column', maxHeight:'70%' }}>
@@ -1354,27 +1507,24 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
     const radius = m.from === 'them'
       ? (isLast ? '12px 12px 12px 2px' : '12px')
       : (isLast ? '12px 12px 2px 12px' : '12px');
-    const bubbleBg = isAutomation ? '#FCF0FF' : (m.from === 'you' ? '#C2DBFF' : '#F5F5F5');
+    const bubbleBg = isOutgoing ? '#006BE2' : '#F5F5F5';
+    const textColor = isOutgoing ? '#fff' : '#292929';
+    const headerColor = '#BCD5FF';
     return (
       <div key={i}>
         {isOutgoing ? (
-          <div style={{ display:'flex', gap:4, alignItems:'flex-end', justifyContent:'flex-end', paddingLeft:50 }}>
-            <div style={{ flex:1, padding:'12px 16px', borderRadius:radius, background:bubbleBg, opacity:0.89 }}>
-              {isAutomation && <div style={{ fontSize:12, fontWeight:500, color:'#AB3EC1', lineHeight:'16px', marginBottom:2 }}>Automation</div>}
-              <div style={{ fontSize:16, fontWeight:400, lineHeight:'24px', color:'#292929' }}>{m.text}</div>
-            </div>
-            {isAutomation ? (
-              <div style={{ width:20, height:20, flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#AB3EC1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+          <div style={{ display:'flex', justifyContent:'flex-end', paddingLeft:50 }}>
+            <div style={{ padding:'10px 16px', borderRadius:radius, background:bubbleBg, maxWidth:288 }}>
+              <div style={{ fontSize:12, fontWeight:500, color:headerColor, lineHeight:'16px', marginBottom:2 }}>
+                {isAutomation ? 'Agent auto-reply' : 'You'}
               </div>
-            ) : (
-              <img src="https://i.pravatar.cc/40?u=sofiacoach" alt="" style={{ width:20, height:20, borderRadius:400, objectFit:'cover', flexShrink:0, border:'0.5px solid rgba(44,50,58,0.12)' }} />
-            )}
+              <div style={{ fontSize:16, fontWeight:400, lineHeight:'24px', color:textColor }}>{m.text}</div>
+            </div>
           </div>
         ) : (
           <div style={{ paddingRight:50 }}>
-            <div style={{ display:'inline-block', padding:'10px 16px', borderRadius:radius, background:bubbleBg, opacity:0.89, maxWidth:288 }}>
-              <div style={{ fontSize:16, fontWeight:400, lineHeight:'24px', color:'#292929' }}>{m.text}</div>
+            <div style={{ display:'inline-block', padding:'10px 16px', borderRadius:radius, background:bubbleBg, maxWidth:288 }}>
+              <div style={{ fontSize:16, fontWeight:400, lineHeight:'24px', color:textColor }}>{m.text}</div>
             </div>
           </div>
         )}
@@ -1440,6 +1590,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
   const [customFeedback, setCustomFeedback] = useState(null); // null | 'asking' | 'done'
   const [feedbackEligible, setFeedbackEligible] = useState(false);
   const customInputRef = useRef(null);
+  const [chatInputFocused, setChatInputFocused] = useState(false);
   const [askVal, setAskVal] = useState('');
   const [askPhase, setAskPhase] = useState('input');
   const [showAskStyleReason, setShowAskStyleReason] = useState(false);
@@ -1623,6 +1774,13 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
     }
   }, [mode]);
 
+  // Instant scroll to bottom on mount — user lands pre-scrolled, no animation
+  useEffect(() => {
+    if (!chatBodyRef.current) return;
+    const el = chatBodyRef.current;
+    el.scrollTop = el.scrollHeight;
+  }, []);
+
   // Show agent help bubble when user starts typing in a chat they already replied to
   useEffect(() => {
     if (!sentMessage) return;
@@ -1673,42 +1831,31 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
       display:'flex', flexDirection:'column',
       overflow:'hidden',
     }}>
-      {/* Header */}
+      {/* Header — back + avatar/name/context + intent + kebab */}
       <div style={{ padding:'48px 16px 10px', borderBottom:'1px solid #D6D6D6', flexShrink:0 }}>
         <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-          <div onClick={(e) => { e.stopPropagation(); onClose(); }} style={{ cursor:'pointer', padding:'8px', margin:'-8px' }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          <div onClick={(e) => { e.stopPropagation(); onClose(); }} style={{ width:40, height:40, borderRadius:400, border:'1px solid #E0E2E5', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0, WebkitTapHighlightColor:'transparent' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
           </div>
           {item.avatar && <img src={item.avatar} alt="" style={{ width:32, height:32, borderRadius:400, objectFit:'cover', border:'0.5px solid rgba(44,50,58,0.12)', flexShrink:0 }} />}
-          <div style={{ flex:1, minWidth:0 }}>
+          <div onClick={(e) => { e.stopPropagation(); setReasoningSheet({ title: 'About ' + (item.name || item.user), body: item.context || 'No additional context available.', intent: item.intent }); }}
+            style={{ flex:1, minWidth:0, cursor:'pointer' }}>
             <div style={{ fontSize:14, fontWeight:500, color:'#292929', lineHeight:'20px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.name || item.user}</div>
-            <div onClick={(e) => { e.stopPropagation(); setReasoningSheet({ title: 'Why ' + (item.intent || 'this classification'), body: item.context || 'No additional context available.', intent: item.intent }); }}
-              style={{ fontSize:12, fontWeight:400, color:'#707070', lineHeight:'16px', display:'flex', alignItems:'center', gap:4, cursor:'pointer' }}>
-              <span>{item.intent || 'DM'}</span>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#707070" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
+            <div style={{ fontSize:12, fontWeight:400, color:'#707070', lineHeight:'16px', display:'flex', alignItems:'center', gap:4 }}>
+              <span style={{ overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.context || item.agentRead || item.summary || 'DM'}</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#707070" strokeWidth="2" style={{ flexShrink:0 }}><polyline points="9 18 15 12 9 6"/></svg>
             </div>
           </div>
-        </div>
-        {/* Expandable contact bio — only when data present */}
-        {item.contactBio && (
-          <div onClick={(e) => { e.stopPropagation(); setBioExpanded(b => !b); }}
-            style={{ marginTop:8, cursor:'pointer', paddingLeft:44 }}>
-            {!bioExpanded ? (
-              <div style={{ display:'flex', alignItems:'center', gap:4 }}>
-                <span style={{ fontSize:11, fontWeight:400, color:'#ABABAB', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', flex:1 }}>{item.contactBio}</span>
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#ABABAB" strokeWidth="2" style={{ flexShrink:0 }}><polyline points="6 9 12 15 18 9"/></svg>
-              </div>
-            ) : (
-              <div>
-                <div style={{ display:'flex', alignItems:'center', gap:4, marginBottom:4 }}>
-                  <span style={{ fontSize:11, fontWeight:500, color:'#707070' }}>About {(item.name || item.user).split(' ')[0]}</span>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#707070" strokeWidth="2" style={{ flexShrink:0, transform:'rotate(180deg)' }}><polyline points="6 9 12 15 18 9"/></svg>
-                </div>
-                <div style={{ fontSize:11, fontWeight:400, color:'#707070', lineHeight:'16px' }}>{item.contactBioExpanded}</div>
-              </div>
-            )}
+          {item.intent && (
+            <div onClick={(e) => { e.stopPropagation(); setReasoningSheet({ title: 'Why ' + item.intent, body: item.context || 'No additional context available.', intent: item.intent }); }}
+              style={{ background:'#F0F0F0', borderRadius:6, padding:'4px 8px', flexShrink:0, cursor:'pointer' }}>
+              <span style={{ fontSize:12, fontWeight:500, color:'#525960', lineHeight:'16px' }}>{item.intent}</span>
+            </div>
+          )}
+          <div style={{ width:32, height:32, display:'flex', alignItems:'center', justifyContent:'center', cursor:'default', flexShrink:0 }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
           </div>
-        )}
+        </div>
       </div>
 
       {/* Chat body */}
@@ -1746,20 +1893,17 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
           </div>
         )}
 
-        {/* Sent messages — grouped with Airbnb corners, avatar only on last */}
+        {/* Sent messages — grouped with Airbnb corners, "You" header on first */}
         {sentMsgs.map((msg, i) => {
           const isLast = i === sentMsgs.length - 1;
+          const isFirst = i === 0;
           const radius = isLast ? '12px 12px 2px 12px' : '12px';
           return (
-            <div key={i} className={isLast ? 'fade-up' : ''} style={{ display:'flex', gap:4, alignItems:'flex-end', justifyContent:'flex-end', paddingLeft:50 }}>
-              <div style={{ maxWidth:288, padding:'12px 16px', borderRadius:radius, background:'#C2DBFF', opacity:0.89 }}>
-                <div style={{ fontSize:16, fontWeight:400, lineHeight:'24px', color:'#292929' }}>{msg}</div>
+            <div key={i} className={isLast ? 'fade-up' : ''} style={{ display:'flex', justifyContent:'flex-end', paddingLeft:50 }}>
+              <div style={{ maxWidth:288, padding:'10px 16px', borderRadius:radius, background:'#006BE2' }}>
+                {isFirst && <div style={{ fontSize:12, fontWeight:500, color:'#BCD5FF', lineHeight:'16px', marginBottom:2 }}>You</div>}
+                <div style={{ fontSize:16, fontWeight:400, lineHeight:'24px', color:'#fff' }}>{msg}</div>
               </div>
-              {isLast ? (
-                <img src={CREATOR_AVATAR} alt="" style={{ width:20, height:20, borderRadius:400, objectFit:'cover', flexShrink:0, border:'0.5px solid rgba(44,50,58,0.12)' }} />
-              ) : (
-                <div style={{ width:20, flexShrink:0 }} />
-              )}
             </div>
           );
         })}
@@ -1771,12 +1915,6 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
           const parts = [sentences.slice(0, splitIdx).join(' '), sentences.slice(splitIdx).join(' ')].filter(Boolean);
           return (
             <>
-              {/* Divider */}
-              <div style={{ display:'flex', alignItems:'center', gap:12, margin:'8px 0' }}>
-                <div style={{ flex:1, height:1, background:'#E0E0E0' }} />
-                <span style={{ fontSize:12, fontWeight:400, color:'#707070', whiteSpace:'nowrap' }}>{parts.length}-message reply ready</span>
-                <div style={{ flex:1, height:1, background:'#E0E0E0' }} />
-              </div>
               {/* Draft bubbles */}
               <div style={{ display:'flex', flexDirection:'column', gap:8, alignItems:'flex-end' }}>
                 {parts.map((part, pi) => (
@@ -1822,7 +1960,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
     )}
 
     {/* ═══ Message Input — always visible ═══ */}
-    {true && (<div style={{ margin:'0 16px 8px', flexShrink:0 }}>
+    {true && (<div style={{ margin:'0 16px 24px', flexShrink:0 }}>
         {/* Follow-up question — shows after user edits/dismisses/types instead of sending directly */}
         {/* Edit feedback — same style as follow-up card */}
         {editFeedback === 'asking' && (
@@ -1870,41 +2008,51 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
           </div>
         )}
 
-        {/* The input field with tabs inside */}
-        <div style={{ background:'#fff', border:'1px solid #D6D6D6', borderRadius:12, boxShadow:'0 8px 16px rgba(132,146,166,0.12)', padding:8, display:'flex', flexDirection:'column', gap:8 }}>
-          {/* Tabs: Your reply / Ask Agent */}
-          <div style={{ display:'flex', gap:4 }}>
-            <div style={{ padding:'5px 12px', fontSize:12, fontWeight:500, color:'#292929', background:'#F0F0F0', borderRadius:8, cursor:'default' }}>Your reply</div>
-            <div onClick={() => setAgentOverlayOpen(true)} style={{ padding:'5px 12px', fontSize:12, fontWeight:500, color:'#707070', background:'transparent', borderRadius:8, cursor:'pointer' }}>Ask Agent</div>
-          </div>
-          <div style={{ display:'flex', gap:8, alignItems:'center' }}>
-            <div style={{ width:36, height:36, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:12, flexShrink:0 }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        {/* Expanded input — matches Figma: placeholder text on top, + and Ask Inbox + mic on bottom row */}
+        <div style={{ background:'#fff', border: chatInputFocused ? '1px solid #006BE2' : '1px solid #E0E2E5', borderRadius:16, padding:'14px 16px', display:'flex', flexDirection:'column', gap:10, transition:'border-color .15s ease' }}>
+          {mode === 'editing' ? (
+            <textarea value={editVal} onChange={e => setEditVal(e.target.value)} autoFocus
+              ref={el => { if (el) { el.style.height = 'auto'; el.style.height = Math.min(120, el.scrollHeight) + 'px'; } }}
+              placeholder="Reply on Instagram..."
+              rows={1}
+              onFocus={() => setChatInputFocused(true)}
+              onBlur={() => setChatInputFocused(false)}
+              onInput={e => { e.target.style.height = 'auto'; e.target.style.height = Math.min(120, e.target.scrollHeight) + 'px'; }}
+              style={{ width:'100%', fontSize:15, color:'#292929', lineHeight:'20px', border:'none', outline:'none', resize:'none', minHeight:20, maxHeight:120, fontFamily:'Inter, system-ui, sans-serif', background:'transparent', padding:0 }} />
+          ) : (
+            <textarea ref={customInputRef} value={customVal} onChange={e => setCustomVal(e.target.value)}
+              placeholder="Reply on Instagram..."
+              onFocus={() => setChatInputFocused(true)}
+              onBlur={() => setChatInputFocused(false)}
+              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && customVal.trim()) { e.preventDefault(); handleSendCustom(); } }}
+              onInput={e => { e.target.style.height = 'auto'; e.target.style.height = Math.min(120, e.target.scrollHeight) + 'px'; }}
+              rows={1}
+              style={{ width:'100%', fontSize:15, color: customVal ? '#292929' : '#9A9A9A', lineHeight:'20px', border:'none', outline:'none', background:'transparent', fontFamily:'Inter, system-ui, sans-serif', resize:'none', minHeight:20, maxHeight:120, padding:0 }} />
+          )}
+          {/* Bottom row: + left, Ask Inbox pill + mic right */}
+          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+            <div style={{ width:28, height:28, borderRadius:400, background:'#F0F0F0', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0 }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="2.2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </div>
-            {mode === 'editing' ? (
-              <textarea value={editVal} onChange={e => setEditVal(e.target.value)} autoFocus
-                ref={el => { if (el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; } }}
-                style={{ flex:1, fontSize:16, color:'#292929', lineHeight:'24px', border:'none', outline:'none', resize:'none', minHeight:24, maxHeight:200, fontFamily:'Inter, system-ui, sans-serif', background:'transparent', overflow:'auto' }} />
-            ) : (
-              <input ref={customInputRef} value={customVal} onChange={e => setCustomVal(e.target.value)}
-                placeholder="Reply..."
-                onKeyDown={e => { if (e.key === 'Enter' && customVal.trim()) handleSendCustom(); }}
-                style={{ flex:1, fontSize:16, color: customVal ? '#292929' : '#878787', lineHeight:'24px', border:'none', outline:'none', background:'transparent', fontFamily:'Inter, system-ui, sans-serif' }} />
-            )}
+            <div style={{ flex:1 }} />
+            <div onClick={() => setAgentOverlayOpen(true)}
+              style={{ padding:'6px 14px', borderRadius:400, background:'#EEEEEE', cursor:'pointer', flexShrink:0, WebkitTapHighlightColor:'transparent' }}>
+              <span style={{ fontSize:14, fontWeight:500, color:'#292929', lineHeight:'20px' }}>Ask Inbox</span>
+            </div>
             {(mode === 'editing' ? editVal.trim() : customVal.trim()) ? (
               <div onClick={mode === 'editing' ? handleSend : handleSendCustom}
-                style={{ width:36, height:36, borderRadius:20, background:'#006BE2', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0 }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                style={{ width:32, height:32, borderRadius:16, background:'#292929', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0 }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
               </div>
             ) : (
-              <div style={{ width:36, height:36, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:12, flexShrink:0 }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+              <div style={{ width:32, height:32, borderRadius:16, background:'#F0F0F0', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, cursor:'pointer' }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
               </div>
             )}
           </div>
           {/* Tone pills — only in edit mode */}
           {mode === 'editing' && (
-            <div style={{ display:'flex', gap:4, paddingLeft:44 }}>
+            <div style={{ display:'flex', gap:4 }}>
               {['Friendly','Formal','Shorter','Direct'].map(tone => (
                 <div key={tone} onClick={() => {
                   setActiveTone(tone);
@@ -1969,6 +2117,7 @@ function AgentOverlay({ item, draft, onChangeDraft, onClose }) {
   const [pendingAction, setPendingAction] = useState(null); // { newDraft, closeAfter, skipContact }
   const inputRef = useRef(null);
   const msgsEndRef = useRef(null);
+  const [overlayInputFocused, setOverlayInputFocused] = useState(false);
 
   useEffect(() => {
     if (inputRef.current) setTimeout(() => inputRef.current.focus(), 200);
@@ -2138,12 +2287,15 @@ function AgentOverlay({ item, draft, onChangeDraft, onClose }) {
   };
 
   return (
-    <div className="fade-in" style={{ position:'absolute', inset:0, zIndex:150, background:'rgba(0,0,0,0.55)', backdropFilter:'blur(6px)', WebkitBackdropFilter:'blur(6px)', display:'flex', flexDirection:'column' }}
+    <div className="fade-in" style={{ position:'absolute', inset:0, zIndex:150, background:'rgba(21,27,36,0.55)', backdropFilter:'blur(8px)', WebkitBackdropFilter:'blur(8px)', display:'flex', flexDirection:'column' }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
 
       {/* Done button — top right */}
-      <div style={{ display:'flex', justifyContent:'flex-end', padding:'56px 20px 0', flexShrink:0 }}>
-        <div onClick={onClose} style={{ fontSize:14, fontWeight:500, color:'rgba(255,255,255,0.7)', cursor:'pointer', padding:'8px 4px' }}>Done</div>
+      {/* Close button — top right, white circle with X */}
+      <div style={{ position:'absolute', top:52, right:20, zIndex:2 }} onClick={e => e.stopPropagation()}>
+        <div onClick={onClose} style={{ width:40, height:40, borderRadius:400, background:'#FFFFFF', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', boxShadow:'0 2px 8px rgba(0,0,0,0.12)' }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </div>
       </div>
 
       {/* Spacer to push chat to bottom */}
@@ -2156,37 +2308,41 @@ function AgentOverlay({ item, draft, onChangeDraft, onClose }) {
           if (m.from === 'thinking') {
             return (
               <div key={i} className="siri-bubble" style={{ display:'flex', justifyContent:'flex-start' }}>
-                <div style={{ fontSize:14, color:'rgba(255,255,255,0.5)', animation:'pulse 1.2s ease infinite' }}>Thinking...</div>
+                <div style={{ fontSize:14, lineHeight:'20px', color:'#292929', background:'#CDCDCD', padding:'10px 14px', borderRadius:'18px 18px 18px 4px', animation:'pulse 1.2s ease infinite' }}>Thinking...</div>
               </div>
             );
           }
-          // Confirm buttons
+          // Confirm buttons — home-style shortcut chips, side-by-side
           if (m.from === 'confirm') {
             return (
-              <div key={i} className="siri-bubble" style={{ animationDelay: i * 60 + 'ms', display:'flex', flexDirection:'column', gap:8 }}>
-                <div style={{ fontSize:14, lineHeight:1.5, color:'#FFFFFF', background:'rgba(255,255,255,0.16)', border:'1px solid rgba(255,255,255,0.22)', padding:'10px 14px', borderRadius:'18px 18px 18px 4px', backdropFilter:'blur(10px)', display:'inline-block' }}>
+              <div key={i} className="siri-bubble" style={{ animationDelay: i * 60 + 'ms', display:'flex', flexDirection:'column', gap:10 }}>
+                <div style={{ alignSelf:'flex-start', fontSize:14, lineHeight:'20px', color:'#292929', background:'#CDCDCD', padding:'10px 14px', borderRadius:'18px 18px 18px 4px', maxWidth:'82%' }}>
                   {m.text}
                 </div>
                 <div style={{ display:'flex', gap:8 }}>
-                  <button onClick={() => handleConfirm(true)}
-                    style={{ padding:'8px 20px', background:'#FFFFFF', border:'none', borderRadius:100, fontSize:13, fontWeight:500, color:'#292929', cursor:'pointer' }}>Yes</button>
-                  <button onClick={() => handleConfirm(false)}
-                    style={{ padding:'8px 20px', background:'rgba(255,255,255,0.12)', border:'1px solid rgba(255,255,255,0.3)', borderRadius:100, fontSize:13, fontWeight:500, color:'#FFFFFF', cursor:'pointer', backdropFilter:'blur(10px)' }}>No</button>
+                  <div onClick={() => handleConfirm(false)}
+                    style={{ flex:1, background:'#F5F5F5', border:'1px solid #E0E2E5', borderRadius:16, height:40, padding:'0 12px 0 14px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, cursor:'pointer', WebkitTapHighlightColor:'transparent', boxShadow:'0 1px 2px rgba(15,23,42,0.04), 0 4px 16px rgba(15,23,42,0.06)' }}>
+                    <span style={{ fontSize:14, fontWeight:400, color:'#292929', lineHeight:'20px' }}>No</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#707070" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0 }}><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+                  </div>
+                  <div onClick={() => handleConfirm(true)}
+                    style={{ flex:1, background:'#F5F5F5', border:'1px solid #E0E2E5', borderRadius:16, height:40, padding:'0 12px 0 14px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, cursor:'pointer', WebkitTapHighlightColor:'transparent', boxShadow:'0 1px 2px rgba(15,23,42,0.04), 0 4px 16px rgba(15,23,42,0.06)' }}>
+                    <span style={{ fontSize:14, fontWeight:400, color:'#292929', lineHeight:'20px' }}>Yes</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#707070" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0 }}><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+                  </div>
                 </div>
               </div>
             );
           }
-          // Regular messages
+          // Regular messages — flat grey bubbles, no blur
           return (
             <div key={i} className="siri-bubble" style={{ animationDelay: i * 60 + 'ms', display:'flex', justifyContent: m.from === 'user' ? 'flex-end' : 'flex-start' }}>
               <div style={{
-                maxWidth:'82%', fontSize:14, lineHeight:1.5,
-                background: m.from === 'user' ? '#FFFFFF' : 'rgba(255,255,255,0.16)',
-                color: m.from === 'user' ? '#292929' : '#FFFFFF',
-                border: m.from === 'user' ? 'none' : '1px solid rgba(255,255,255,0.22)',
+                maxWidth:'82%', fontSize:14, lineHeight:'20px',
+                background: m.from === 'user' ? '#FFFFFF' : '#CDCDCD',
+                color:'#292929',
                 padding:'10px 14px',
                 borderRadius: m.from === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-                backdropFilter: m.from === 'user' ? 'none' : 'blur(10px)',
                 whiteSpace:'pre-line',
               }}>{m.text}</div>
             </div>
@@ -2195,15 +2351,31 @@ function AgentOverlay({ item, draft, onChangeDraft, onClose }) {
         <div ref={msgsEndRef} />
       </div>
 
-      {/* Input row */}
-      <div style={{ padding:'0 20px 24px', display:'flex', gap:8, alignItems:'center' }} onClick={e => e.stopPropagation()}>
-        <input ref={inputRef} value={input} onChange={e => setInput(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter') send(); }}
-          placeholder="Talk to the agent..."
-          style={{ flex:1, background:'rgba(255,255,255,0.12)', border:'1px solid rgba(255,255,255,0.25)', borderRadius:100, padding:'12px 16px', fontSize:13.5, color:'#FFF', outline:'none', backdropFilter:'blur(10px)', fontFamily:'Inter, system-ui, sans-serif' }} />
-        <button onClick={send} style={{ width:38, height:38, borderRadius:'50%', background:'#FFF', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
-        </button>
+      {/* Input — expanded style, same dimensions as chat detail but light-gray fill + white border */}
+      <div style={{ padding:'0 20px 24px' }} onClick={e => e.stopPropagation()}>
+        <div style={{ background:'#F0F0F0', border:'1px solid #FFFFFF', borderRadius:16, padding:'14px 16px', display:'flex', flexDirection:'column', gap:10 }}>
+          <textarea ref={inputRef} value={input} onChange={e => setInput(e.target.value)}
+            onFocus={() => setOverlayInputFocused(true)}
+            onBlur={() => setOverlayInputFocused(false)}
+            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
+            placeholder="Ask me anything"
+            rows={1}
+            onInput={e => { e.target.style.height = 'auto'; e.target.style.height = Math.min(120, e.target.scrollHeight) + 'px'; }}
+            style={{ width:'100%', fontSize:15, color: input ? '#292929' : '#9A9A9A', lineHeight:'20px', border:'none', outline:'none', resize:'none', minHeight:20, maxHeight:120, fontFamily:'Inter, system-ui, sans-serif', background:'transparent', padding:0 }} />
+          {/* Bottom row: mic/send aligned right */}
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'flex-end' }}>
+            {input.trim() ? (
+              <div onClick={send}
+                style={{ width:32, height:32, borderRadius:16, background:'#292929', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0 }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </div>
+            ) : (
+              <div style={{ width:32, height:32, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, cursor:'pointer' }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="2" strokeLinecap="round"><line x1="4" y1="10" x2="4" y2="14"/><line x1="8" y1="7" x2="8" y2="17"/><line x1="12" y1="4" x2="12" y2="20"/><line x1="16" y1="7" x2="16" y2="17"/><line x1="20" y1="10" x2="20" y2="14"/></svg>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -2217,6 +2389,9 @@ function FocusMode({ title, items, initialSentSet, initialLaterSet, onClose, onS
   const [laterSet, setLaterSet] = useState(initialLaterSet || new Set());
   const [showToast, setShowToast] = useState(false);
   const [toastUser, setToastUser] = useState('');
+  const [toastType, setToastType] = useState('reply'); // 'reply' | 'snooze'
+  const [toastDuration, setToastDuration] = useState('');
+  const [snoozePicker, setSnoozePicker] = useState(null); // null or { item }
   const [expandedSummary, setExpandedSummary] = useState(false);
   // replyMode removed — input is always visible via tabs
   const [replyVal, setReplyVal] = useState('');
@@ -2224,7 +2399,12 @@ function FocusMode({ title, items, initialSentSet, initialLaterSet, onClose, onS
   const [chatDetailOpen, setChatDetailOpen] = useState(false);
   const [currentDraft, setCurrentDraft] = useState('');
   const [customSentMsg, setCustomSentMsg] = useState('');
+  // true when the last send on this card was a custom/typed reply.
+  // AI-draft sends auto-advance; we use this flag to avoid briefly flashing
+  // the "Next" button for auto-advance sends.
+  const [wasCustomSend, setWasCustomSend] = useState(false);
   const replyInputRef = useRef(null);
+  const [replyFocused, setReplyFocused] = useState(false);
   const [reasoningSheet, setReasoningSheet] = useState(null);
   const [slideDir, setSlideDir] = useState('none'); // 'left' | 'right' | 'none'
   const [animKey, setAnimKey] = useState(0);
@@ -2253,6 +2433,7 @@ function FocusMode({ title, items, initialSentSet, initialLaterSet, onClose, onS
       setExpandedSummary(false);
       setReplyVal('');
       setCustomSentMsg('');
+      setWasCustomSend(false);
       setTimeout(() => setCurrentIdx(i => i + 1), 50);
     }
   };
@@ -2271,6 +2452,7 @@ function FocusMode({ title, items, initialSentSet, initialLaterSet, onClose, onS
     // Step 1: Drafts turn blue + toast appears immediately
     setSentSet(prev => new Set([...prev, item.user]));
     setToastUser(item.name || item.user);
+    setToastType('reply');
     prevIdxRef.current = currentIdx;
     if (onSent) onSent(item.user);
     setShowToast(true);
@@ -2285,7 +2467,19 @@ function FocusMode({ title, items, initialSentSet, initialLaterSet, onClose, onS
   };
 
   const handleUndo = () => {
-    // Undo: remove from sent, go back to previous card
+    if (toastType === 'snooze') {
+      // Undo snooze: remove from laterSet and go back
+      const userToUndo = items[prevIdxRef.current]?.user;
+      if (userToUndo) setLaterSet(prev => { const n = new Set(prev); n.delete(userToUndo); return n; });
+      setShowToast(false);
+      clearTimeout(undoTimerRef.current);
+      setSlideDir('right');
+      setAnimKey(k => k + 1);
+      setExpandedSummary(false);
+      setTimeout(() => setCurrentIdx(prevIdxRef.current), 50);
+      return;
+    }
+    // Undo reply: remove from sent, go back to previous card
     const userToUndo = items[prevIdxRef.current]?.user;
     if (userToUndo) setSentSet(prev => { const n = new Set(prev); n.delete(userToUndo); return n; });
     setShowToast(false);
@@ -2302,10 +2496,27 @@ function FocusMode({ title, items, initialSentSet, initialLaterSet, onClose, onS
     setCustomSentMsg(replyVal);
     setReplyVal('');
     setSentSet(prev => new Set([...prev, item.user]));
+    setWasCustomSend(true);
     setToastUser(item.name || item.user);
+    setToastType('reply');
     prevIdxRef.current = currentIdx;
     if (onSent) onSent(item.user);
     // NO auto-advance — user stays on this card and sees a "Next" button
+    setShowToast(true);
+    clearTimeout(undoTimerRef.current);
+    undoTimerRef.current = setTimeout(() => setShowToast(false), 5000);
+  };
+
+  const handleSnoozeChoice = (durationLabel) => {
+    const snoozedItem = snoozePicker?.item || item;
+    if (!snoozedItem) return;
+    setLaterSet(prev => new Set([...prev, snoozedItem.user]));
+    setToastUser(snoozedItem.name || snoozedItem.user);
+    setToastType('snooze');
+    setToastDuration(durationLabel);
+    prevIdxRef.current = currentIdx;
+    setSnoozePicker(null);
+    goNext();
     setShowToast(true);
     clearTimeout(undoTimerRef.current);
     undoTimerRef.current = setTimeout(() => setShowToast(false), 5000);
@@ -2331,18 +2542,18 @@ function FocusMode({ title, items, initialSentSet, initialLaterSet, onClose, onS
   };
 
   return (
-    <div className="screen-slide-in" style={{ position:'absolute', inset:0, zIndex:100, background:'#fff', display:'flex', flexDirection:'column' }}>
+    <div className="screen-slide-in" style={{ position:'absolute', inset:0, zIndex:100, background:'#F5F5F5', display:'flex', flexDirection:'column' }}>
 
-      {/* Header — always visible */}
+      {/* Header — back arrow (left) + title (center); no new-chat button per design */}
       <div style={{ padding:'52px 16px 12px', display:'flex', alignItems:'center', gap:12, flexShrink:0 }}>
-        <div onClick={() => onClose(sentSet, laterSet)} style={{ cursor:'pointer', padding:8, margin:-8 }}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        <div onClick={() => onClose(sentSet, laterSet)} style={{ width:40, height:40, borderRadius:400, background:'#fff', border:'1px solid #E0E2E5', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0, WebkitTapHighlightColor:'transparent' }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
         </div>
         <div style={{ flex:1, textAlign:'center' }}>
           <div style={{ fontSize:16, fontWeight:600, color:'#292929', lineHeight:'20px' }}>{title}</div>
           <div style={{ fontSize:12, fontWeight:400, color:'#707070', lineHeight:'16px' }}>{allDone ? 'Done' : (currentIdx + 1) + ' of ' + items.length}</div>
         </div>
-        <div style={{ width:24 }} />
+        <div style={{ width:40, flexShrink:0 }} />
       </div>
 
       {/* Completion state — empty state below header */}
@@ -2369,198 +2580,268 @@ function FocusMode({ title, items, initialSentSet, initialLaterSet, onClose, onS
 
       {/* Scrollable card area */}
       <div key={animKey} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}
-        style={{ flex:1, overflowY:'auto', padding:'0 16px 16px',
-          animation: slideDir === 'left' ? 'slideFromRight .5s cubic-bezier(.25,.46,.45,.94) both' : slideDir === 'right' ? 'slideFromLeft .5s cubic-bezier(.25,.46,.45,.94) both' : 'fadeIn .3s ease both'
+        style={{ flex:1, display:'flex', flexDirection:'column', padding:'0 16px 12px', minHeight:0,
+          transformOrigin:'50% 100%',
+          animation: slideDir === 'left' ? 'cardRiseIn .42s cubic-bezier(.22,.9,.32,1.02) both' : slideDir === 'right' ? 'cardReturnIn .4s cubic-bezier(.22,.9,.32,1.02) both' : 'cardRiseIn .35s cubic-bezier(.22,.9,.32,1.02) both'
         }}>
 
-        {/* Agent summary removed — too much info, user should focus on the reply */}
+        {/* Floating contact card — holds its own chat scroll + input */}
+        <div style={{ flex:1, background:'#fff', border:'1px solid #E6E6E6', borderRadius:20, boxShadow:'0 1px 2px rgba(15,23,42,0.04), 0 12px 32px rgba(15,23,42,0.10)', display:'flex', flexDirection:'column', overflow:'hidden', minHeight:0 }}>
 
-        {/* Contact card */}
-        <div style={{ border:'1px solid #D6D6D6', borderRadius:16, overflow:'hidden', display:'flex', flexDirection:'column' }}>
-          {/* Reply sent banner */}
-          {isSent && (
-            <div style={{
-              background:'#DEFFE6', padding:'10px 16px',
-              display:'flex', alignItems:'center', gap:8,
-            }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0C8143" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-              <span style={{ fontSize:13, fontWeight:500, color:'#0C8143' }}>Reply sent</span>
-            </div>
-          )}
-          {isLater && !isSent && (
-            <div style={{
-              background:'#F5F5F5', padding:'10px 16px',
-              display:'flex', alignItems:'center', gap:8,
-            }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#707070" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              <span style={{ fontSize:13, fontWeight:500, color:'#707070' }}>Snoozed for later</span>
-            </div>
-          )}
-          <div style={{ padding:20, display:'flex', flexDirection:'column', gap:16 }}>
-          {/* Contact info — tappable to open full chat */}
-          <div onClick={() => setChatDetailOpen(true)} style={{ display:'flex', alignItems:'center', gap:12, cursor:'pointer' }}>
-            <img src={item.avatar} alt="" style={{ width:44, height:44, borderRadius:400, objectFit:'cover', border:'0.5px solid rgba(44,50,58,0.12)' }} />
-            <div>
-              <div style={{ display:'flex', alignItems:'center', gap:4 }}>
-                <span style={{ fontSize:16, fontWeight:600, color:'#292929' }}>{item.name || item.user}</span>
-                <span style={{ fontSize:14, color:'#292929' }}>★</span>
+          {/* Pinned card header */}
+          <div style={{ padding:'14px 16px', display:'flex', alignItems:'center', gap:12, borderBottom:'1px solid #F0F0F0', flexShrink:0 }}>
+            <img src={item.avatar} alt="" style={{ width:36, height:36, borderRadius:400, objectFit:'cover', border:'0.5px solid rgba(44,50,58,0.12)', flexShrink:0 }} />
+            <div onClick={() => setReasoningSheet({ title: 'About ' + (item.name || item.user), body: item.context || 'No context available.', intent: item.intent })} style={{ flex:1, minWidth:0, cursor:'pointer' }}>
+              <div style={{ fontSize:14, fontWeight:600, color:'#292929', lineHeight:'18px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.name || item.user}</div>
+              <div style={{ display:'flex', alignItems:'center', gap:2, marginTop:1 }}>
+                <span style={{ fontSize:12, fontWeight:400, color:'#707070', lineHeight:'16px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.context || item.agentRead || item.summary || 'DM'}</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#707070" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0 }}><polyline points="9 18 15 12 9 6"/></svg>
               </div>
-              {item.tag && (
-                <div style={{ display:'inline-block', background:'#F0F0F0', borderRadius:4, padding:'2px 8px', marginTop:4 }}>
-                  <span style={{ fontSize:12, fontWeight:400, color:'#707070' }}>
-                    {item.tag.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
-                  </span>
+            </div>
+            {item.intent && (
+              <div style={{ background:'#F0F0F0', borderRadius:6, padding:'4px 8px', flexShrink:0 }}>
+                <span style={{ fontSize:12, fontWeight:500, color:'#525960', lineHeight:'16px' }}>{item.intent}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Scrollable chat body — auto-scrolled to bottom. Tapping opens full ChatDetail. */}
+          <div onClick={() => setChatDetailOpen(true)} ref={el => { if (el) { setTimeout(() => { el.scrollTop = el.scrollHeight; }, 30); } }} style={{ flex:1, overflowY:'auto', padding:'16px', display:'flex', flexDirection:'column', gap:10, minHeight:0, cursor:'pointer' }}>
+            {/* Render existing chat history / timeline */}
+            {item.timeline && item.timeline.length > 0 && item.timeline.map((entry, ei) => {
+              if (entry.type === 'comment') return (
+                <div key={'t'+ei} style={{ marginBottom:4 }}>
+                  <div style={{ textAlign:'center', marginBottom:6 }}>
+                    <span style={{ fontSize:11, color:'#ABABAB' }}>{entry.date}</span>
+                  </div>
+                  <div style={{ borderLeft:'2px solid #E0E0E0', paddingLeft:10 }}>
+                    <div style={{ fontSize:10, fontWeight:500, color:'#ABABAB', letterSpacing:'0.03em', textTransform:'uppercase', marginBottom:3 }}>Comment on {entry.postLabel}</div>
+                    <div style={{ fontSize:13, fontWeight:400, color:'#4A4A4A', lineHeight:'18px' }}>{entry.comment}</div>
+                  </div>
+                </div>
+              );
+              if (entry.type === 'bridge') return (
+                <div key={'t'+ei} style={{ display:'flex', alignItems:'center', gap:8, margin:'4px 0' }}>
+                  <div style={{ flex:1, height:1, background:'#EBEBEB' }} />
+                  <span style={{ fontSize:11, fontWeight:500, color:'#ABABAB', whiteSpace:'nowrap' }}>Followed through DM</span>
+                  <div style={{ flex:1, height:1, background:'#EBEBEB' }} />
+                </div>
+              );
+              if (entry.type === 'session') return (
+                <React.Fragment key={'t'+ei}>
+                  <div style={{ textAlign:'center', margin:'6px 0' }}>
+                    <span style={{ fontSize:11, color:'#ABABAB' }}>{entry.date}</span>
+                  </div>
+                  {entry.messages.map((m, mi) => {
+                    const outgoing = m.from === 'you' || m.from === 'automation';
+                    const isAutomation = m.from === 'automation';
+                    const bg = outgoing ? '#006BE2' : '#F0F0F0';
+                    const txtColor = outgoing ? '#fff' : '#292929';
+                    return (
+                      <div key={'m'+mi} style={{ display:'flex', justifyContent: outgoing ? 'flex-end' : 'flex-start' }}>
+                        <div style={{ maxWidth:'80%', padding:'10px 14px', borderRadius: outgoing ? '14px 14px 2px 14px' : '14px 14px 14px 2px', background:bg }}>
+                          {outgoing && (
+                            <div style={{ fontSize:11, fontWeight:500, color:'#BCD5FF', lineHeight:'14px', marginBottom:2 }}>
+                              {isAutomation ? 'Agent auto-reply' : 'You'}
+                            </div>
+                          )}
+                          <div style={{ fontSize:14, fontWeight:400, lineHeight:'20px', color:txtColor }}>{m.text}</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </React.Fragment>
+              );
+              return null;
+            })}
+
+            {/* Legacy chatHistory — render as bubbles if no timeline */}
+            {(!item.timeline || item.timeline.length === 0) && item.chatHistory && item.chatHistory.length > 0 && item.chatHistory.map((m, mi) => {
+              const outgoing = m.from === 'you' || m.from === 'automation';
+              const isAutomation = m.from === 'automation';
+              const bg = outgoing ? '#006BE2' : '#F0F0F0';
+              const txtColor = outgoing ? '#fff' : '#292929';
+              return (
+                <div key={'ch'+mi} style={{ display:'flex', justifyContent: outgoing ? 'flex-end' : 'flex-start' }}>
+                  <div style={{ maxWidth:'80%', padding:'10px 14px', borderRadius: outgoing ? '14px 14px 2px 14px' : '14px 14px 14px 2px', background:bg }}>
+                    {outgoing && (
+                      <div style={{ fontSize:11, fontWeight:500, color:'#BCD5FF', lineHeight:'14px', marginBottom:2 }}>
+                        {isAutomation ? 'Agent auto-reply' : 'You'}
+                      </div>
+                    )}
+                    <div style={{ fontSize:14, fontWeight:400, lineHeight:'20px', color:txtColor }}>{m.text}</div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Fallback single message if nothing else */}
+            {!item.timeline && !item.chatHistory && item.msg && (
+              <div style={{ display:'flex', justifyContent:'flex-start' }}>
+                <div style={{ maxWidth:'80%', padding:'10px 14px', borderRadius:'14px 14px 14px 2px', background:'#F0F0F0' }}>
+                  <div style={{ fontSize:14, fontWeight:400, lineHeight:'20px', color:'#292929' }}>{item.msg}</div>
+                </div>
+              </div>
+            )}
+
+            {/* Draft bubbles at the bottom */}
+            {!customSentMsg && draftParts.length > 0 && (
+              <div style={{ display:'flex', flexDirection:'column', gap:6, alignItems:'flex-end', marginTop:4 }}>
+                {draftParts.map((part, pi) => (
+                  <div key={'d'+pi} style={{
+                    maxWidth:'80%',
+                    padding:'10px 14px',
+                    borderRadius: pi === draftParts.length - 1 ? '14px 14px 2px 14px' : '14px',
+                    background: isSent ? '#006BE2' : 'transparent',
+                    border: isSent ? 'none' : '1.5px dashed #292929',
+                    transition: 'all .4s ease',
+                  }}>
+                    {isSent && pi === 0 && <div style={{ fontSize:11, fontWeight:500, color:'#BCD5FF', lineHeight:'14px', marginBottom:2 }}>You</div>}
+                    <div style={{ fontSize:14, fontWeight:400, fontStyle: isSent ? 'normal' : 'italic', lineHeight:'20px', color: isSent ? '#fff' : '#292929' }}>{part}</div>
+                  </div>
+                ))}
+                {item.styleReason && !isSent && (
+                  <div onClick={(e) => { e.stopPropagation(); setReasoningSheet({ title:'Why this reply', body: item.styleReason }); }}
+                    style={{ display:'flex', alignItems:'center', gap:4, cursor:'pointer', marginTop:2 }}>
+                    <span style={{ fontSize:12, fontWeight:400, color:'#707070' }}>Why this reply</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#707070" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* No-draft explainer */}
+            {!customSentMsg && draftParts.length === 0 && !isSent && item.noDraftReason && (
+              <div style={{ display:'flex', alignItems:'flex-start', gap:8, padding:'8px 0' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#707070" strokeWidth="2" strokeLinecap="round" style={{ flexShrink:0, marginTop:1 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                <span style={{ fontSize:13, fontWeight:400, color:'#707070', lineHeight:'18px' }}>{item.noDraftReason}</span>
+              </div>
+            )}
+
+            {/* Custom sent reply */}
+            {customSentMsg && (
+              <div className="fade-up" style={{ display:'flex', justifyContent:'flex-end', marginTop:4 }}>
+                <div style={{ maxWidth:'80%', padding:'10px 14px', borderRadius:'14px 14px 2px 14px', background:'#006BE2' }}>
+                  <div style={{ fontSize:11, fontWeight:500, color:'#BCD5FF', lineHeight:'14px', marginBottom:2 }}>You</div>
+                  <div style={{ fontSize:14, fontWeight:400, lineHeight:'20px', color:'#fff' }}>{customSentMsg}</div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Pinned input inside card — matches home "Ask me anything" pattern + plus icon */}
+          <div style={{ padding:'10px 12px 12px', flexShrink:0 }}>
+            <div style={{ background:'#fff', border: replyFocused ? '1px solid #006BE2' : '1px solid #E0E2E5', borderRadius:16, padding:'10px 12px', display:'flex', alignItems:'center', gap:8, transition:'border-color .15s ease' }}>
+              <div style={{ width:28, height:28, borderRadius:400, background:'#F0F0F0', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, cursor:'pointer' }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="2.2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </div>
+              <textarea ref={replyInputRef} value={replyVal} onChange={e => setReplyVal(e.target.value)}
+                onFocus={() => setReplyFocused(true)}
+                onBlur={() => setReplyFocused(false)}
+                placeholder="Reply on Instagram..."
+                rows={1}
+                onInput={e => { e.target.style.height = 'auto'; e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px'; }}
+                style={{ flex:1, fontSize:15, color: replyVal ? '#292929' : '#9A9A9A', lineHeight:'20px', border:'none', outline:'none', resize:'none', minHeight:20, maxHeight:120, fontFamily:'Inter, system-ui, sans-serif', background:'transparent', padding:0 }} />
+              {replyVal.trim() ? (
+                <div onClick={handleSendCustomReply}
+                  style={{ width:32, height:32, borderRadius:16, background:'#292929', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0 }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </div>
+              ) : (
+                <div style={{ width:32, height:32, borderRadius:16, background:'#F0F0F0', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, cursor:'pointer' }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
                 </div>
               )}
             </div>
           </div>
+        </div>{/* end floating card */}
+      </div>
 
-          {/* Message count hint — above the last message */}
-          {(() => {
-            let count = 0;
-            if (item.chatHistory && item.chatHistory.length > 0) count = item.chatHistory.length - 1;
-            if (item.timeline) {
-              item.timeline.forEach(t => {
-                if (t.type === 'session' && t.messages) count += t.messages.length;
-                if (t.type === 'comment') count += 1;
-              });
-            }
-            if (count <= 0) return null;
-            return (
-              <div onClick={() => setChatDetailOpen(true)} style={{ fontSize:12, fontWeight:400, color:'#707070', marginBottom:8, display:'flex', alignItems:'center', gap:2, cursor:'pointer' }}>
-                <span>{count} previous messages</span>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#707070" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
-              </div>
-            );
-          })()}
-
-          {/* Last message */}
-          <div style={{ background:'#F5F5F5', borderRadius:12, padding:'12px 16px' }}>
-            <div style={{ fontSize:16, fontWeight:400, lineHeight:'24px', color:'#292929' }}>
-              {item.chatHistory && item.chatHistory.length > 0 ? item.chatHistory[item.chatHistory.length - 1]?.text : item.msg}
-            </div>
-          </div>
-
-          {/* Draft section */}
-          {!customSentMsg && (
-            <>
-              {/* Divider — reply ready */}
-              {draftParts.length > 0 && (
-                <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-                  <div style={{ flex:1, height:1, background:'#E0E0E0' }} />
-                  <span style={{ fontSize:12, fontWeight:400, color:'#707070', whiteSpace:'nowrap' }}>{draftParts.length}-message reply ready</span>
-                  <div style={{ flex:1, height:1, background:'#E0E0E0' }} />
-                </div>
-              )}
-
-              {/* Draft bubbles */}
-              {draftParts.length > 0 && (
-                <div style={{ display:'flex', flexDirection:'column', gap:8, alignItems:'flex-end' }}>
-                  {draftParts.map((part, pi) => (
-                    <div key={pi} style={{
-                      padding:12,
-                      borderRadius: pi === draftParts.length - 1 ? '12px 12px 2px 12px' : '12px',
-                      background: isSent ? '#C2DBFF' : '#fff',
-                      border: isSent ? 'none' : '1.5px dashed #292929',
-                      transition: 'all .4s ease',
-                    }}>
-                      <div style={{ fontSize:14, fontWeight:400, fontStyle: isSent ? 'normal' : 'italic', lineHeight:'20px', color:'#292929' }}>{part}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Why this reply */}
-              {item.styleReason && !isSent && draftParts.length > 0 && (
-                <div onClick={() => setReasoningSheet({ title:'Why this reply', body: item.styleReason })}
-                  style={{ display:'flex', alignItems:'center', justifyContent:'flex-end', gap:4, cursor:'pointer' }}>
-                  <span style={{ fontSize:13, fontWeight:400, color:'#707070' }}>Why this reply</span>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#707070" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
-                </div>
-              )}
-
-              {/* No draft explanation */}
-              {draftParts.length === 0 && !isSent && item.noDraftReason && (
-                <div style={{ display:'flex', alignItems:'flex-start', gap:8, padding:'12px 0 4px' }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#707070" strokeWidth="2" strokeLinecap="round" style={{ flexShrink:0, marginTop:1 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                  <span style={{ fontSize:13, fontWeight:400, color:'#707070', lineHeight:'18px' }}>{item.noDraftReason}</span>
-                </div>
-              )}
-            </>
-          )}
-
-          {/* Custom sent message — shown after user sends their own reply */}
-          {customSentMsg && (
-            <div className="fade-up" style={{ display:'flex', justifyContent:'flex-end', marginTop:8 }}>
-              <div style={{ maxWidth:288, padding:'12px 16px', borderRadius:'12px 12px 2px 12px', background:'#C2DBFF', transition:'all .4s ease' }}>
-                <div style={{ fontSize:14, fontWeight:400, lineHeight:'20px', color:'#292929' }}>{customSentMsg}</div>
-              </div>
-            </div>
-          )}
-        </div>
-        </div>{/* end padding wrapper */}
-      </div>{/* end card */}
-
-      {/* Bottom section — action buttons + tabbed input */}
-      <div style={{ flexShrink:0 }}>
-        {/* Action buttons */}
+      {/* Bottom section — action buttons + Ask Inbox chip */}
+      <div style={{ flexShrink:0, padding:'14px 16px 20px', background:'#F5F5F5', display:'flex', flexDirection:'column', gap:14 }}>
+        {/* Action buttons — 48px height, 16px type */}
         {isSent ? (
-          /* After sending (custom reply) — show Next button */
-          <div style={{ padding:'8px 16px', display:'flex', gap:8 }}>
-            <button onClick={() => goNext()}
-              style={{ flex:1, padding:'14px 0', background:'#292929', border:'none', borderRadius:12, fontSize:17, fontWeight:500, color:'#fff', cursor:'pointer', lineHeight:'24px' }}>
-              Next
-            </button>
-          </div>
+          // After a custom/typed reply, show Later + Next side-by-side (both secondary).
+          // AI-draft sends auto-advance after 1s — no button needed.
+          wasCustomSend ? (
+            <div style={{ display:'flex', gap:10 }}>
+              <button onClick={() => setSnoozePicker({ item })}
+                style={{ flex:1, height:48, padding:'0 16px', background:'#fff', border:'1px solid #E0E2E5', borderRadius:12, fontSize:16, fontWeight:500, color:'#292929', cursor:'pointer', lineHeight:'20px' }}>
+                Later
+              </button>
+              <button onClick={() => goNext()}
+                style={{ flex:1, height:48, padding:'0 16px', background:'#fff', border:'1px solid #E0E2E5', borderRadius:12, fontSize:16, fontWeight:500, color:'#292929', cursor:'pointer', lineHeight:'20px' }}>
+                Next
+              </button>
+            </div>
+          ) : null
         ) : (
-          /* Before sending — Later + Send replies */
-          <div style={{ padding:'8px 16px', display:'flex', gap:8 }}>
-            <button onClick={() => { setLaterSet(prev => new Set([...prev, item.user])); goNext(); }}
-              style={{ flex: draftParts.length > 0 ? 1 : 'none', padding:'14px 24px', background:'#F0F0F0', border:'none', borderRadius:12, fontSize:17, fontWeight:500, color:'#292929', cursor:'pointer', lineHeight:'24px' }}>
+          <div style={{ display:'flex', gap:10 }}>
+            <button onClick={() => setSnoozePicker({ item })}
+              style={{ flex:1, height:48, padding:'0 16px', background:'#fff', border:'1px solid #E0E2E5', borderRadius:12, fontSize:16, fontWeight:500, color:'#292929', cursor:'pointer', lineHeight:'20px' }}>
               Later
             </button>
-            {draftParts.length > 0 && (
+            {draftParts.length > 0 ? (
               <button onClick={handleSend}
-                style={{ flex:1, padding:'14px 0', background:'#292929', border:'none', borderRadius:12, fontSize:17, fontWeight:500, color:'#fff', cursor:'pointer', lineHeight:'24px' }}>
-                Send replies
+                style={{ flex:1, height:48, padding:'0 16px', background:'#292929', border:'none', borderRadius:12, fontSize:16, fontWeight:500, color:'#fff', cursor:'pointer', lineHeight:'20px' }}>
+                Send drafts
+              </button>
+            ) : (
+              <button onClick={() => goNext()}
+                style={{ flex:1, height:48, padding:'0 16px', background:'#fff', border:'1px solid #E0E2E5', borderRadius:12, fontSize:16, fontWeight:500, color:'#292929', cursor:'pointer', lineHeight:'20px' }}>
+                Next
               </button>
             )}
           </div>
         )}
 
-        {/* Tabbed input card: Your reply / Ask Agent */}
-        <div style={{ margin:'0 16px 16px' }}>
-          <div style={{ background:'#fff', border:'1px solid #D6D6D6', borderRadius:12, boxShadow:'0 8px 16px rgba(132,146,166,0.12)', padding:8, display:'flex', flexDirection:'column', gap:8 }}>
-            {/* Tabs */}
-            <div style={{ display:'flex', gap:4 }}>
-              <div style={{ padding:'5px 12px', fontSize:12, fontWeight:500, color:'#292929', background:'#F0F0F0', borderRadius:8, cursor:'default' }}>Your reply</div>
-              <div onClick={() => setAgentOverlayOpen(true)} style={{ padding:'5px 12px', fontSize:12, fontWeight:500, color:'#707070', background:'transparent', borderRadius:8, cursor:'pointer' }}>Ask Agent</div>
-            </div>
-            {/* Input row */}
-            <div style={{ display:'flex', gap:8, alignItems:'center' }}>
-              <textarea ref={replyInputRef} value={replyVal} onChange={e => setReplyVal(e.target.value)}
-                placeholder="Type in..."
-                rows={1}
-                onInput={e => { e.target.style.height = 'auto'; e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px'; }}
-                style={{ flex:1, fontSize:16, color: replyVal ? '#292929' : '#878787', lineHeight:'24px', border:'none', outline:'none', resize:'none', minHeight:24, maxHeight:120, fontFamily:'Inter, system-ui, sans-serif', background:'transparent' }} />
-              {replyVal.trim() && (
-                <div onClick={handleSendCustomReply}
-                  style={{ width:36, height:36, borderRadius:20, background:'#292929', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0 }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                </div>
-              )}
-            </div>
+        {/* Ask Inbox pill — soft gray pill, dark text */}
+        <div style={{ display:'flex', justifyContent:'center' }}>
+          <div onClick={() => setAgentOverlayOpen(true)} style={{ padding:'8px 18px', background:'#EEEEEE', borderRadius:400, cursor:'pointer', WebkitTapHighlightColor:'transparent' }}>
+            <span style={{ fontSize:14, fontWeight:500, color:'#292929' }}>Ask Inbox</span>
           </div>
         </div>
       </div>
 
-      {/* Toast */}
-      {showToast && (
-        <div style={{ position:'absolute', bottom:180, left:0, right:0, display:'flex', justifyContent:'center', zIndex:110, animation:'toastUp .4s cubic-bezier(.25,.46,.45,.94) both' }}>
-          <div style={{ background:'#292929', color:'#fff', padding:'10px 20px', borderRadius:12, fontSize:13, fontWeight:500, display:'flex', alignItems:'center', gap:12, boxShadow:'0 4px 16px rgba(0,0,0,0.12)' }}>
-            <span>Reply sent to {toastUser}</span>
-            <button onClick={handleUndo} style={{ background:'none', border:'none', color:'#fff', fontWeight:700, cursor:'pointer', fontSize:13, textDecoration:'underline' }}>Undo</button>
+      {/* Snooze picker — dimmed scrim + bottom sheet with 4 duration options */}
+      {snoozePicker && (
+        <div style={{ position:'absolute', inset:0, zIndex:150, display:'flex', flexDirection:'column', justifyContent:'flex-end' }}>
+          <div onClick={() => setSnoozePicker(null)} style={{ position:'absolute', inset:0, background:'rgba(21,27,36,0.4)' }} />
+          <div className="sheet-up" style={{ position:'relative', zIndex:1, background:'#fff', borderRadius:'24px 24px 0 0', display:'flex', flexDirection:'column', padding:'8px 16px 24px' }}>
+            <div style={{ display:'flex', justifyContent:'center', paddingTop:5, paddingBottom:12 }}>
+              <div style={{ width:36, height:5, background:'#CCC', borderRadius:100 }} />
+            </div>
+            <div style={{ fontSize:17, fontWeight:600, color:'#292929', lineHeight:'24px', padding:'4px 4px 8px' }}>Snooze until</div>
+            <div style={{ fontSize:14, fontWeight:400, color:'#6F757E', lineHeight:'20px', padding:'0 4px 16px' }}>
+              {snoozePicker.item?.name || snoozePicker.item?.user} will come back to your inbox after:
+            </div>
+            {[
+              { label:'15 min', icon:'15' },
+              { label:'1 hour', icon:'1h' },
+              { label:'6 hours', icon:'6h' },
+              { label:'1 day', icon:'1d' },
+            ].map((opt, i) => (
+              <div key={opt.label} onClick={() => handleSnoozeChoice(opt.label)}
+                style={{ display:'flex', alignItems:'center', gap:12, padding:'14px 12px', borderTop: i === 0 ? 'none' : '1px solid #F0F0F0', cursor:'pointer' }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0 }}>
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                </svg>
+                <span style={{ flex:1, fontSize:16, fontWeight:500, color:'#292929' }}>{opt.label}</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9A9A9A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </div>
+            ))}
           </div>
+        </div>
+      )}
+
+      {/* Toast — unified SystemSnackbar, full-width bottom */}
+      {showToast && (
+        <div style={{ position:'absolute', bottom:168, left:0, right:0, zIndex:110 }}>
+          <SystemSnackbar
+            message={toastType === 'snooze' ? `Snoozed ${toastUser} for ${toastDuration}` : `Reply sent to ${toastUser}`}
+            onUndo={handleUndo}
+          />
         </div>
       )}
 
@@ -2609,6 +2890,253 @@ function FocusMode({ title, items, initialSentSet, initialLaterSet, onClose, onS
   );
 }
 
+/* ═══ MENU SCREEN ═══ */
+// Full-screen drawer that slides in from the left.
+// Shows: header (Inbox + pulsing dot + search), 3 quick-access bubbles, recents grouped by date.
+
+function MenuScreen({ onClose, onOpenChat, onNewChat }) {
+  const [searchOpen, setSearchOpen] = React.useState(false);
+  const [searchVal, setSearchVal] = React.useState('');
+  const [scrolled, setScrolled] = React.useState(false);
+  const searchRef = React.useRef(null);
+
+  React.useEffect(() => {
+    if (searchOpen && searchRef.current) searchRef.current.focus();
+  }, [searchOpen]);
+
+  // Mock recents — hidden for now per latest direction. Keeping data in place
+  // so we can turn this back on without re-adding everything.
+  const SHOW_RECENTS = false;
+  const recents = {
+    today: [
+      { id:'mb-apr22', title:'Morning brief · April 22', bold:true },
+      { id:'c-1', title:'People who want to buy' },
+      { id:'c-2', title:'Who needs support?' },
+    ],
+    yesterday: [
+      { id:'mb-apr21', title:'Morning brief · April 21', bold:true },
+      { id:'c-3', title:'Show me new leads from the weekend' },
+      { id:'c-4', title:'Draft a reply to Laura about pricing' },
+      { id:'c-5', title:'How many messages did I get yesterday?' },
+    ],
+    prev7: [
+      { id:'mb-apr20', title:'Morning brief · April 20', bold:true },
+      { id:'c-6', title:'Collab requests this week' },
+      { id:'mb-apr19', title:'Morning brief · April 19', bold:true },
+      { id:'c-7', title:'What should I do first?' },
+      { id:'c-8', title:'Returning clients' },
+      { id:'mb-apr18', title:'Morning brief · April 18', bold:true },
+      { id:'c-9', title:'Find @jenna.moves' },
+      { id:'c-10', title:'Testimonials from last month' },
+      { id:'mb-apr17', title:'Morning brief · April 17', bold:true },
+      { id:'c-11', title:'Who is asking about the nutrition program?' },
+    ],
+  };
+
+  // Filter
+  const q = searchVal.trim().toLowerCase();
+  const filterGroup = (arr) => q ? arr.filter(it => it.title.toLowerCase().includes(q)) : arr;
+  const tf = filterGroup(recents.today);
+  const yf = filterGroup(recents.yesterday);
+  const pf = filterGroup(recents.prev7);
+  const anyResults = tf.length || yf.length || pf.length;
+
+  const handleBubble = (which) => {
+    // No real view for these — just close and return to home for now
+    onClose();
+  };
+
+  const bubbleBase = {
+    display:'flex', flexDirection:'column', alignItems:'center', gap:8,
+    cursor:'pointer', WebkitTapHighlightColor:'transparent',
+  };
+  const bubbleCircle = {
+    width:64, height:64, borderRadius:12, background:'#F5F5F5',
+    display:'flex', alignItems:'center', justifyContent:'center',
+  };
+  const bubbleLabel = { fontSize:13, fontWeight:500, color:'#292929' };
+
+  const rowStyle = {
+    padding:'14px 4px', fontSize:14, color:'#292929', lineHeight:'20px',
+    cursor:'pointer', WebkitTapHighlightColor:'transparent',
+    whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis',
+  };
+
+  const groupHeaderStyle = {
+    fontSize:12, fontWeight:500, color:'#9A9A9A', padding:'16px 4px 4px',
+    letterSpacing:'0.1px',
+  };
+
+  const renderRow = (item) => (
+    <div key={item.id}
+      onClick={() => { onOpenChat(item); onClose(); }}
+      style={{ ...rowStyle, fontWeight: item.bold ? 500 : 400 }}>
+      {item.title}
+    </div>
+  );
+
+  return (
+    <div style={{ position:'absolute', inset:0, background:'#fff', display:'flex', flexDirection:'column', zIndex:30, animation:'menuSlideIn .32s cubic-bezier(.32,.72,.35,1) both' }}>
+      {/* Sticky header */}
+      <div style={{ position:'absolute', top:0, left:0, right:0, zIndex:5, background:'#fff', borderBottom: scrolled ? '1px solid #E0E2E5' : '1px solid transparent', transition:'border-color .2s ease' }}>
+        {/* iOS status bar */}
+        <div style={{ padding:'14px 24px 0', display:'flex', justifyContent:'space-between', alignItems:'center', height:44 }}>
+          <span style={{ fontSize:15, fontWeight:600, color:'#292929', letterSpacing:'-0.3px' }}>9:41</span>
+          <div style={{ display:'flex', alignItems:'center', gap:5 }}>
+            <svg width="17" height="12" viewBox="0 0 17 12" fill="none"><rect x="0" y="7" width="3" height="5" rx="0.5" fill="#292929"/><rect x="4.5" y="4.5" width="3" height="7.5" rx="0.5" fill="#292929"/><rect x="9" y="2" width="3" height="10" rx="0.5" fill="#292929"/><rect x="13.5" y="0" width="3" height="12" rx="0.5" fill="#292929"/></svg>
+            <svg width="16" height="12" viewBox="0 0 16 12" fill="#292929"><path d="M8 11.5a1.25 1.25 0 100-2.5 1.25 1.25 0 000 2.5z"/><path d="M4.94 7.94a4.5 4.5 0 016.12 0" stroke="#292929" strokeWidth="1.4" strokeLinecap="round" fill="none"/><path d="M2.81 5.81a7.5 7.5 0 0110.38 0" stroke="#292929" strokeWidth="1.4" strokeLinecap="round" fill="none"/></svg>
+            <svg width="27" height="12" viewBox="0 0 27 12" fill="none"><rect x="0.5" y="0.5" width="22" height="11" rx="2" stroke="#292929" strokeWidth="1" fill="none"/><rect x="2" y="2" width="19" height="8" rx="1" fill="#292929"/><rect x="24" y="3.5" width="2.5" height="5" rx="1" fill="#292929"/></svg>
+          </div>
+        </div>
+
+        {/* Title row: "Inbox" + pulsing dot (left) + search + close (right) */}
+        <div style={{ padding:'12px 16px 12px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:12 }}>
+          {/* Left cluster: title + pulse */}
+          <div style={{ display:'flex', alignItems:'center', gap:8, minWidth:0 }}>
+            <span style={{ fontFamily:"'Manychat Gravity', Inter, system-ui, sans-serif", fontSize:20, fontWeight:700, color:'#292929', letterSpacing:'-0.3px' }}>Inbox</span>
+            <span style={{ position:'relative', width:8, height:8 }}>
+              <span style={{ position:'absolute', inset:0, borderRadius:8, background:'#2952CC', animation:'menuPulseRing 1.6s ease-out infinite' }} />
+              <span style={{ position:'absolute', inset:0, borderRadius:8, background:'#2952CC' }} />
+            </span>
+          </div>
+
+          {/* Right cluster: close (forward arrow) */}
+          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+            <div onClick={onClose} style={{ width:40, height:40, borderRadius:400, border:'1px solid #E0E2E5', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', WebkitTapHighlightColor:'transparent', flexShrink:0 }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+          </div>
+        </div>
+
+        {/* Search input (collapsible) */}
+        {searchOpen && (
+          <div style={{ padding:'0 16px 12px', animation:'fadeSlideIn .22s ease both' }}>
+            <div style={{ background:'#F5F5F5', borderRadius:12, padding:'10px 14px', display:'flex', alignItems:'center', gap:8 }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#707070" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input ref={searchRef} value={searchVal} onChange={e => setSearchVal(e.target.value)}
+                placeholder="Search chats"
+                style={{ flex:1, fontSize:15, color:'#292929', border:'none', outline:'none', background:'transparent', fontFamily:'Inter, system-ui, sans-serif' }} />
+              {searchVal && (
+                <div onClick={() => setSearchVal('')} style={{ cursor:'pointer', display:'flex', alignItems:'center' }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#707070" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Scrollable body */}
+      <div onScroll={(e) => setScrolled(e.target.scrollTop > 6)}
+        style={{ flex:1, overflowY:'auto', padding: searchOpen ? '120px 20px 120px' : '108px 20px 120px' }}>
+
+        {/* Date + overnight summary + Handled today stats card */}
+        {!q && (
+          <div style={{ padding:'8px 0 4px', display:'flex', flexDirection:'column', gap:14 }}>
+            <div>
+              <div style={{ fontSize:14, fontWeight:600, color:'#292929', lineHeight:'20px' }}>Wednesday, April 22</div>
+              <div style={{ fontSize:14, fontWeight:400, color:'#9A9A9A', lineHeight:'20px', marginTop:2 }}>
+                130 handled overnight · <span style={{ color:'#292929' }}>4 need you</span>
+              </div>
+            </div>
+
+            {/* Handled today card */}
+            <div style={{ border:'1px solid #E0E2E5', borderRadius:16, padding:'14px 16px', background:'#fff' }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:12 }}>
+                <span style={{ fontSize:15, fontWeight:600, color:'#292929' }}>Handled today</span>
+                <div style={{ display:'flex', alignItems:'center', gap:2, cursor:'pointer', WebkitTapHighlightColor:'transparent' }}>
+                  <span style={{ fontSize:13, fontWeight:600, color:'#C47A1A' }}>2m avg</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C47A1A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
+              </div>
+
+              {/* Stacked segmented bar */}
+              <div style={{ display:'flex', gap:2, marginTop:12, height:6, borderRadius:3, overflow:'hidden' }}>
+                <div style={{ flex:'41', background:'#1FB26A', borderRadius:3 }} />
+                <div style={{ flex:'89', background:'#6B5BE6', borderRadius:3 }} />
+                <div style={{ flex:'3', background:'#D8DADE', borderRadius:3 }} />
+                <div style={{ flex:'1', background:'#D8DADE', borderRadius:3 }} />
+              </div>
+
+              {/* Breakdown */}
+              <div style={{ display:'flex', flexWrap:'wrap', gap:'2px 6px', marginTop:10, fontSize:13, lineHeight:'18px' }}>
+                <span style={{ color:'#292929', fontWeight:600 }}>41 DMs</span>
+                <span style={{ color:'#9A9A9A' }}>·</span>
+                <span style={{ color:'#292929', fontWeight:600 }}>89 comments</span>
+                <span style={{ color:'#9A9A9A' }}>·</span>
+                <span style={{ color:'#9A9A9A' }}>3 corrections</span>
+                <span style={{ color:'#9A9A9A' }}>·</span>
+                <span style={{ color:'#9A9A9A' }}>1 took over</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Bubbles row — hide while searching */}
+        {!q && (
+          <div style={{ display:'flex', gap:16, padding:'20px 0 12px', justifyContent:'flex-start' }}>
+            <div style={bubbleBase} onClick={() => handleBubble('later')}>
+              <div style={bubbleCircle}>
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
+              </div>
+              <span style={bubbleLabel}>Later</span>
+            </div>
+            <div style={bubbleBase} onClick={() => handleBubble('all')}>
+              <div style={bubbleCircle}>
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              </div>
+              <span style={bubbleLabel}>All</span>
+            </div>
+            <div style={bubbleBase} onClick={() => handleBubble('replied')}>
+              <div style={bubbleCircle}>
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
+              </div>
+              <span style={bubbleLabel}>Replied</span>
+            </div>
+          </div>
+        )}
+
+        {/* Recents */}
+        {SHOW_RECENTS && !anyResults && q && (
+          <div style={{ padding:'40px 0', textAlign:'center', color:'#9A9A9A', fontSize:14 }}>
+            No chats match "{searchVal}"
+          </div>
+        )}
+
+        {SHOW_RECENTS && tf.length > 0 && (
+          <>
+            <div style={groupHeaderStyle}>Today</div>
+            {tf.map(renderRow)}
+          </>
+        )}
+        {SHOW_RECENTS && yf.length > 0 && (
+          <>
+            <div style={groupHeaderStyle}>Yesterday</div>
+            {yf.map(renderRow)}
+          </>
+        )}
+        {SHOW_RECENTS && pf.length > 0 && (
+          <>
+            <div style={groupHeaderStyle}>Previous 7 days</div>
+            {pf.map(renderRow)}
+          </>
+        )}
+      </div>
+
+      {/* Floating new-chat pill */}
+      <div onClick={() => { onNewChat(); onClose(); }}
+        style={{ position:'absolute', right:16, bottom:24, zIndex:6,
+          background:'#292929', color:'#fff', padding:'14px 20px 14px 18px',
+          borderRadius:999, display:'flex', alignItems:'center', gap:10,
+          cursor:'pointer', WebkitTapHighlightColor:'transparent',
+          boxShadow:'0 8px 24px rgba(15,23,42,0.18), 0 2px 6px rgba(15,23,42,0.12)' }}>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span style={{ fontSize:15, fontWeight:600, letterSpacing:'-0.1px' }}>New chat</span>
+      </div>
+    </div>
+  );
+}
+
 /* ═══ AGENT CHAT HOME ═══ */
 
 function AgentChatHome({ onOverlayChange }) {
@@ -2619,15 +3147,41 @@ function AgentChatHome({ onOverlayChange }) {
   const [reasoningSheet, setReasoningSheet] = useState(null);
   const [globalSentSet, setGlobalSentSet] = useState(new Set());
   const [globalLaterSet, setGlobalLaterSet] = useState(new Set());
+  const [showMenu, setShowMenu] = useState(false);
+  const [homeInputFocused, setHomeInputFocused] = useState(false);
   const chatRef = useRef(null);
   const inputRef = useRef(null);
+
+  // Start a fresh chat from a given title (used when tapping a recent in the menu)
+  const openChatFromMenu = (item) => {
+    setMessages([{
+      type:'agent',
+      content: "Here's the chat: \u201C" + item.title + "\u201D. (Preview — reopening past chats isn't wired up yet.)",
+      id: Date.now(),
+      isNewChat:true,
+    }]);
+    setInputVal('');
+  };
+
+  const startNewChat = () => {
+    setMessages([]);
+    setInputVal('');
+    setTimeout(() => {
+      setMessages([{
+        type:'agent',
+        content:"Is there anything would you like me to show?",
+        id: Date.now(),
+        isNewChat:true,
+      }]);
+    }, 50);
+  };
 
   // Seed morning brief on mount
   useEffect(() => {
     const leadsWithDrafts = INTERESTED_ITEMS.filter(i => i.draft).length;
     const initial = [
       { type:'agent', content:'Morning, Sofia', delay:300 },
-      { type:'agent', content: leadsWithDrafts + ' leads are ready to buy \u2014 ' + INTERESTED_ITEMS[0].name + ' has been following you for 2 years and just asked about the 12-week program. Replies are ready.', delay:800,
+      { type:'agent', content: leadsWithDrafts + ' leads are ready to buy \u2014 ' + INTERESTED_ITEMS[0].name + ' has been following you for 2 years and just asked about the 12-week program. Replies are ready. 3 of them came straight from Tuesday\u2019s Wellness Reset webinar.', delay:800,
         cardLabel: 'ready to buy',
         cardSubtitle: 'They asked about pricing or signing up',
         cards: INTERESTED_ITEMS.slice(0,3).map(item => ({
@@ -2669,6 +3223,36 @@ function AgentChatHome({ onOverlayChange }) {
         cardLabel: nameMatch.name,
         cardSubtitle: nameMatch.agentRead || nameMatch.summary,
         cards: [{ user: nameMatch.user, name: nameMatch.name, avatar: nameMatch.avatar, _item: nameMatch }],
+      };
+    }
+
+    // --- Webinar ---
+    if (q.match(/webinar|wellness reset|free event|next live|replay|register|sign up.*webinar|webinar.*sign/)) {
+      const webinarLeads = [...INTERESTED_ITEMS, ...COMMUNITY_ITEMS].filter(i =>
+        i.contactBioExpanded && i.contactBioExpanded.toLowerCase().includes('webinar')
+      );
+      return {
+        reasoning: 'I found contacts who came in through the free Wellness Reset webinar or are asking about the next one.',
+        content: 'Your next Wellness Reset webinar is in 4 days — 127 people registered so far. ' + (webinarLeads.length > 0 ? webinarLeads.length + ' people who attended the last webinar have since reached out:' : 'No webinar-sourced DMs right now.'),
+        cardLabel: 'webinar leads',
+        cardSubtitle: 'They came via the free webinar — warm prospects',
+        cards: webinarLeads.slice(0,4).map(item => ({ user: item.user, name: item.name, avatar: item.avatar, _item: item })),
+      };
+    }
+
+    // --- 1-on-1 calls / coaching ---
+    if (q.match(/one.on.one|1.on.1|coaching call|book a call|individual|calendly|session|single call|standalone/)) {
+      const callLeads = [...INTERESTED_ITEMS, ...COMMUNITY_ITEMS].filter(i =>
+        i.tag === 'coaching_call' || (i.msg && i.msg.toLowerCase().match(/call|session|calendly/))
+      );
+      return {
+        reasoning: 'I filtered for contacts asking specifically about 1-on-1 coaching calls or wanting to book a session.',
+        content: callLeads.length > 0
+          ? callLeads.length + ' people are asking about 1-on-1 coaching calls right now — most want to check fit before committing to a full program. At $150/session, these are quick wins:'
+          : 'No active 1-on-1 inquiries right now. Your call page is at calendly.com/sofia-reyes.',
+        cardLabel: '1-on-1 inquiries',
+        cardSubtitle: '$150/session — lower barrier entry point',
+        cards: callLeads.slice(0,4).map(item => ({ user: item.user, name: item.name, avatar: item.avatar, _item: item })),
       };
     }
 
@@ -2846,21 +3430,21 @@ function AgentChatHome({ onOverlayChange }) {
     if (q.match(/business|my brand|my audience|my niche|who am i|about me|my product|my program/)) {
       return {
         reasoning: 'I\'m sharing what I know about your business based on the messages and interactions I\'ve analyzed.',
-        content: 'Based on what I see in your DMs:\n\n' +
-          '\u2022 You run fitness coaching programs: a 4-Week Kickstart ($197) and a 12-Week Reboot ($597 or 3x$197).\n' +
-          '\u2022 Your audience is mostly women aged 25-40, interested in transformation and wellness.\n' +
-          '\u2022 About 30% of inquiries come from men.\n' +
-          '\u2022 Your strongest conversion content: transformation reels and before/after posts.\n' +
-          '\u2022 Common objections: pricing, beginner-friendliness, and program format.\n\n' +
-          'Want me to dig deeper?',
-        suggestions: ['Show me leads', 'Who are my most loyal fans?', 'Any unanswered messages?'],
+        content: 'Based on your DMs over the past 7 days:\n\n' +
+          '\u2022 You offer: Wellness Reset Webinar (free), 4-Week Kickstart ($197), 12-Week Reboot ($597 or 3x$197), and 1-on-1 Coaching Calls ($150/session).\n' +
+          '\u2022 Your audience is mostly women 30\u201345. About 30% of inquiries are from men.\n' +
+          '\u2022 Top traffic sources: transformation reels and the free Wellness Reset webinar.\n' +
+          '\u2022 127 webinar registrations in the last 2 weeks \u2014 ' + [...INTERESTED_ITEMS, ...COMMUNITY_ITEMS].filter(i => i.contactBioExpanded && i.contactBioExpanded.toLowerCase().includes('webinar')).length + ' have since messaged about buying.\n' +
+          '\u2022 Most common objection: \u201CIs this just another diet?\u201D \u2014 address this in your next story.\n' +
+          '\u2022 Strongest conversion path: attended the webinar first, then DM\u2019d.\n' +
+          '\u2022 ' + [...INTERESTED_ITEMS, ...COMMUNITY_ITEMS].filter(i => i.tag === 'coaching_call').length + ' people asking about 1-on-1 calls \u2014 fast path to revenue if you have spots open.',
       };
     }
 
     // --- Fallback with suggestion chips ---
     return {
-      content: 'I\'m not sure what you\'re looking for. Try one of these:',
-      suggestions: ['Show me leads', 'Who needs support?', 'What should I do first?'],
+      content: 'I\'m not sure what you\'re looking for. You can ask me things like:',
+      suggestions: ['People who want to buy', 'Who needs support?', 'What should I do first?'],
     };
   };
 
@@ -2911,33 +3495,46 @@ function AgentChatHome({ onOverlayChange }) {
   return (
     <div style={{ background:'#fff', height:'100%', display:'flex', flexDirection:'column', position:'relative' }}>
 
-      {/* Sticky header: iOS status bar + Inbox title */}
+      {/* Sticky header: iOS status bar + hamburger menu + new chat icon */}
       <div style={{ position:'absolute', top:0, left:0, right:0, zIndex:20, background:'#fff', borderBottom: scrolled ? '1px solid #E0E2E5' : '1px solid transparent', transition:'border-color 0.2s ease' }}>
         {/* iOS Status Bar */}
         <div style={{ padding:'14px 24px 0', display:'flex', justifyContent:'space-between', alignItems:'center', height:44 }}>
           <span style={{ fontSize:15, fontWeight:600, color:'#292929', letterSpacing:'-0.3px' }}>9:41</span>
           <div style={{ display:'flex', alignItems:'center', gap:5 }}>
-            {/* Signal */}
             <svg width="17" height="12" viewBox="0 0 17 12" fill="none"><rect x="0" y="7" width="3" height="5" rx="0.5" fill="#292929"/><rect x="4.5" y="4.5" width="3" height="7.5" rx="0.5" fill="#292929"/><rect x="9" y="2" width="3" height="10" rx="0.5" fill="#292929"/><rect x="13.5" y="0" width="3" height="12" rx="0.5" fill="#292929"/></svg>
-            {/* WiFi */}
             <svg width="16" height="12" viewBox="0 0 16 12" fill="#292929"><path d="M8 11.5a1.25 1.25 0 100-2.5 1.25 1.25 0 000 2.5z"/><path d="M4.94 7.94a4.5 4.5 0 016.12 0" stroke="#292929" strokeWidth="1.4" strokeLinecap="round" fill="none"/><path d="M2.81 5.81a7.5 7.5 0 0110.38 0" stroke="#292929" strokeWidth="1.4" strokeLinecap="round" fill="none"/></svg>
-            {/* Battery */}
             <svg width="27" height="12" viewBox="0 0 27 12" fill="none"><rect x="0.5" y="0.5" width="22" height="11" rx="2" stroke="#292929" strokeWidth="1" fill="none"/><rect x="2" y="2" width="19" height="8" rx="1" fill="#292929"/><rect x="24" y="3.5" width="2.5" height="5" rx="1" fill="#292929"/></svg>
           </div>
         </div>
-        {/* Inbox header */}
-        <div style={{ padding:'8px 16px 12px', display:'flex', alignItems:'center', gap:8 }}>
-          <span style={{ fontSize:17, fontWeight:600, color:'#292929' }}>Inbox</span>
-          <div style={{ display:'flex', alignItems:'center', gap:4, background:'#EBF5FF', borderRadius:100, padding:'3px 10px' }}>
-            <div style={{ width:6, height:6, borderRadius:3, background:'#2952CC', animation:'pulse 2s ease infinite' }} />
-            <span style={{ fontSize:11, fontWeight:600, color:'#2952CC' }}>Active</span>
+        {/* Top action bar: hamburger (left) + new chat (right) */}
+        <div style={{ padding:'12px 16px 12px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+          {/* Hamburger menu — opens the MenuScreen drawer */}
+          <div onClick={() => { setShowMenu(true); if (onOverlayChange) onOverlayChange(true); }} style={{ width:40, height:40, borderRadius:400, border:'1px solid #E0E2E5', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', WebkitTapHighlightColor:'transparent' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="1.8" strokeLinecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+          </div>
+          {/* New chat — resets to generic greeting without suggestions */}
+          <div onClick={startNewChat} style={{ width:40, height:40, borderRadius:400, border:'1px solid #E0E2E5', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', WebkitTapHighlightColor:'transparent' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
           </div>
         </div>
       </div>
 
-      {/* Scrollable chat — bottom-gravity like Claude */}
-      <div ref={chatRef} onScroll={(e) => setScrolled(e.target.scrollTop > 10)} style={{ flex:1, overflowY:'auto', padding:'100px 16px 160px', display:'flex', flexDirection:'column', gap:24, justifyContent:'flex-end' }}>
-        {messages.map((msg) => {
+      {/* Scrollable chat — top-aligned; dynamic bottom padding reserves space for input + any active suggestions */}
+      {(() => {
+        // Compute whether suggestions are currently visible to size the bottom padding
+        let lastAgentIdx = -1;
+        for (let i = messages.length - 1; i >= 0; i--) {
+          if (messages[i].type === 'thinking') continue;
+          if (messages[i].type === 'user') break;
+          if (messages[i].type === 'agent') { lastAgentIdx = i; break; }
+        }
+        const activeSugg = lastAgentIdx >= 0 ? messages[lastAgentIdx].suggestions : null;
+        const suggCount = activeSugg ? activeSugg.length : 0;
+        // 160 = input + bottom nav baseline; add ~40px per pill (32 + 8 gap)
+        const bottomPad = 180 + suggCount * 40;
+        return (
+          <div ref={chatRef} onScroll={(e) => setScrolled(e.target.scrollTop > 10)} style={{ flex:1, overflowY:'auto', padding:`120px 24px ${bottomPad}px`, display:'flex', flexDirection:'column', gap:24 }}>
+            {messages.map((msg) => {
           if (msg.type === 'thinking') {
             return (
               <div key={msg.id} style={{ animation:'fadeUp .3s ease both' }}>
@@ -2963,8 +3560,8 @@ function AgentChatHome({ onOverlayChange }) {
                   if (line.startsWith('\u2022')) {
                     return <div key={li} style={{ paddingLeft:8, display:'flex', gap:8 }}><span>{'\u2022'}</span><span>{line.substring(1).trim()}</span></div>;
                   }
-                  if (li === 0 && msg.content.startsWith('Morning')) {
-                    return <div key={li} style={{ fontSize:28, fontWeight:700, lineHeight:'36px', letterSpacing:'-0.5px' }}>{line}</div>;
+                  if (li === 0 && (msg.content.startsWith('Morning') || msg.isNewChat || msg.content.startsWith('New chat'))) {
+                    return <div key={li} style={{ fontFamily:'"Manychat Gravity", "Gravity", Inter, -apple-system, system-ui, sans-serif', fontSize:20, fontWeight:800, lineHeight:'26px', letterSpacing:'-0.02em', color:'#111' }}>{line}</div>;
                   }
                   return <div key={li}>{line}</div>;
                 })}
@@ -2972,101 +3569,162 @@ function AgentChatHome({ onOverlayChange }) {
 
               {/* Reasoning disclosure — only for user-initiated queries */}
               {msg.reasoning && (
-                <div onClick={() => setReasoningSheet({ title:'Thought', body: msg.reasoning })}
+                <div onClick={() => { setReasoningSheet({ title:'Thought', body: msg.reasoning }); if (onOverlayChange) onOverlayChange(true); }}
                   style={{ display:'flex', alignItems:'center', gap:6, cursor:'pointer', padding:'8px 0' }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#707070" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
-                  </svg>
                   <span style={{ fontSize:13, fontWeight:400, color:'#707070' }}>Thought</span>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#707070" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
                 </div>
               )}
 
-              {/* Compact grouped contact card */}
+              {/* Contact card — single or grouped, per Figma */}
               {msg.cards && msg.cards.length > 0 && (() => {
-                const allSent = msg.cards.every(c => globalSentSet.has(c.user) || globalLaterSet.has(c.user));
+                const total = msg.cards.length;
+                const isSingle = total === 1;
                 const sentCount = msg.cards.filter(c => globalSentSet.has(c.user)).length;
                 const laterCount = msg.cards.filter(c => globalLaterSet.has(c.user)).length;
+                const unrepliedCount = total - sentCount - laterCount;
+                const allReplied = sentCount === total;
+                const anyProgress = (sentCount > 0 || laterCount > 0) && !allReplied;
+
+                if (isSingle) {
+                  const card = msg.cards[0];
+                  const name = card.name || card.user;
+                  const subtitle = card.agentRead || card.summary || 'Ready to reply';
+                  return (
+                    <div onClick={() => { setFocusMode({ title: msg.cardLabel || 'Contacts', items: msg.cards.map(c => c._item) }); if (onOverlayChange) onOverlayChange(true); }}
+                      style={{ background:'#fff', border:'1px solid #E0E2E5', borderRadius:16, padding:'14px 16px', display:'flex', alignItems:'center', gap:12, cursor:'pointer' }}>
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <div style={{ fontSize:14, fontWeight:400, color:'#292929', lineHeight:'20px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{name}</div>
+                        <div style={{ fontSize:12, fontWeight:400, color:'#9A9A9A', lineHeight:'16px', marginTop:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{subtitle}</div>
+                      </div>
+                      <img src={card.avatar} alt="" style={{ width:32, height:32, borderRadius:400, objectFit:'cover', flexShrink:0 }} />
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9A9A9A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0 }}><polyline points="9 18 15 12 9 6"/></svg>
+                    </div>
+                  );
+                }
+
+                // Group card
+                const title = total + ' ' + (msg.cardLabel || 'contacts');
+                const subtitle = msg.cardSubtitle || 'Tap to view';
+
+                // Avatar stack: show up to 3. If more, show first 2 + "+N" chip.
+                const avatarMax = total <= 3 ? 3 : 2;
+                const avatarsToShow = msg.cards.slice(0, avatarMax);
+                const remaining = total - avatarMax;
+
                 return (
-                <div onClick={() => { setFocusMode({ title: msg.cardLabel || 'Contacts', items: msg.cards.map(c => c._item) }); if (onOverlayChange) onOverlayChange(true); }}
-                  style={{ border:'1px solid #D6D6D6', borderRadius:12, boxShadow:'0 8px 16px rgba(132,146,166,0.08)', padding:16, display:'flex', alignItems:'center', gap:12, cursor:'pointer' }}>
-                  {/* Stacked avatars — max 2 + count */}
-                  <div style={{ display:'flex', alignItems:'center', flexShrink:0 }}>
-                    {msg.cards.slice(0, 2).map((card, ci) => (
-                      <img key={ci} src={card.avatar} alt="" style={{ width:40, height:40, borderRadius:400, objectFit:'cover', border:'2px solid #fff', marginLeft: ci > 0 ? -12 : 0, position:'relative', zIndex: 3 - ci }} />
-                    ))}
-                    {msg.cards.length > 2 && (
-                      <div style={{ width:40, height:40, borderRadius:400, background:'#F0F0F0', border:'2px solid #fff', marginLeft:-12, position:'relative', zIndex:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                        <span style={{ fontSize:13, fontWeight:600, color:'#707070' }}>+{msg.cards.length - 2}</span>
+                  <div onClick={() => { setFocusMode({ title: msg.cardLabel || 'Contacts', items: msg.cards.map(c => c._item) }); if (onOverlayChange) onOverlayChange(true); }}
+                    style={{ background:'#fff', border:'1px solid #E0E2E5', borderRadius:16, padding:'14px 16px', display:'flex', alignItems:'center', gap:12, cursor:'pointer' }}>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontSize:14, fontWeight:400, color:'#292929', lineHeight:'20px', textDecoration: allReplied ? 'line-through' : 'none', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{title}</div>
+                      {allReplied ? (
+                        <div style={{ marginTop:6 }}>
+                          <span style={{ display:'inline-block', background:'#DFF5E3', color:'#0C8143', fontSize:12, fontWeight:500, padding:'3px 8px', borderRadius:6 }}>{sentCount} replied</span>
+                        </div>
+                      ) : anyProgress ? (
+                        <div style={{ marginTop:6, display:'flex', gap:6, flexWrap:'wrap' }}>
+                          {unrepliedCount > 0 && (
+                            <span style={{ background:'#FDE8D0', color:'#B45A16', fontSize:12, fontWeight:500, padding:'3px 8px', borderRadius:6 }}>{unrepliedCount} unreplied</span>
+                          )}
+                          {sentCount > 0 && (
+                            <span style={{ background:'#DFF5E3', color:'#0C8143', fontSize:12, fontWeight:500, padding:'3px 8px', borderRadius:6 }}>{sentCount} replied</span>
+                          )}
+                          {laterCount > 0 && (
+                            <span style={{ background:'#EDEDED', color:'#707070', fontSize:12, fontWeight:500, padding:'3px 8px', borderRadius:6 }}>{laterCount} later</span>
+                          )}
+                        </div>
+                      ) : (
+                        <div style={{ fontSize:12, fontWeight:400, color:'#9A9A9A', lineHeight:'16px', marginTop:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{subtitle}</div>
+                      )}
+                    </div>
+                    {!anyProgress && !allReplied && (
+                      <div style={{ display:'flex', alignItems:'center', flexShrink:0 }}>
+                        {avatarsToShow.map((c, ci) => (
+                          <img key={ci} src={c.avatar} alt="" style={{ width:32, height:32, borderRadius:400, objectFit:'cover', border:'2px solid #fff', marginLeft: ci > 0 ? -10 : 0, position:'relative', zIndex: 10 - ci }} />
+                        ))}
+                        {remaining > 0 && (
+                          <div style={{ width:32, height:32, borderRadius:400, background:'#F0F0F0', border:'2px solid #fff', marginLeft:-10, position:'relative', zIndex:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                            <span style={{ fontSize:11, fontWeight:600, color:'#707070' }}>+{remaining}</span>
+                          </div>
+                        )}
                       </div>
                     )}
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9A9A9A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0 }}><polyline points="9 18 15 12 9 6"/></svg>
                   </div>
-                  {/* Text */}
-                  <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ fontSize:14, fontWeight:500, color:'#292929', lineHeight:'20px' }}>{msg.cards.length} {msg.cardLabel || 'contacts'}</div>
-                    <div style={{ fontSize:12, fontWeight:400, color:'#707070', lineHeight:'16px' }}>{msg.cardSubtitle || 'Tap to view'}</div>
-                    {(sentCount > 0 || laterCount > 0) && (
-                      <div style={{ display:'flex', alignItems:'center', gap:8, marginTop:4, flexWrap:'wrap' }}>
-                        {sentCount > 0 && (
-                          <span style={{ fontSize:12, fontWeight:500, color:'#0C8143' }}>{sentCount} replied</span>
-                        )}
-                        {laterCount > 0 && (
-                          <span style={{ fontSize:12, fontWeight:500, color:'#707070' }}>{laterCount} for later</span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D6D6D6" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
-                </div>
                 );
               })()}
 
-              {/* Suggestion chips — inline, right-aligned */}
-              {msg.suggestions && (
-                <div style={{ display:'flex', flexWrap:'wrap', gap:8, justifyContent:'flex-end' }}>
-                  {msg.suggestions.map((s, i) => (
-                    <div key={i} onClick={() => { setTimeout(() => {
-                      setMessages(prev => prev.map(m => m.suggestions ? { ...m, suggestions: null } : m));
-                      setMessages(prev => [...prev, { type:'user', content: s, id: Date.now() }]);
-                      setTimeout(() => {
-                        setMessages(prev => [...prev, { type:'thinking', id: Date.now() }]);
-                        setTimeout(() => {
-                          const resp = getResponse(s);
-                          setMessages(prev => {
-                            const filtered = prev.filter(m => m.type !== 'thinking');
-                            return [...filtered, {
-                              type: 'agent', content: resp.content, id: Date.now(),
-                              ...(resp.reasoning ? { reasoning: resp.reasoning } : {}),
-                              ...(resp.suggestions ? { suggestions: resp.suggestions } : {}),
-                              ...(resp.cards ? { cardLabel: resp.cardLabel, cardSubtitle: resp.cardSubtitle, cards: resp.cards } : {}),
-                            }];
-                          });
-                        }, 1500);
-                      }, 300);
-                    }, 10); }}
-                      style={{ padding:'8px 14px', background:'#F5F5F5', border:'1px solid #E0E2E5',
-                        borderRadius:100, fontSize:13, fontWeight:500, color:T.ink, cursor:'pointer',
-                        WebkitTapHighlightColor:'transparent' }}>
-                      {s}
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
           );
         })}
       </div>
+        );
+      })()}
 
-      {/* Input bar */}
-      <div style={{ position:'absolute', bottom:90, left:16, right:16, background:'#fff', border:'1px solid #D6D6D6', borderRadius:12, boxShadow:'0 8px 16px rgba(132,146,166,0.12)', padding:'8px 16px', display:'flex', alignItems:'center', gap:8, zIndex:10 }}>
+      {/* Sticky suggestions — above input, outside scroll area. Shown when the latest agent message has suggestions and no pending user action. */}
+      {(() => {
+        // Find last non-thinking message
+        let lastAgentIdx = -1;
+        for (let i = messages.length - 1; i >= 0; i--) {
+          if (messages[i].type === 'thinking') continue;
+          if (messages[i].type === 'user') break; // user sent, hide suggestions
+          if (messages[i].type === 'agent') { lastAgentIdx = i; break; }
+        }
+        const activeSuggestions = lastAgentIdx >= 0 ? messages[lastAgentIdx].suggestions : null;
+        if (!activeSuggestions || activeSuggestions.length === 0) return null;
+
+        const runSuggestion = (s) => {
+          setMessages(prev => prev.map(m => m.suggestions ? { ...m, suggestions: null } : m));
+          setMessages(prev => [...prev, { type:'user', content: s, id: Date.now() }]);
+          setTimeout(() => {
+            setMessages(prev => [...prev, { type:'thinking', id: Date.now() }]);
+            setTimeout(() => {
+              const resp = getResponse(s);
+              setMessages(prev => {
+                const filtered = prev.filter(m => m.type !== 'thinking');
+                return [...filtered, {
+                  type: 'agent', content: resp.content, id: Date.now(),
+                  ...(resp.reasoning ? { reasoning: resp.reasoning } : {}),
+                  ...(resp.suggestions ? { suggestions: resp.suggestions } : {}),
+                  ...(resp.cards ? { cardLabel: resp.cardLabel, cardSubtitle: resp.cardSubtitle, cards: resp.cards } : {}),
+                }];
+              });
+            }, 1500);
+          }, 300);
+        };
+
+        return (
+          <div style={{ position:'absolute', bottom:164, left:16, right:16, display:'flex', flexDirection:'column', gap:8, zIndex:10, animation:'fadeUp .3s ease both' }}>
+            {activeSuggestions.map((s, i) => (
+              <div key={i} onClick={() => runSuggestion(s)}
+                style={{ background:'#F5F5F5', border:'1px solid #E0E2E5', borderRadius:16,
+                  height:32, padding:'0 12px 0 14px', display:'flex', alignItems:'center', justifyContent:'space-between',
+                  gap:12, cursor:'pointer', WebkitTapHighlightColor:'transparent',
+                  boxShadow:'0 1px 2px rgba(15,23,42,0.04), 0 4px 16px rgba(15,23,42,0.06)' }}>
+                <span style={{ fontSize:14, fontWeight:400, color:'#292929', lineHeight:'20px', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{s}</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#707070" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0 }}><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
+
+      {/* Input bar — sticky bottom, matches Figma */}
+      <div style={{ position:'absolute', bottom:90, left:16, right:16, height:52, background:'#fff', border: homeInputFocused ? '1px solid #292929' : '1px solid #E0E2E5', borderRadius:16, padding:'0 16px', display:'flex', alignItems:'center', gap:8, zIndex:10, boxShadow:'0 1px 2px rgba(15,23,42,0.04), 0 8px 24px rgba(15,23,42,0.08)', transition:'border-color .15s ease' }}>
         <input ref={inputRef} value={inputVal} onChange={e => setInputVal(e.target.value)}
+          onFocus={() => setHomeInputFocused(true)}
+          onBlur={() => setHomeInputFocused(false)}
           onKeyDown={e => { if (e.key === 'Enter' && inputVal.trim()) handleSend(); }}
-          placeholder="Ask me anything"
-          style={{ flex:1, fontSize:16, color: inputVal ? '#292929' : '#878787', lineHeight:'24px', border:'none', outline:'none', background:'transparent', fontFamily:'Inter, system-ui, sans-serif' }} />
-        {inputVal.trim() && (
+          placeholder="Ask me anything..."
+          style={{ flex:1, fontSize:15, color: inputVal ? '#292929' : '#9A9A9A', lineHeight:'20px', border:'none', outline:'none', background:'transparent', fontFamily:'Inter, system-ui, sans-serif' }} />
+        {inputVal.trim() ? (
           <div onClick={handleSend}
-            style={{ width:36, height:36, borderRadius:20, background:'#292929', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0 }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            style={{ width:32, height:32, borderRadius:16, background:'#292929', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0 }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </div>
+        ) : (
+          <div style={{ width:32, height:32, borderRadius:16, background:'#F0F0F0', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, cursor:'pointer' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="2" strokeLinecap="round"><line x1="4" y1="10" x2="4" y2="14"/><line x1="8" y1="7" x2="8" y2="17"/><line x1="12" y1="4" x2="12" y2="20"/><line x1="16" y1="7" x2="16" y2="17"/><line x1="20" y1="10" x2="20" y2="14"/></svg>
           </div>
         )}
       </div>
@@ -3074,7 +3732,7 @@ function AgentChatHome({ onOverlayChange }) {
       {/* Reasoning Sheet */}
       {reasoningSheet && (
         <ReasoningSheet title={reasoningSheet.title} body={reasoningSheet.body}
-          onClose={() => setReasoningSheet(null)} showFeedback={true} />
+          onClose={() => { setReasoningSheet(null); if (onOverlayChange) onOverlayChange(false); }} showFeedback={true} />
       )}
 
       {/* Focus Mode */}
@@ -3148,6 +3806,15 @@ function AgentChatHome({ onOverlayChange }) {
           onSent={(user, text) => {}} draftMode={'suggest'}
           isFirstSend={true} onFirstSend={() => {}} />
       )}
+
+      {/* Menu Screen — slide-in drawer */}
+      {showMenu && (
+        <MenuScreen
+          onClose={() => { setShowMenu(false); if (onOverlayChange) onOverlayChange(false); }}
+          onOpenChat={openChatFromMenu}
+          onNewChat={startNewChat}
+        />
+      )}
     </div>
   );
 }
@@ -3174,65 +3841,144 @@ function BottomNav({ hidden }) {
   );
 }
 
+/* ─── Illustration SVGs (from Figma export) ─── */
+const IllDarts = (props) => (
+  <svg width="45" height="45" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <path d="M28.6453 23.409C26.9806 22.087 24.6501 22.1457 22.9462 23.3894L26.207 27.3944C26.1189 28.2562 25.3257 28.1191 25.3257 28.1191L21.7907 24.5645C20.3023 26.66 20.6156 29.5194 22.5643 31.0568C24.5815 32.6529 27.578 32.2416 29.2525 30.1265C30.9269 28.0113 30.6626 25.0051 28.6453 23.3992V23.409Z" fill="#292929"/>
+    <path d="M18.8523 18.3659L20.4288 13.2348L14.5534 4.5L12.8691 11.1098L18.8523 18.3659Z" fill="#292929"/>
+    <path d="M17.0606 19.825L10.1472 12.9116L3.42969 14.2336L12.468 20.8336L17.0606 19.825Z" fill="#292929"/>
+    <path d="M12.0756 13.6206C13.278 13.3477 14.114 12.515 13.9428 11.7608C13.7716 11.0066 12.658 10.6166 11.4556 10.8895C10.2531 11.1625 9.41711 11.9952 9.58832 12.7493C9.75952 13.5035 10.8731 13.8936 12.0756 13.6206Z" fill="#292929"/>
+    <path d="M38.2801 31.1841C39.8077 26.4446 38.5837 21.1274 34.7157 17.6903C30.0154 13.5187 23.0041 13.5677 18.1275 17.4748L20.3602 20.2167C23.5819 17.6903 28.1059 17.514 31.308 20.06C35.078 23.0565 35.5872 28.7066 32.4439 32.6627C29.2908 36.6286 23.6798 37.4022 19.9097 34.4058C16.1397 31.4093 15.6305 25.7591 18.7738 21.803C18.813 21.7541 18.8522 21.7051 18.9011 21.6562L16.4041 19.1493C11.6646 24.5841 12.0465 32.7117 17.2952 37.3631C22.5047 41.985 30.554 41.4269 35.3914 36.1684L41.5704 37.4316L38.2997 31.1939L38.2801 31.1841Z" fill="#292929"/>
+  </svg>
+);
+
+const IllMessenger = (props) => (
+  <svg width="45" height="45" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <path d="M9.86902 8.69702L7.00684 28.2281L13.5172 27.9685L12.2121 36.5625C18.463 34.4789 20.0201 28.2281 20.0201 28.2281L35.1244 27.709L37.994 8.4375L9.86902 8.69702ZM20.4798 24.8023C15.6972 19.6045 13.6729 17.9732 13.6729 17.9732L18.7596 14.8292L20.3093 19.8788C20.3093 19.8788 23.1863 13.7911 28.6586 11.5518C30.5716 14.325 32.2771 17.7359 32.2771 17.7359C32.2771 17.7359 24.8621 17.5579 20.4798 24.8098V24.8023Z" fill="#292929"/>
+  </svg>
+);
+
+const IllHeart = (props) => (
+  <svg width="45" height="45" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <path d="M15.1521 22.5668C14.8455 22.0384 14.5614 21.5353 14.2922 21.0573C14.2922 21.0573 14.2922 21.0573 14.2922 21.0656C14.2772 21.0321 14.2623 20.9986 14.2473 20.965C14.0679 20.6463 13.8959 20.336 13.7314 20.0425C13.1855 19.2291 12.4827 18.5582 11.6302 18.1305C10.2843 17.4428 8.69911 17.3086 7.28588 17.8369C5.94743 18.3401 4.81834 19.4639 4.45943 21.0321C3.9734 23.1538 4.91555 25.3594 5.99229 27.0534C8.16073 30.475 11.3386 33.0747 14.4417 35.339C14.9876 35.7416 15.5409 36.1273 16.1017 36.5131C16.2737 36.6305 16.4457 36.5634 16.5429 36.4292C16.5653 36.4041 16.5878 36.3789 16.6027 36.3454C17.8888 34.2572 19.3394 32.2948 20.6779 30.2486C20.8274 30.0221 20.9695 29.7957 21.1191 29.5693C19.3469 27.9675 16.8046 25.4013 15.167 22.5668H15.1521Z" fill="#292929"/>
+    <path d="M40.5779 13.9621C40.4016 12.7024 39.8573 11.568 39.0678 10.6337C37.4274 8.70671 34.9438 7.98932 32.6366 8.71506C30.2526 9.46582 28.4513 11.5429 27.6464 14.0371C26.9105 12.252 25.6381 10.7838 23.9671 9.96633C22.181 9.09044 20.0807 8.9236 18.218 9.59929C16.4397 10.2416 14.9449 11.7014 14.4773 13.7201C13.8488 16.4646 15.1212 19.3008 16.547 21.4864C17.7658 23.3466 19.2529 24.9983 20.8166 26.5165C23.0319 28.6604 25.4541 30.5539 27.9377 32.3057C28.6583 32.8146 29.3788 33.3067 30.107 33.7906C30.2833 33.9074 30.4519 33.8406 30.5593 33.7072C30.5823 33.6821 30.6053 33.6571 30.6206 33.6237C32.353 30.896 34.3 28.3434 36.1013 25.6656C37.7494 23.2131 39.4128 20.6022 40.2329 17.6658C40.5702 16.473 40.7389 15.1967 40.5626 13.9537L40.5779 13.9621Z" fill="#292929"/>
+  </svg>
+);
+
 /* ─── Onboarding screens: Welcome + Results ─── */
 function ObWelcomeV2b({ onNext }) {
   const [vis, setVis] = useState(0);
 
   useEffect(() => {
     const timers = [];
-    for (let i = 1; i <= 5; i++) {
-      timers.push(setTimeout(() => setVis(i), i * 400 + 200));
-    }
+    // 0: greeting, 1: intro paragraph, 2: bullet 1, 3: bullet 2, 4: bullet 3, 5: button
+    const delays = [250, 700, 1200, 1550, 1900, 2350];
+    delays.forEach((d, i) => {
+      timers.push(setTimeout(() => setVis(i + 1), d));
+    });
     return () => timers.forEach(t => clearTimeout(t));
   }, []);
 
   const show = (i) => ({
     opacity: vis >= i ? 1 : 0,
-    transform: vis >= i ? 'translateY(0)' : 'translateY(8px)',
-    transition: 'opacity .5s ease, transform .5s ease',
+    transform: vis >= i ? 'translateY(0)' : 'translateY(10px)',
+    transition: 'opacity .5s cubic-bezier(.25,.46,.45,.94), transform .55s cubic-bezier(.25,.46,.45,.94)',
   });
 
+  const bullets = [
+    { Ill: IllDarts,     title: 'Only what matters',    sub: 'Real conversations, not noise' },
+    { Ill: IllMessenger, title: 'Replies in your voice', sub: 'Draft first. You approve.' },
+    { Ill: IllHeart,     title: 'Personal stuff to you', sub: 'I know when to step aside' },
+  ];
+
   return (
-    <div style={{ height:'100%', display:'flex', flexDirection:'column', justifyContent:'flex-end', position:'relative', overflow:'hidden', padding:'0 24px 48px' }}>
-      {/* Chat-like messages from the agent */}
-      <div style={{ display:'flex', flexDirection:'column', gap:16, marginBottom:40 }}>
-        <div style={show(1)}>
-          <div style={{ fontSize:28, fontWeight:700, color:'#fff', letterSpacing:'-0.5px', lineHeight:'36px' }}>
-            Hey Sofia
-          </div>
-        </div>
-        <div style={show(2)}>
-          <div style={{ fontSize:16, fontWeight:400, color:'rgba(255,255,255,0.7)', lineHeight:'24px' }}>
-            I'm your inbox agent. I'll read every DM, find the ones that matter, and have replies ready for you.
-          </div>
-        </div>
-        <div style={{ display:'flex', flexDirection:'column', gap:12, marginTop:8, ...show(3) }}>
-          <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-            <div style={{ width:4, height:4, borderRadius:2, background:'rgba(255,255,255,0.4)', flexShrink:0 }} />
-            <span style={{ fontSize:15, fontWeight:400, color:'rgba(255,255,255,0.55)', lineHeight:'22px' }}>Leads who are ready to buy</span>
-          </div>
-          <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-            <div style={{ width:4, height:4, borderRadius:2, background:'rgba(255,255,255,0.4)', flexShrink:0 }} />
-            <span style={{ fontSize:15, fontWeight:400, color:'rgba(255,255,255,0.55)', lineHeight:'22px' }}>Clients who need your help</span>
-          </div>
-          <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-            <div style={{ width:4, height:4, borderRadius:2, background:'rgba(255,255,255,0.4)', flexShrink:0 }} />
-            <span style={{ fontSize:15, fontWeight:400, color:'rgba(255,255,255,0.55)', lineHeight:'22px' }}>Community worth engaging with</span>
-          </div>
-        </div>
-        <div style={{ marginTop:4, ...show(4) }}>
-          <div style={{ fontSize:16, fontWeight:400, color:'rgba(255,255,255,0.7)', lineHeight:'24px' }}>
-            You focus on what matters. I handle the rest.
-          </div>
+    <div style={{ height:'100%', display:'flex', flexDirection:'column', position:'relative', overflow:'hidden', background:'#FFFFFF' }}>
+      {/* iOS Status Bar */}
+      <div style={{ padding:'14px 24px 0', display:'flex', justifyContent:'space-between', alignItems:'center', height:44, flexShrink:0 }}>
+        <span style={{ fontSize:15, fontWeight:600, color:'#292929', letterSpacing:'-0.3px' }}>9:41</span>
+        <div style={{ display:'flex', alignItems:'center', gap:5 }}>
+          <svg width="17" height="12" viewBox="0 0 17 12" fill="none"><rect x="0" y="7" width="3" height="5" rx="0.5" fill="#292929"/><rect x="4.5" y="4.5" width="3" height="7.5" rx="0.5" fill="#292929"/><rect x="9" y="2" width="3" height="10" rx="0.5" fill="#292929"/><rect x="13.5" y="0" width="3" height="12" rx="0.5" fill="#292929"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="#292929"><path d="M8 11.5a1.25 1.25 0 100-2.5 1.25 1.25 0 000 2.5z"/><path d="M4.94 7.94a4.5 4.5 0 016.12 0" stroke="#292929" strokeWidth="1.4" strokeLinecap="round" fill="none"/><path d="M2.81 5.81a7.5 7.5 0 0110.38 0" stroke="#292929" strokeWidth="1.4" strokeLinecap="round" fill="none"/></svg>
+          <svg width="27" height="12" viewBox="0 0 27 12" fill="none"><rect x="0.5" y="0.5" width="22" height="11" rx="2" stroke="#292929" strokeWidth="1" fill="none"/><rect x="2" y="2" width="19" height="8" rx="1" fill="#292929"/><rect x="24" y="3.5" width="2.5" height="5" rx="1" fill="#292929"/></svg>
         </div>
       </div>
-      <div style={show(5)}>
-        <button onClick={onNext}
-          style={{ width:'100%', height:52, background:'#fff', color:'#000', border:'none', borderRadius:14, fontSize:17, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em' }}>
-          Connect Instagram
+
+      {/* Content */}
+      <div style={{ flex:1, display:'flex', flexDirection:'column', padding:'0 28px 118px', minHeight:0 }}>
+      {/* Top breathing room — greeting sits ~25% down like Figma */}
+      <div style={{ flex:'0 0 180px' }} />
+
+      {/* Heading */}
+      <div style={show(1)}>
+        <h1 style={{ fontFamily:'"Manychat Gravity", "Gravity", Inter, -apple-system, system-ui, sans-serif', fontSize:32, fontWeight:800, color:'#111', letterSpacing:'-0.03em', lineHeight:'36px', margin:0 }}>
+          Hey Sofia
+        </h1>
+      </div>
+
+      {/* Intro paragraph */}
+      <div style={{ marginTop:20, ...show(2) }}>
+        <p style={{ fontSize:16, fontWeight:400, color:'#303336', lineHeight:'24px', margin:0, maxWidth:320 }}>
+          I'm your inbox agent. I'll read every DM, find the ones that matter, and have replies ready.
+        </p>
+      </div>
+
+      {/* Illustrated bullets */}
+      <div style={{ display:'flex', flexDirection:'column', gap:20, marginTop:36 }}>
+        {bullets.map(({ Ill, title, sub }, i) => (
+          <div key={i} style={{ display:'flex', alignItems:'center', gap:18, ...show(3 + i) }}>
+            <div style={{ flexShrink:0, width:45, height:45, display:'flex', alignItems:'center', justifyContent:'center' }}>
+              <Ill />
+            </div>
+            <div style={{ display:'flex', flexDirection:'column', gap:2 }}>
+              <div style={{ fontSize:17, fontWeight:600, color:'#111', letterSpacing:'-0.01em', lineHeight:'22px' }}>{title}</div>
+              <div style={{ fontSize:15, fontWeight:400, color:'#8A8F98', lineHeight:'20px' }}>{sub}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Spacer to push button to bottom */}
+      <div style={{ flex:1 }} />
+
+      {/* CTA button with rainbow glow */}
+      <div style={{ position:'relative', ...show(6) }}>
+        <RainbowGlow />
+        <button
+          onClick={onNext}
+          style={{
+            position:'relative', zIndex:1,
+            width:'100%', height:56,
+            background:'#1C1C1E', color:'#fff',
+            border:'none', borderRadius:12,
+            fontSize:17, fontWeight:600, letterSpacing:'-0.01em',
+            cursor:'pointer',
+            fontFamily:'inherit',
+          }}
+        >
+          Let's do it
         </button>
       </div>
+      </div>
     </div>
+  );
+}
+
+/* Rainbow shadow behind the CTA — soft, multi-hue halo hugging the button */
+function RainbowGlow() {
+  return (
+    <div
+      aria-hidden
+      style={{
+        position:'absolute',
+        inset:0,
+        borderRadius:12,
+        zIndex:0,
+        pointerEvents:'none',
+        background: 'conic-gradient(from 0deg, #FFB3B3, #FFDCA8, #FFF3A8, #B8F2C9, #B8DCFF, #D6B8FF, #FFB8E3, #FFB3B3)',
+        filter:'blur(8px)',
+        opacity:0.9,
+      }}
+    />
   );
 }
 
@@ -3259,9 +4005,11 @@ function ObResultsV2b({ onOpenInbox }) {
 
   useEffect(() => {
     const timers = [];
-    for (let i = 1; i <= 4; i++) {
-      timers.push(setTimeout(() => setVis(i), i * 400 + 300));
-    }
+    // 0: heading, 1-4: stat rows, 5: ready line, 6: button
+    const delays = [250, 900, 1100, 1300, 1500, 1900, 2300];
+    delays.forEach((d, i) => {
+      timers.push(setTimeout(() => setVis(i + 1), d));
+    });
     return () => timers.forEach(t => clearTimeout(t));
   }, []);
 
@@ -3272,43 +4020,97 @@ function ObResultsV2b({ onOpenInbox }) {
 
   const show = (i) => ({
     opacity: vis >= i ? 1 : 0,
-    transform: vis >= i ? 'translateY(0)' : 'translateY(8px)',
-    transition: 'opacity .5s ease, transform .5s ease',
+    transform: vis >= i ? 'translateY(0)' : 'translateY(10px)',
+    transition: 'opacity .5s cubic-bezier(.25,.46,.45,.94), transform .55s cubic-bezier(.25,.46,.45,.94)',
   });
 
-  const n1 = useCountUp(STATS.totalHandled, 800, vis >= 1);
-  const n2 = useCountUp(INTERESTED_ITEMS.filter(i=>i.draft).length, 600, vis >= 2);
-  const n3 = useCountUp(STATS.spamFiltered, 600, vis >= 2);
+  // Main count in heading
+  const nTotal      = useCountUp(STATS.totalHandled, 1100, vis >= 1);
+  // Stat rows — count up once their row is visible
+  const nAttention  = useCountUp(ATTENTION_ITEMS.length, 700, vis >= 2);
+  const nInterested = useCountUp(INTERESTED_ITEMS.length, 700, vis >= 3);
+  const nCommunity  = useCountUp(COMMUNITY_ITEMS.length, 700, vis >= 4);
+  const nReplies    = useCountUp([...INTERESTED_ITEMS, ...COMMUNITY_ITEMS].filter(i => i.draft).length, 700, vis >= 5);
+
+  const statRows = [
+    { n: nAttention,  label: 'conversations for your attention' },
+    { n: nInterested, label: 'people interested in your services' },
+    { n: nCommunity,  label: 'engaged followers' },
+    { n: nReplies,    label: 'replies ready to send' },
+  ];
 
   return (
-    <div style={{ height:'100%', display:'flex', flexDirection:'column', justifyContent:'flex-end', position:'relative', overflow:'hidden', padding:'0 24px 48px' }}>
-      {/* Chat-like results from the agent */}
-      <div style={{ display:'flex', flexDirection:'column', gap:16, marginBottom:40 }}>
+    <div style={{ height:'100%', display:'flex', flexDirection:'column', position:'relative', overflow:'hidden', background:'#FFFFFF' }}>
+      {/* iOS Status Bar */}
+      <div style={{ padding:'14px 24px 0', display:'flex', justifyContent:'space-between', alignItems:'center', height:44, flexShrink:0 }}>
+        <span style={{ fontSize:15, fontWeight:600, color:'#292929', letterSpacing:'-0.3px' }}>9:41</span>
+        <div style={{ display:'flex', alignItems:'center', gap:5 }}>
+          <svg width="17" height="12" viewBox="0 0 17 12" fill="none"><rect x="0" y="7" width="3" height="5" rx="0.5" fill="#292929"/><rect x="4.5" y="4.5" width="3" height="7.5" rx="0.5" fill="#292929"/><rect x="9" y="2" width="3" height="10" rx="0.5" fill="#292929"/><rect x="13.5" y="0" width="3" height="12" rx="0.5" fill="#292929"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="#292929"><path d="M8 11.5a1.25 1.25 0 100-2.5 1.25 1.25 0 000 2.5z"/><path d="M4.94 7.94a4.5 4.5 0 016.12 0" stroke="#292929" strokeWidth="1.4" strokeLinecap="round" fill="none"/><path d="M2.81 5.81a7.5 7.5 0 0110.38 0" stroke="#292929" strokeWidth="1.4" strokeLinecap="round" fill="none"/></svg>
+          <svg width="27" height="12" viewBox="0 0 27 12" fill="none"><rect x="0.5" y="0.5" width="22" height="11" rx="2" stroke="#292929" strokeWidth="1" fill="none"/><rect x="2" y="2" width="19" height="8" rx="1" fill="#292929"/><rect x="24" y="3.5" width="2.5" height="5" rx="1" fill="#292929"/></svg>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div style={{ flex:1, display:'flex', flexDirection:'column', padding:'0 28px 118px', minHeight:0 }}>
+        {/* Top breathing room — matches welcome step */}
+        <div style={{ flex:'0 0 140px' }} />
+
+        {/* Heading */}
         <div style={show(1)}>
-          <div style={{ fontSize:28, fontWeight:700, color:'#fff', letterSpacing:'-0.5px', lineHeight:'36px' }}>
-            Done. Went through {n1} messages.
-          </div>
+          <h1 style={{ fontFamily:'"Manychat Gravity", "Gravity", Inter, -apple-system, system-ui, sans-serif', fontSize:32, fontWeight:800, color:'#111', letterSpacing:'-0.03em', lineHeight:'36px', margin:0 }}>
+            Done. Went through {nTotal} messages.
+          </h1>
         </div>
-        <div style={{ display:'flex', flexDirection:'column', gap:12, marginTop:4, ...show(2) }}>
-          <div style={{ fontSize:16, fontWeight:400, color:'rgba(255,255,255,0.7)', lineHeight:'24px' }}>
-            {n2} replies are ready to send.
-          </div>
-          <div style={{ fontSize:16, fontWeight:400, color:'rgba(255,255,255,0.7)', lineHeight:'24px' }}>
-            {n3} spam messages filtered out.
-          </div>
+
+        {/* Stat rows */}
+        <div style={{ display:'flex', flexDirection:'column', gap:14, marginTop:32 }}>
+          {statRows.map((row, i) => (
+            <div key={i} style={{ display:'flex', alignItems:'baseline', gap:16, ...show(2 + i) }}>
+              <div style={{
+                fontFamily:'"Manychat Gravity", "Gravity", Inter, -apple-system, system-ui, sans-serif',
+                fontSize:26, fontWeight:800, color:'#111', letterSpacing:'-0.02em',
+                minWidth:40, textAlign:'left', flexShrink:0,
+                lineHeight:'28px',
+                fontVariantNumeric:'tabular-nums',
+              }}>{row.n}</div>
+              <div style={{ fontSize:16, fontWeight:400, color:'#303336', lineHeight:'22px' }}>
+                {row.label}
+              </div>
+            </div>
+          ))}
         </div>
-        <div style={{ marginTop:4, ...show(3) }}>
-          <div style={{ fontSize:16, fontWeight:400, color:'rgba(255,255,255,0.7)', lineHeight:'24px' }}>
+
+        {/* Ready line */}
+        <div style={{ marginTop:28, ...show(6) }}>
+          <p style={{ fontSize:16, fontWeight:400, color:'#303336', lineHeight:'24px', margin:0 }}>
             Your inbox is ready.
-          </div>
+          </p>
+        </div>
+
+        {/* Spacer to push button to bottom */}
+        <div style={{ flex:1 }} />
+
+        {/* CTA button with rainbow glow */}
+        <div style={{ position:'relative', ...show(7) }}>
+          <RainbowGlow />
+          <button
+            onClick={handleOpen}
+            style={{
+              position:'relative', zIndex:1,
+              width:'100%', height:56,
+              background:'#1C1C1E', color:'#fff',
+              border:'none', borderRadius:12,
+              fontSize:17, fontWeight:600, letterSpacing:'-0.01em',
+              cursor:'pointer',
+              fontFamily:'inherit',
+            }}
+          >
+            Open Inbox
+          </button>
         </div>
       </div>
-      <div style={show(4)}>
-        <button onClick={handleOpen}
-          style={{ width:'100%', height:52, background:'#fff', color:'#000', border:'none', borderRadius:14, fontSize:17, fontWeight:600, cursor:'pointer', letterSpacing:'-0.01em' }}>
-          Open Inbox
-        </button>
-      </div>
+
       {closing && (
         <div style={{ position:'absolute', inset:0, zIndex:20, background:'#fff', animation:'fadeIn 0.5s ease both' }} />
       )}
@@ -3325,17 +4127,9 @@ function App() {
   return (
     <div style={{ width:'100%', height:'100%', position:'relative', overflow:'hidden' }}>
 
-      {/* ─── Onboarding: clean black background, chat-like ─── */}
+      {/* ─── Onboarding ─── */}
       {onOnboarding && (
-        <div style={{ position:'absolute', inset:0, background:'#000', zIndex:0 }}>
-          {/* Subtle grid overlay */}
-          <div style={{
-            position:'absolute', inset:0, zIndex:0,
-            backgroundImage: 'linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)',
-            backgroundSize: '48px 48px',
-            maskImage: 'radial-gradient(ellipse 70% 50% at 50% 60%, black 20%, transparent 70%)',
-            WebkitMaskImage: 'radial-gradient(ellipse 70% 50% at 50% 60%, black 20%, transparent 70%)',
-          }} />
+        <div style={{ position:'absolute', inset:0, background:'#FFFFFF', zIndex:0 }}>
           <div
             key={screen}
             className="ob-step-layer"
@@ -3355,7 +4149,8 @@ function App() {
         </div>
       )}
 
-      {/* Bottom Nav — visible on welcome + main inbox, hidden on loading/results/overlays */}
+      {/* Bottom Nav — visible on welcome + main, hidden during loading/results */}
+      {screen === 'ob-welcome' && <BottomNav />}
       {screen === 'main' && !hideNav && <BottomNav />}
     </div>
   );
