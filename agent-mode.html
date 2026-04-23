@@ -4133,80 +4133,75 @@ function AgentChatHome({ onOverlayChange, firstRun }) {
             if (finalSentSet) setGlobalSentSet(new Set([...globalSentSet, ...finalSentSet]));
             if (finalLaterSet) setGlobalLaterSet(new Set([...globalLaterSet, ...finalLaterSet]));
 
-            // How many items from this focus session were left unanswered?
             const totalItems = focusMode ? focusMode.items.length : 0;
             const addressed = newlySent.length + newlyLater.length;
-            const skipped = totalItems - addressed;
+            const skipped = totalItems - addressed; // truly untouched — neither replied nor snoozed
             const remainingItems = focusMode ? focusMode.items.filter(
               item => !finalSentSet?.has(item.user) && !finalLaterSet?.has(item.user)
             ) : [];
 
-            // Smart summary message
-            if (addressed > 0) {
-              const parts = [];
-              if (newlySent.length > 0) parts.push(newlySent.length + ' replied');
-              if (newlyLater.length > 0) parts.push(newlyLater.length + ' snoozed for later');
-              setMessages(prev => [...prev, {
-                type: 'agent',
-                content: parts.join(', ') + '.',
-                id: Date.now(),
-              }]);
-            }
-
             const shownCards = messages.filter(m => m.cardLabel).map(m => m.cardLabel);
+            const suggestNextCategory = () => {
+              if (!shownCards.includes('need your attention') && ATTENTION_ITEMS.length > 0) {
+                setMessages(prev => [...prev, {
+                  type: 'agent',
+                  content: 'Next up: ' + ATTENTION_ITEMS.length + ' people need your help \u2014 ' + ATTENTION_ITEMS[0].name + ' has been waiting since yesterday.',
+                  cardLabel: 'need your attention',
+                  cardSubtitle: 'They need personal support from you',
+                  cards: ATTENTION_ITEMS.slice(0,3).map(item => ({ user: item.user, name: item.name, avatar: item.avatar, _item: item })),
+                  id: Date.now() + 1,
+                }]);
+              } else if (!shownCards.includes('community')) {
+                const withDrafts = COMMUNITY_ITEMS.filter(i => i.draft).length;
+                setMessages(prev => [...prev, {
+                  type: 'agent',
+                  content: 'When you have a moment: ' + withDrafts + ' community messages have replies ready.',
+                  cardLabel: 'community',
+                  cardSubtitle: 'A little love goes a long way',
+                  cards: COMMUNITY_ITEMS.filter(i => i.draft).slice(0,3).map(item => ({ user: item.user, name: item.name, avatar: item.avatar, _item: item })),
+                  id: Date.now() + 1,
+                }]);
+              } else {
+                setMessages(prev => [...prev, {
+                  type: 'agent',
+                  content: 'You\'re all caught up for now. I\'ll let you know when something new comes in.',
+                  id: Date.now() + 1,
+                }]);
+              }
+            };
 
             if (skipped === 0) {
-              // All done — suggest the next category after a short pause
-              setTimeout(() => {
-                if (!shownCards.includes('need your attention') && ATTENTION_ITEMS.length > 0) {
-                  setMessages(prev => [...prev, {
-                    type: 'agent',
-                    content: 'Next up: ' + ATTENTION_ITEMS.length + ' people need your help \u2014 ' + ATTENTION_ITEMS[0].name + ' has been waiting since yesterday.',
-                    cardLabel: 'need your attention',
-                    cardSubtitle: 'They need personal support from you',
-                    cards: ATTENTION_ITEMS.slice(0,3).map(item => ({ user: item.user, name: item.name, avatar: item.avatar, _item: item })),
-                    id: Date.now() + 1,
-                  }]);
-                } else if (!shownCards.includes('community')) {
-                  const withDrafts = COMMUNITY_ITEMS.filter(i => i.draft).length;
-                  setMessages(prev => [...prev, {
-                    type: 'agent',
-                    content: 'When you have a moment: ' + withDrafts + ' community messages have replies ready.',
-                    cardLabel: 'community',
-                    cardSubtitle: 'A little love goes a long way',
-                    cards: COMMUNITY_ITEMS.filter(i => i.draft).slice(0,3).map(item => ({ user: item.user, name: item.name, avatar: item.avatar, _item: item })),
-                    id: Date.now() + 1,
-                  }]);
-                } else {
-                  setMessages(prev => [...prev, {
-                    type: 'agent',
-                    content: 'You\'re all caught up for now. I\'ll let you know when something new comes in.',
-                    id: Date.now() + 1,
-                  }]);
-                }
-              }, 800);
+              // All done — FocusMode's completion screen already showed the stats.
+              // Just move on to the next category.
+              setTimeout(suggestNextCategory, 800);
             } else if (addressed > 0) {
-              // Partially done — acknowledge what's left, offer to go back or move on
+              // Partial — one clear message: what was handled + what still needs a reply.
+              // Snoozed items are counted separately from replied ones (they're not "done").
+              const parts = [];
+              if (newlySent.length > 0) parts.push(newlySent.length === 1 ? '1 replied' : newlySent.length + ' replied');
+              if (newlyLater.length > 0) parts.push(newlyLater.length === 1 ? '1 saved for later' : newlyLater.length + ' saved for later');
+              const remainingText = skipped === 1 ? '1 still needs a reply' : skipped + ' still need a reply';
+              const question = skipped === 1 ? 'Want to see it or move on?' : 'Want to see them or move on?';
               setTimeout(() => {
                 setPendingFocusItems({ title: focusMode.title, items: remainingItems });
                 setMessages(prev => [...prev, {
                   type: 'agent',
-                  content: addressed + ' done \u2014 nice. You still have ' + skipped + (skipped === 1 ? ' conversation' : ' conversations') + ' you haven\'t replied to yet.',
+                  content: parts.join(', ') + ' \u2014 ' + remainingText + '. ' + question,
                   suggestions: ['Show remaining ' + skipped, "What's next?"],
                   id: Date.now() + 1,
                 }]);
-              }, 500);
+              }, 400);
             } else {
               // Nothing done — went back immediately
               setTimeout(() => {
                 setPendingFocusItems({ title: focusMode.title, items: remainingItems });
                 setMessages(prev => [...prev, {
                   type: 'agent',
-                  content: 'No problem \u2014 those ' + skipped + (skipped === 1 ? ' conversation is' : ' conversations are') + ' still waiting whenever you\'re ready.',
+                  content: 'No problem \u2014 ' + (skipped === 1 ? 'that one is' : 'those ' + skipped + ' are') + ' still waiting whenever you\'re ready.',
                   suggestions: ['Pick up where I left off', 'Show me something else'],
                   id: Date.now() + 1,
                 }]);
-              }, 500);
+              }, 400);
             }
 
             setFocusMode(null);
