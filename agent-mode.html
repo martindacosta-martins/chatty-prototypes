@@ -3359,7 +3359,9 @@ function MenuScreen({ onClose, onOpenChat, onNewChat }) {
       <div onScroll={(e) => setScrolled(e.target.scrollTop > 6)}
         style={{ flex:1, overflowY:'auto', padding: searchOpen ? '120px 20px 120px' : '108px 20px 120px' }}>
 
-        {/* Date + overnight summary + Handled today stats card */}
+        {/* HIDDEN (not dead code) — date, overnight summary, and Handled Today card are
+            intentionally hidden until we have real backend data to populate them.
+            Do not remove — restore when data is live.
         {!q && (
           <div style={{ padding:'8px 0 4px', display:'flex', flexDirection:'column', gap:14 }}>
             <div>
@@ -3369,7 +3371,6 @@ function MenuScreen({ onClose, onOpenChat, onNewChat }) {
               </div>
             </div>
 
-            {/* Handled today card */}
             <div style={{ border:'1px solid #E0E2E5', borderRadius:16, padding:'14px 16px', background:'#fff' }}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:12 }}>
                 <span style={{ fontSize:15, fontWeight:600, color:'#292929' }}>Handled today</span>
@@ -3378,32 +3379,22 @@ function MenuScreen({ onClose, onOpenChat, onNewChat }) {
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                 </div>
               </div>
-
-              {/* Stacked segmented bar */}
               <div style={{ display:'flex', gap:2, marginTop:12, height:6, borderRadius:3, overflow:'hidden' }}>
                 <div style={{ flex:'34', background:'#1FB26A', borderRadius:3 }} />
                 <div style={{ flex:'126', background:'#6B5BE6', borderRadius:3 }} />
                 <div style={{ flex:'4', background:'#D8DADE', borderRadius:3 }} />
                 <div style={{ flex:'2', background:'#D8DADE', borderRadius:3 }} />
               </div>
-
-              {/* Breakdown */}
               <div style={{ display:'flex', flexWrap:'wrap', gap:'2px 6px', marginTop:10, fontSize:13, lineHeight:'18px' }}>
                 <span style={{ color:'#292929', fontWeight:600 }}>34 DMs</span>
                 <span style={{ color:'#9A9A9A' }}>·</span>
                 <span style={{ color:'#292929', fontWeight:600 }}>126 comments</span>
-                {/* HIDDEN (not dead code) — "corrections" and "took over" are intentionally hidden for now.
-                    These will be surfaced once the backend can reliably track them.
-                    Do not remove — restore when the data is real.
-                <span style={{ color:'#9A9A9A' }}>·</span>
-                <span style={{ color:'#9A9A9A' }}>4 corrections</span>
-                <span style={{ color:'#9A9A9A' }}>·</span>
-                <span style={{ color:'#9A9A9A' }}>2 took over</span>
-                */}
+                (corrections and took-over also hidden — see separate comment below)
               </div>
             </div>
           </div>
         )}
+        */}
 
         {/* Bubbles row — hide while searching */}
         {!q && (
