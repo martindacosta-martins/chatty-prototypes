@@ -3777,43 +3777,85 @@ function AgentChatHome({ onOverlayChange, firstRun }) {
       };
     }
 
-    // --- Fallback with suggestion chips ---
-    return {
-      content: 'I\'m not sure what you\'re looking for. You can ask me things like:',
-      suggestions: ['People who want to buy', 'Who needs support?', 'What should I do first?'],
-    };
+    // No keyword match — signal to caller to use real AI
+    return null;
   };
 
-  const handleSend = () => {
+  // ── Real AI integration via Supabase Edge Function ──
+  const CLAUDE_PROXY_URL = 'https://ignqxwqaqlcgeluokdrv.supabase.co/functions/v1/claude-proxy';
+
+  const SOFIA_SYSTEM_PROMPT = [
+    'You are the AI inbox assistant for Sofia Reyes (@sofia.reyes.coach), a wellness creator with 68k Instagram followers.',
+    'Sofia helps women 30–45 build sustainable healthy habits. Her story: former corporate burnout who reversed pre-diabetes, quit her job at 34, now coaches full-time.',
+    '',
+    'Her products:',
+    '• Wellness Reset Webinar — free live 60-min event every 2 weeks (main lead magnet)',
+    '• 4-Week Kickstart — $197 self-paced foundation program',
+    '• 12-Week Reboot — $597 or 3×$197, weekly group coaching + 1 intake call',
+    '• 1-on-1 Coaching Call — $150/session, 45-min via Calendly',
+    '',
+    'Current inbox:',
+    '• 14 high-intent leads — 11 with AI draft replies ready, 3 need personal input',
+    '• 6 support issues (broken webinar replay link, checkout bug, client discouraged at week 4)',
+    '• 30 community messages — fans, testimonials, engagement',
+    '• 94 spam filtered, 641 total processed this week',
+    '',
+    'Your role: Be Sofia\'s sharp, warm business partner. Help her understand and prioritise her inbox.',
+    'Keep replies to 1–3 sentences. Be specific — reference real names and situations when relevant.',
+    'Prioritise: revenue first, support second, community third. Never be corporate or generic.',
+  ].join('\n');
+
+  const callClaudeAPI = async (query) => {
+    const history = messages
+      .filter(m => (m.type === 'user' || m.type === 'agent') && m.content)
+      .slice(-6)
+      .map(m => ({ role: m.type === 'user' ? 'user' : 'assistant', content: m.content }));
+    history.push({ role: 'user', content: query });
+    try {
+      const res = await fetch(CLAUDE_PROXY_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ system: SOFIA_SYSTEM_PROMPT, messages: history }),
+      });
+      const data = await res.json();
+      return (data.content && data.content[0] && data.content[0].text) || 'Something went wrong — try again.';
+    } catch {
+      return 'Couldn\'t reach the AI right now. Try again in a moment.';
+    }
+  };
+
+  const handleSend = async () => {
     if (!inputVal.trim()) return;
     const query = inputVal.trim();
     setInputVal('');
 
-    // Add user message
     setMessages(prev => [...prev, { type:'user', content:query, id:Date.now() }]);
-
-    // Add thinking
     setTimeout(() => {
       setMessages(prev => [...prev, { type:'thinking', id:Date.now()+1 }]);
     }, 300);
 
-    // Replace thinking with response
-    setTimeout(() => {
-      const response = getResponse(query);
+    const structured = getResponse(query);
+    if (structured !== null) {
+      // Keyword-matched structured response — show after short delay
+      setTimeout(() => {
+        setMessages(prev => {
+          const withoutThinking = prev.filter(m => m.type !== 'thinking');
+          return [...withoutThinking, {
+            type:'agent', content: structured.content, cards: structured.cards,
+            cardLabel: structured.cardLabel, cardSubtitle: structured.cardSubtitle,
+            reasoning: structured.reasoning, suggestions: structured.suggestions,
+            id: Date.now()+2,
+          }];
+        });
+      }, 1800);
+    } else {
+      // No keyword match — call real Claude API
+      const aiText = await callClaudeAPI(query);
       setMessages(prev => {
         const withoutThinking = prev.filter(m => m.type !== 'thinking');
-        return [...withoutThinking, {
-          type:'agent',
-          content: response.content,
-          cards: response.cards,
-          cardLabel: response.cardLabel,
-          cardSubtitle: response.cardSubtitle,
-          reasoning: response.reasoning,
-          suggestions: response.suggestions,
-          id: Date.now()+2,
-        }];
+        return [...withoutThinking, { type:'agent', content: aiText, id: Date.now()+2 }];
       });
-    }, 1800);
+    }
   };
 
   const handleOpenChat = (item) => {
@@ -4058,13 +4100,15 @@ function AgentChatHome({ onOverlayChange, firstRun }) {
             }, 300);
             return;
           }
-          // ── Default: route through getResponse ──
+          // ── Default: keyword match first, real AI as fallback ──
           setMessages(prev => prev.map(m => m.suggestions ? { ...m, suggestions: null } : m));
           setMessages(prev => [...prev, { type:'user', content: s, id: Date.now() }]);
           setTimeout(() => {
             setMessages(prev => [...prev, { type:'thinking', id: Date.now() }]);
+          }, 300);
+          const resp = getResponse(s);
+          if (resp !== null) {
             setTimeout(() => {
-              const resp = getResponse(s);
               setMessages(prev => {
                 const filtered = prev.filter(m => m.type !== 'thinking');
                 return [...filtered, {
@@ -4075,7 +4119,14 @@ function AgentChatHome({ onOverlayChange, firstRun }) {
                 }];
               });
             }, 1500);
-          }, 300);
+          } else {
+            callClaudeAPI(s).then(aiText => {
+              setMessages(prev => {
+                const filtered = prev.filter(m => m.type !== 'thinking');
+                return [...filtered, { type: 'agent', content: aiText, id: Date.now() }];
+              });
+            });
+          }
         };
 
         return (
