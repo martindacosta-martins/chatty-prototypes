@@ -1229,17 +1229,30 @@ function ReasoningSheet({ title, body, children, onClose, showSources, showFeedb
     setTimeout(() => { onNotInterested && onNotInterested(); }, 280);
   };
 
-  const negLabel = intent === 'Interested' ? 'Not Interested'
-    : intent === 'Engaged' ? 'Not Engaged'
-    : intent === 'Question' ? 'Not a Question'
-    : 'Not Relevant';
+  const NEG_LABELS = {
+    sales: 'Not a Sales Lead', coaching_call: 'Not a Call Inquiry',
+    testimonial: 'Not a Testimonial', feedback: 'Not Feedback',
+    collaboration: 'Not a Collab', technical_issue: 'Not a Tech Issue',
+    churn_risk: 'Not at Risk', refund: 'Not a Refund',
+    upgrade: 'Not Upgrading', product_inquiry: 'Not a Product Inquiry',
+    webinar: 'Not Webinar Related',
+  };
+  const negLabel = NEG_LABELS[intent] || 'Wrong Tag';
 
   const WHY_OPTIONS = {
-    Interested: ['Just browsing', 'Wrong product', 'Already bought', 'Changed their mind'],
-    Engaged: ["It's a bot", 'Feels spammy', 'Not genuine', 'Wrong person'],
-    Question: ['Already answered', 'Not a real question', 'Wrong person', 'Too vague'],
+    sales: ['Just browsing', 'Wrong product fit', 'Already bought', 'Not ready yet'],
+    coaching_call: ['Not asking for a call', 'General question only', 'Already booked', 'Wrong read'],
+    testimonial: ['Just a casual mention', 'Not shareable', 'Private message', 'Wrong read'],
+    feedback: ['Just chatting', 'Not actionable', 'Looks like spam', 'Wrong read'],
+    collaboration: ['Not a real offer', 'Low quality account', 'Already declined', 'Wrong person'],
+    technical_issue: ['Resolved themselves', 'Not urgent', 'Not a real issue', 'Wrong person'],
+    churn_risk: ['Just venting', 'No real churn risk', 'Already resolved', 'Wrong read'],
+    refund: ['Already handled', 'Not requesting refund', 'Wrong person', 'Other'],
+    upgrade: ['Not ready to upgrade', 'Just asking', 'Wrong person', 'Other'],
+    product_inquiry: ['Already answered', 'Not buying', 'Wrong product', 'Other'],
+    webinar: ['Already registered', 'Not interested', 'Wrong person', 'Other'],
   };
-  const whyOptions = WHY_OPTIONS[intent] || ['Not relevant', 'Wrong person', 'Already handled', 'Other'];
+  const whyOptions = WHY_OPTIONS[intent] || ['Wrong tag', 'Wrong person', 'Already handled', 'Other'];
 
   return (
     <div style={{ position:'absolute', inset:0, zIndex:200, display:'flex', flexDirection:'column', justifyContent:'flex-end' }}>
@@ -1617,11 +1630,6 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
     return 1 - (matches / Math.max(words1.length, 1));
   };
 
-  // Intent label + context menu
-  const [intentLabel, setIntentLabel] = useState(item.intent || null);
-  const [intentMenu, setIntentMenu] = useState(false); // false | 'main' | 'change' | 'why'
-  const allIntents = ['Interested', 'FAQ', 'Collab', 'Emotional', 'Spam', 'Other'];
-
   // Reasoning bottom sheet
   const [reasoningSheet, setReasoningSheet] = useState(null); // null or { title, body }
   const [agentOverlayOpen, setAgentOverlayOpen] = useState(false);
@@ -1838,7 +1846,7 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
           </div>
           {item.avatar && <img src={item.avatar} alt="" style={{ width:32, height:32, borderRadius:400, objectFit:'cover', border:'0.5px solid rgba(44,50,58,0.12)', flexShrink:0 }} />}
-          <div onClick={(e) => { e.stopPropagation(); setReasoningSheet({ title: 'About ' + (item.name || item.user), body: item.context || 'No additional context available.', intent: item.intent }); }}
+          <div onClick={(e) => { e.stopPropagation(); setReasoningSheet({ title: 'About ' + (item.name || item.user), body: item.context || 'No additional context available.' }); }}
             style={{ flex:1, minWidth:0, cursor:'pointer' }}>
             <div style={{ fontSize:14, fontWeight:500, color:'#292929', lineHeight:'20px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.name || item.user}</div>
             <div style={{ fontSize:12, fontWeight:400, color:'#707070', lineHeight:'16px', display:'flex', alignItems:'center', gap:4 }}>
@@ -2598,7 +2606,7 @@ function FocusMode({ title, items, initialSentSet, initialLaterSet, onClose, onS
           {/* Pinned card header */}
           <div style={{ padding:'14px 16px', display:'flex', alignItems:'center', gap:12, borderBottom:'1px solid #F0F0F0', flexShrink:0 }}>
             <img src={item.avatar} alt="" style={{ width:36, height:36, borderRadius:400, objectFit:'cover', border:'0.5px solid rgba(44,50,58,0.12)', flexShrink:0 }} />
-            <div onClick={() => setReasoningSheet({ title: 'About ' + (item.name || item.user), body: item.context || 'No context available.', intent: item.intent })} style={{ flex:1, minWidth:0, cursor:'pointer' }}>
+            <div onClick={() => setReasoningSheet({ title: 'About ' + (item.name || item.user), body: item.context || 'No context available.' })} style={{ flex:1, minWidth:0, cursor:'pointer' }}>
               <div style={{ fontSize:14, fontWeight:600, color:'#292929', lineHeight:'18px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.name || item.user}</div>
               <div style={{ display:'flex', alignItems:'center', gap:2, marginTop:1 }}>
                 <span style={{ fontSize:12, fontWeight:400, color:'#707070', lineHeight:'16px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.context || item.agentRead || item.summary || 'DM'}</span>
