@@ -1040,43 +1040,105 @@ function PurpleBg({ gridMode = 'idle' }) {
 function ObSorting({ onNext }) {
   const [msgIdx, setMsgIdx] = useState(0);
   const [msgVis, setMsgVis] = useState(true);
+  const [fadeOut, setFadeOut] = useState(false);
 
   const messages = [
-    'Reading your DMs...',
-    'Finding what needs you...',
-    'Drafting replies...',
-    'Almost ready...',
+    'Opening your inbox…',
+    'Reading your DMs…',
+    'Learning your tone of voice…',
+    'Finding what needs you…',
+    'Drafting replies…',
+    'Yes, I got everything ✨',
   ];
 
   // Cycle messages with a fade cross-dissolve
   useEffect(() => {
-    const iv = setInterval(() => {
+    if (msgIdx >= messages.length - 1) return; // stop at last
+    const t = setTimeout(() => {
       setMsgVis(false);
-      setTimeout(() => { setMsgIdx(i => (i + 1) % messages.length); setMsgVis(true); }, 280);
-    }, 1100);
-    return () => clearInterval(iv);
-  }, []);
-
-  // Auto-advance after 8s
-  useEffect(() => {
-    const t = setTimeout(onNext, 8000);
+      setTimeout(() => { setMsgIdx(i => i + 1); setMsgVis(true); }, 280);
+    }, 900);
     return () => clearTimeout(t);
-  }, []);
+  }, [msgIdx]);
+
+  // Once the last message lands, hold briefly then fade out the whole screen
+  useEffect(() => {
+    if (msgIdx === messages.length - 1) {
+      const t1 = setTimeout(() => setFadeOut(true), 900);
+      const t2 = setTimeout(onNext, 1500);
+      return () => { clearTimeout(t1); clearTimeout(t2); };
+    }
+  }, [msgIdx]);
 
   return (
-    <div style={{ height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', position:'relative', overflow:'hidden' }}>
-      <MatrixLines />
-      <div style={{ position:'relative', zIndex:2, opacity: msgVis ? 1 : 0, transition:'opacity 0.28s ease' }}>
-        <span style={{
-          fontSize:16, fontWeight:400,
-          background:'linear-gradient(90deg, rgba(40,40,40,0.35) 0%, rgba(40,40,40,1) 40%, rgba(40,40,40,0.35) 60%, rgba(40,40,40,0.35) 100%)',
-          backgroundSize:'200% auto',
-          WebkitBackgroundClip:'text',
-          WebkitTextFillColor:'transparent',
-          backgroundClip:'text',
-          animation:'textShimmer 2.5s linear infinite',
-        }}>{messages[msgIdx]}</span>
+    <div style={{ height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', position:'relative', overflow:'hidden', background:'#FFFFFF', opacity: fadeOut ? 0 : 1, transition:'opacity .55s cubic-bezier(.25,.46,.45,.94)' }}>
+      {/* Status bar */}
+      <div style={{ position:'absolute', top:0, left:0, right:0, padding:'14px 24px 0', display:'flex', justifyContent:'space-between', alignItems:'center', height:44 }}>
+        <span style={{ fontSize:15, fontWeight:600, color:'#292929', letterSpacing:'-0.3px' }}>9:41</span>
+        <div style={{ display:'flex', alignItems:'center', gap:5 }}>
+          <svg width="17" height="12" viewBox="0 0 17 12" fill="none"><rect x="0" y="7" width="3" height="5" rx="0.5" fill="#292929"/><rect x="4.5" y="4.5" width="3" height="7.5" rx="0.5" fill="#292929"/><rect x="9" y="2" width="3" height="10" rx="0.5" fill="#292929"/><rect x="13.5" y="0" width="3" height="12" rx="0.5" fill="#292929"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="#292929"><path d="M8 11.5a1.25 1.25 0 100-2.5 1.25 1.25 0 000 2.5z"/><path d="M4.94 7.94a4.5 4.5 0 016.12 0" stroke="#292929" strokeWidth="1.4" strokeLinecap="round" fill="none"/><path d="M2.81 5.81a7.5 7.5 0 0110.38 0" stroke="#292929" strokeWidth="1.4" strokeLinecap="round" fill="none"/></svg>
+          <svg width="27" height="12" viewBox="0 0 27 12" fill="none"><rect x="0.5" y="0.5" width="22" height="11" rx="2" stroke="#292929" strokeWidth="1" fill="none"/><rect x="2" y="2" width="19" height="8" rx="1" fill="#292929"/><rect x="24" y="3.5" width="2.5" height="5" rx="1" fill="#292929"/></svg>
+        </div>
       </div>
+
+      {/* Siri-style rainbow pulse frame */}
+      <SiriRainbowFrame />
+
+      {/* Center content */}
+      <div style={{ position:'relative', zIndex:2, display:'flex', flexDirection:'column', alignItems:'center', gap:28 }}>
+        {/* Avatar + handle */}
+        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:10, animation:'fadeIn 0.6s ease both' }}>
+          <div style={{ width:56, height:56, borderRadius:'50%', overflow:'hidden', boxShadow:'0 2px 12px rgba(15,23,42,0.08)' }}>
+            <img src="https://i.pravatar.cc/112?u=sofiar" alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+          </div>
+          <span style={{ fontSize:14, fontWeight:500, color:'#292929', letterSpacing:'-0.01em' }}>@sofia.reyes.coach</span>
+        </div>
+        {/* Phase text with shimmer */}
+        <div style={{ minHeight:22, opacity: msgVis ? 1 : 0, transition:'opacity .28s ease' }}>
+          <span style={{
+            fontSize:16, fontWeight:400,
+            background:'linear-gradient(90deg, rgba(40,40,40,0.35) 0%, rgba(40,40,40,1) 40%, rgba(40,40,40,0.35) 60%, rgba(40,40,40,0.35) 100%)',
+            backgroundSize:'200% auto',
+            WebkitBackgroundClip:'text',
+            WebkitTextFillColor:'transparent',
+            backgroundClip:'text',
+            animation:'textShimmer 2.5s linear infinite',
+          }}>{messages[msgIdx]}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* Siri-style rainbow pulse frame — soft multi-hue halo hugging the viewport edges */
+function SiriRainbowFrame() {
+  return (
+    <div aria-hidden style={{ position:'absolute', inset:0, zIndex:1, pointerEvents:'none', overflow:'hidden' }}>
+      <style>{`
+        @keyframes siriPulse {
+          0%, 100% { opacity: 0.55; transform: scale(1); }
+          50%      { opacity: 0.95; transform: scale(1.03); }
+        }
+        @keyframes siriSpin {
+          from { transform: rotate(0deg); }
+          to   { transform: rotate(360deg); }
+        }
+      `}</style>
+      {/* Outer slowly-rotating conic rainbow — masked to a ring via a radial-gradient mask */}
+      <div style={{
+        position:'absolute', inset:-80,
+        background:'conic-gradient(from 0deg, #FFB3B3, #FFDCA8, #FFF3A8, #B8F2C9, #B8DCFF, #D6B8FF, #FFB8E3, #FFB3B3)',
+        filter:'blur(36px)',
+        animation:'siriSpin 14s linear infinite, siriPulse 3.2s ease-in-out infinite',
+        WebkitMaskImage:'radial-gradient(circle at center, transparent 42%, black 70%)',
+        maskImage:'radial-gradient(circle at center, transparent 42%, black 70%)',
+      }}/>
+      {/* Soft inner white wash so center stays readable */}
+      <div style={{
+        position:'absolute', inset:0,
+        background:'radial-gradient(circle at center, #FFFFFF 30%, rgba(255,255,255,0.75) 55%, rgba(255,255,255,0) 78%)',
+      }}/>
     </div>
   );
 }
@@ -2117,12 +2179,14 @@ function ChatDetail({ item, label, labelColor, onClose, isSensitive, onSent, sen
 
 
 /* ═══ AGENT OVERLAY — Siri-like floating chat ═══ */
-function AgentOverlay({ item, draft, onChangeDraft, onClose }) {
+function AgentOverlay({ item, draft, onChangeDraft, onClose, onIgnoreItem }) {
   const [msgs, setMsgs] = useState([
     { from:'agent', text:'Is there anything you want to know about this contact or want me to do?' }
   ]);
   const [input, setInput] = useState('');
-  const [pendingAction, setPendingAction] = useState(null); // { newDraft, closeAfter, skipContact }
+  const [pendingAction, setPendingAction] = useState(null); // { newDraft, closeAfter, skipContact, ignoreConfirm }
+  const [ignoreStep, setIgnoreStep] = useState(null); // null | 'reason' | 'confirm'
+  const [ignoreReason, setIgnoreReason] = useState('');
   const inputRef = useRef(null);
   const msgsEndRef = useRef(null);
   const [overlayInputFocused, setOverlayInputFocused] = useState(false);
@@ -2228,10 +2292,10 @@ function AgentOverlay({ item, draft, onChangeDraft, onClose }) {
       if (!draft || draft.trim() === '') {
         const templates = {
           technical_issue: 'Hey ' + contactName + ', I\'m so sorry about this. Let me look into it right now and I\'ll get back to you within the hour. Hang tight!',
-          churn_risk: 'Hey ' + contactName + ', I\'m glad you reached out. Let\'s figure this out together — I want to make sure you get the results you came for.',
+          churn_risk: 'Hey ' + contactName + ', I\'m glad you reached out. Let\'s figure this out together \u2014 I want to make sure you get the results you came for.',
           refund: 'Hey ' + contactName + ', I hear you. Let me look into your request right now and I\'ll follow up shortly.',
           sales: 'Hey ' + contactName + '! Thanks for reaching out \u2014 I\'d love to tell you more about the program. What\'s your main goal right now?',
-          coaching_call: 'Hey ' + contactName + '! I offer 1-on-1 coaching calls at $150/session — 45 mins where we map out exactly what you need. You can book here: calendly.com/sofia-reyes',
+          coaching_call: 'Hey ' + contactName + '! I offer 1-on-1 coaching calls at $150/session \u2014 45 mins where we map out exactly what you need. You can book here: calendly.com/sofia-reyes',
           upgrade: 'Hey ' + contactName + '! So great to hear from you again. The Reboot is the perfect next step, and I have something special for returning clients \u2014 want me to send you the details?',
           testimonial: contactName + ', this honestly made my day. Would you be open to sharing your story with the community? It would inspire so many people.',
           feedback: contactName + ', thank you so much for this \u2014 it truly means a lot. I love hearing what\'s working for you.',
@@ -2246,6 +2310,8 @@ function AgentOverlay({ item, draft, onChangeDraft, onClose }) {
 
     // --- Context-aware fallback ---
     const suggestions = [];
+    // Always offer a way to dismiss this chat from Important
+    suggestions.push('Ignore this chat');
     if (draft) {
       suggestions.push('Make it shorter', 'Make it warmer', 'Add a booking link');
     } else {
@@ -2255,9 +2321,38 @@ function AgentOverlay({ item, draft, onChangeDraft, onClose }) {
 
     return {
       thinking: 'Hmm...',
-      proposal: 'I\'m not sure what you mean. Here are some things I can do:\n\n' + suggestions.map(function(s) { return '\u2022 ' + s; }).join('\n'),
+      proposal: 'I\'m not sure what you mean. Here are some things I can do:',
       question: null,
+      pills: suggestions,
     };
+  };
+
+  // Ignore flow — walks the user through (1) why, (2) confirm, (3) execute
+  const startIgnoreFlow = () => {
+    const contactName = item.name ? item.name.split(' ')[0] : 'this contact';
+    setMsgs(prev => [...prev,
+      { from:'user', text:'Ignore this chat' },
+      { from:'agent', text:'Got it. Why should I stop flagging this as important?' },
+      { from:'choice', choices: [
+        'Not actually urgent',
+        'Already handled elsewhere',
+        'Not a priority right now',
+        'Other',
+      ] },
+    ]);
+    setIgnoreStep('reason');
+  };
+
+  const handleIgnoreReason = (reason) => {
+    const contactName = item.name ? item.name.split(' ')[0] : 'this contact';
+    setIgnoreReason(reason);
+    setMsgs(prev => [...prev.filter(m => m.from !== 'choice'),
+      { from:'user', text:reason },
+      { from:'agent', text:'Thanks — I\'ll learn from that. Remove ' + contactName + ' from Important messages?' },
+      { from:'confirm', text:'Confirm removal', kind:'ignore' },
+    ]);
+    setIgnoreStep('confirm');
+    setPendingAction({ ignoreConfirm:true });
   };
 
   const send = () => {
@@ -2279,6 +2374,9 @@ function AgentOverlay({ item, draft, onChangeDraft, onClose }) {
       setMsgs(prev => {
         const withoutThinking = prev.filter(m => m.from !== 'thinking');
         const newMsgs = [...withoutThinking, { from:'agent', text:proposal.proposal }];
+        if (proposal.pills) {
+          newMsgs.push({ from:'pills', pills: proposal.pills });
+        }
         if (proposal.question) {
           newMsgs.push({ from:'confirm', text:proposal.question });
           setPendingAction({ newDraft:proposal.newDraft, closeAfter:proposal.closeAfter, skipContact:proposal.skipContact });
@@ -2290,6 +2388,14 @@ function AgentOverlay({ item, draft, onChangeDraft, onClose }) {
 
   const handleConfirm = (yes) => {
     if (yes && pendingAction) {
+      // Ignore-from-Important: short-circuit — remove confirm row, let FocusMode handle the rest
+      if (pendingAction.ignoreConfirm) {
+        setMsgs(prev => prev.filter(m => m.from !== 'confirm'));
+        setPendingAction(null);
+        setIgnoreStep(null);
+        if (onIgnoreItem) onIgnoreItem(ignoreReason);
+        return;
+      }
       if (pendingAction.newDraft !== undefined) onChangeDraft(pendingAction.newDraft);
       setMsgs(prev => [...prev, { from:'user', text:'Yes' }, { from:'agent', text:'Done ✓' }]);
       setPendingAction(null);
@@ -2298,7 +2404,34 @@ function AgentOverlay({ item, draft, onChangeDraft, onClose }) {
     } else {
       setMsgs(prev => [...prev, { from:'user', text:'No' }, { from:'agent', text:'Okay, what would you prefer?' }]);
       setPendingAction(null);
+      setIgnoreStep(null);
     }
+  };
+
+  // Quick-pill tap — either start the ignore flow or fill the input with the phrase
+  const handlePillTap = (label) => {
+    if (label === 'Ignore this chat') { startIgnoreFlow(); return; }
+    setInput(label);
+    // Send immediately on the next tick
+    setTimeout(() => {
+      const userMsg = label;
+      setInput('');
+      setMsgs(prev => [...prev, { from:'user', text:userMsg }]);
+      setTimeout(() => setMsgs(prev => [...prev, { from:'thinking' }]), 200);
+      const proposal = getProposal(userMsg);
+      setTimeout(() => {
+        setMsgs(prev => {
+          const withoutThinking = prev.filter(m => m.from !== 'thinking');
+          const newMsgs = [...withoutThinking, { from:'agent', text:proposal.proposal }];
+          if (proposal.pills) newMsgs.push({ from:'pills', pills: proposal.pills });
+          if (proposal.question) {
+            newMsgs.push({ from:'confirm', text:proposal.question });
+            setPendingAction({ newDraft:proposal.newDraft, closeAfter:proposal.closeAfter, skipContact:proposal.skipContact });
+          }
+          return newMsgs;
+        });
+      }, 1200);
+    }, 0);
   };
 
   return (
@@ -2324,6 +2457,33 @@ function AgentOverlay({ item, draft, onChangeDraft, onClose }) {
             return (
               <div key={i} className="siri-bubble" style={{ display:'flex', justifyContent:'flex-start' }}>
                 <div style={{ fontSize:14, lineHeight:'20px', color:'#292929', background:'#CDCDCD', padding:'10px 14px', borderRadius:'18px 18px 18px 4px', animation:'pulse 1.2s ease infinite' }}>Thinking...</div>
+              </div>
+            );
+          }
+          // Pills — tappable quick-action chips (light, subtle)
+          if (m.from === 'pills') {
+            return (
+              <div key={i} className="siri-bubble" style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                {m.pills.map((p, pi) => (
+                  <div key={pi} onClick={() => handlePillTap(p)}
+                    style={{ alignSelf:'flex-start', background:'#F5F5F5', border:'1px solid #E0E2E5', borderRadius:16, height:36, padding:'0 14px', display:'flex', alignItems:'center', gap:10, cursor:'pointer', WebkitTapHighlightColor:'transparent', boxShadow:'0 1px 2px rgba(15,23,42,0.04), 0 4px 16px rgba(15,23,42,0.06)' }}>
+                    <span style={{ fontSize:14, fontWeight:400, color:'#292929', lineHeight:'20px' }}>{p}</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#707070" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0 }}><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+                  </div>
+                ))}
+              </div>
+            );
+          }
+          // Choice list — stacked options (used for the "why ignore?" step)
+          if (m.from === 'choice') {
+            return (
+              <div key={i} className="siri-bubble" style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                {m.choices.map((c, ci) => (
+                  <div key={ci} onClick={() => handleIgnoreReason(c)}
+                    style={{ alignSelf:'flex-start', background:'#F5F5F5', border:'1px solid #E0E2E5', borderRadius:16, height:40, padding:'0 14px', display:'flex', alignItems:'center', gap:10, cursor:'pointer', WebkitTapHighlightColor:'transparent', boxShadow:'0 1px 2px rgba(15,23,42,0.04), 0 4px 16px rgba(15,23,42,0.06)' }}>
+                    <span style={{ fontSize:14, fontWeight:400, color:'#292929', lineHeight:'20px' }}>{c}</span>
+                  </div>
+                ))}
               </div>
             );
           }
@@ -2482,6 +2642,16 @@ function FocusMode({ title, items, initialSentSet, initialLaterSet, onClose, onS
   };
 
   const handleUndo = () => {
+    if (toastType === 'ignore') {
+      // Undo ignore: just swipe back to the card (no persistent set to clear)
+      setShowToast(false);
+      clearTimeout(undoTimerRef.current);
+      setSlideDir('right');
+      setAnimKey(k => k + 1);
+      setExpandedSummary(false);
+      setTimeout(() => setCurrentIdx(prevIdxRef.current), 50);
+      return;
+    }
     if (toastType === 'snooze') {
       // Undo snooze: remove from laterSet and go back
       const userToUndo = items[prevIdxRef.current]?.user;
@@ -2854,7 +3024,11 @@ function FocusMode({ title, items, initialSentSet, initialLaterSet, onClose, onS
       {showToast && (
         <div style={{ position:'absolute', bottom:168, left:0, right:0, zIndex:110 }}>
           <SystemSnackbar
-            message={toastType === 'snooze' ? `Snoozed ${toastUser} for ${toastDuration}` : `Reply sent to ${toastUser}`}
+            message={
+              toastType === 'snooze' ? `Snoozed ${toastUser} for ${toastDuration}` :
+              toastType === 'ignore' ? `${toastUser} removed from Important messages` :
+              `Reply sent to ${toastUser}`
+            }
             onUndo={handleUndo}
           />
         </div>
@@ -2890,6 +3064,20 @@ function FocusMode({ title, items, initialSentSet, initialLaterSet, onClose, onS
           draft={currentDraft || item.draft}
           onChangeDraft={(newDraft) => setCurrentDraft(newDraft)}
           onClose={() => setAgentOverlayOpen(false)}
+          onIgnoreItem={(reason) => {
+            // Close overlay, show toast, animate card out, advance
+            const ignoredName = item.name || item.user;
+            setAgentOverlayOpen(false);
+            setTimeout(() => {
+              prevIdxRef.current = currentIdx;
+              setToastUser(ignoredName);
+              setToastType('ignore');
+              setShowToast(true);
+              clearTimeout(undoTimerRef.current);
+              undoTimerRef.current = setTimeout(() => setShowToast(false), 5000);
+              goNext();
+            }, 250);
+          }}
         />
       )}
 
@@ -2901,6 +3089,128 @@ function FocusMode({ title, items, initialSentSet, initialLaterSet, onClose, onS
 
       </>
       )}
+    </div>
+  );
+}
+
+/* ═══ INBOX TABS + LIST ═══ */
+// Pill tabs: All / Later / Replied. Rows: avatar, name, intent summary, tag pill, timestamp.
+function InboxTabsList({ onOpenChat, onClose }) {
+  const [tab, setTab] = useState('All');
+
+  // Map each item to a tag category (Sales / Support / Collaboration / Complaint / Engagement)
+  const tagFor = (item) => {
+    const t = (item.tag || '').toLowerCase();
+    if (t === 'sales' || t === 'product_inquiry' || t === 'upgrade' || t === 'coaching_call') return 'Sales';
+    if (t === 'refund') return 'Complaint';
+    if (t === 'technical_issue' || t === 'churn_risk') return 'Support';
+    if (t === 'collaboration') return 'Collaboration';
+    if (t === 'testimonial' || t === 'feedback' || t === 'webinar') return 'Engagement';
+    // Fallback: check message content
+    const blob = ((item.msg || '') + ' ' + (item.summary || '')).toLowerCase();
+    if (blob.match(/collab|partner|podcast|brand|feature|creator/)) return 'Collaboration';
+    return 'Engagement';
+  };
+
+  // Short-form intent summary for the row (falls back to item.summary or a derived label)
+  const intentFor = (item) => {
+    if (item.summary) return item.summary;
+    const blob = (item.msg || '').toLowerCase();
+    if (blob.match(/price|pricing|cost|how much|invest/)) return 'Question about pricing';
+    if (blob.match(/sign up|sign-up|register|enroll|start|join/)) return 'Ready to sign up';
+    if (blob.match(/collab|partner|podcast/)) return 'Collaboration request';
+    if (blob.match(/refund|cancel/)) return 'Refund request';
+    if (blob.match(/access|locked|error|broken|not working/)) return 'Reporting an issue';
+    return 'Reached out';
+  };
+
+  // Very rough timestamp shortener: "2h ago" -> "2h", "1d ago" -> "1d", "just now" -> "Now", "5d ago" -> date
+  const shortTime = (t) => {
+    if (!t) return '';
+    if (/just now/i.test(t)) return 'Now';
+    const m = t.match(/(\d+)\s*(min|m|h|hour|d|day)/i);
+    if (m) {
+      const n = m[1];
+      const unit = m[2].toLowerCase();
+      if (unit.startsWith('min') || unit === 'm') return n + ' min';
+      if (unit.startsWith('h')) return n + 'h';
+      if (unit.startsWith('d')) return parseInt(n) >= 3 ? 'Apr ' + (22 - parseInt(n)) : (n + 'd');
+    }
+    return t;
+  };
+
+  // Assemble the union list. We annotate each with a pseudo "replied" / "later" state based on tag.
+  const allItems = React.useMemo(() => {
+    const pool = [...INTERESTED_ITEMS, ...ATTENTION_ITEMS, ...COMMUNITY_ITEMS];
+    return pool.map((it, idx) => ({
+      ...it,
+      _tag: tagFor(it),
+      _intent: intentFor(it),
+      _time: shortTime(it.time),
+      // Fake: roughly a third replied, a quarter later, rest open
+      _state: idx % 5 === 0 ? 'replied' : (idx % 7 === 3 ? 'later' : 'open'),
+    }));
+  }, []);
+
+  const filtered = allItems.filter(i => {
+    if (tab === 'All') return true;
+    if (tab === 'Later') return i._state === 'later';
+    if (tab === 'Replied') return i._state === 'replied';
+    return true;
+  });
+
+  const tagStyle = (tag) => {
+    // Neutral grey tags — match spec
+    return { background:'#F0F0F0', color:'#707070', fontSize:11, fontWeight:500, padding:'3px 8px', borderRadius:6, display:'inline-block', lineHeight:'14px' };
+  };
+
+  const pillBase = (active) => ({
+    height:32, padding:'0 14px', borderRadius:8,
+    display:'flex', alignItems:'center', justifyContent:'center',
+    background: active ? '#1C1C1E' : '#F5F5F5',
+    color: active ? '#fff' : '#292929',
+    fontSize:14, fontWeight:500, lineHeight:'32px',
+    cursor:'pointer', WebkitTapHighlightColor:'transparent',
+    transition:'background .15s ease, color .15s ease',
+    border: active ? '1px solid #1C1C1E' : '1px solid transparent',
+  });
+
+  return (
+    <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+      {/* Pill tabs */}
+      <div style={{ display:'flex', gap:8, padding:'20px 0 8px' }}>
+        {['All', 'Later', 'Replied'].map(t => (
+          <div key={t} onClick={() => setTab(t)} style={pillBase(tab === t)}>{t}</div>
+        ))}
+      </div>
+
+      {/* Empty state */}
+      {filtered.length === 0 && (
+        <div style={{ padding:'32px 0', textAlign:'center', color:'#9A9A9A', fontSize:14 }}>
+          Nothing here yet
+        </div>
+      )}
+
+      {/* Rows */}
+      <div style={{ display:'flex', flexDirection:'column' }}>
+        {filtered.map((item, idx) => (
+          <div key={item.user + idx}
+            onClick={() => { onOpenChat && onOpenChat(item); onClose && onClose(); }}
+            style={{ display:'flex', alignItems:'flex-start', gap:12, padding:'12px 0', cursor:'pointer', WebkitTapHighlightColor:'transparent', borderBottom:'1px solid #F0F0F0' }}>
+            <img src={item.avatar} alt="" style={{ width:44, height:44, borderRadius:400, objectFit:'cover', flexShrink:0 }} />
+            <div style={{ flex:1, minWidth:0, display:'flex', flexDirection:'column', gap:4 }}>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:8 }}>
+                <span style={{ fontSize:15, fontWeight:600, color:'#292929', lineHeight:'20px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.name}</span>
+                <span style={{ fontSize:13, fontWeight:400, color:'#9A9A9A', lineHeight:'18px', flexShrink:0 }}>{item._time}</span>
+              </div>
+              <div style={{ fontSize:14, fontWeight:400, color:'#707070', lineHeight:'18px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item._intent}</div>
+              <div style={{ marginTop:2 }}>
+                <span style={tagStyle(item._tag)}>{item._tag}</span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -3015,10 +3325,12 @@ function MenuScreen({ onClose, onOpenChat, onNewChat }) {
             </span>
           </div>
 
-          {/* Right cluster: close (forward arrow) */}
+          {/* Right cluster: Ask Inbox text button — closes the menu AND focuses the home input */}
           <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-            <div onClick={onClose} style={{ width:40, height:40, borderRadius:400, border:'1px solid #E0E2E5', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', WebkitTapHighlightColor:'transparent', flexShrink:0 }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            <div onClick={() => { onClose({ focusInput: true }); }}
+              style={{ height:40, padding:'0 16px', borderRadius:999, background:'#292929', display:'flex', alignItems:'center', gap:8, cursor:'pointer', WebkitTapHighlightColor:'transparent', flexShrink:0 }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <span style={{ fontSize:14, fontWeight:600, color:'#fff', letterSpacing:'-0.1px' }}>Ask</span>
             </div>
           </div>
         </div>
@@ -3051,7 +3363,7 @@ function MenuScreen({ onClose, onOpenChat, onNewChat }) {
             <div>
               <div style={{ fontSize:14, fontWeight:600, color:'#292929', lineHeight:'20px' }}>Wednesday, April 22</div>
               <div style={{ fontSize:14, fontWeight:400, color:'#9A9A9A', lineHeight:'20px', marginTop:2 }}>
-                130 handled overnight · <span style={{ color:'#292929' }}>4 need you</span>
+                24 handled overnight · <span style={{ color:'#292929' }}>4 need you</span>
               </div>
             </div>
 
@@ -3060,28 +3372,28 @@ function MenuScreen({ onClose, onOpenChat, onNewChat }) {
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:12 }}>
                 <span style={{ fontSize:15, fontWeight:600, color:'#292929' }}>Handled today</span>
                 <div style={{ display:'flex', alignItems:'center', gap:2, cursor:'pointer', WebkitTapHighlightColor:'transparent' }}>
-                  <span style={{ fontSize:13, fontWeight:600, color:'#C47A1A' }}>2m avg</span>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C47A1A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                  <span style={{ fontSize:13, fontWeight:600, color:'#292929' }}>2m avg</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                 </div>
               </div>
 
               {/* Stacked segmented bar */}
               <div style={{ display:'flex', gap:2, marginTop:12, height:6, borderRadius:3, overflow:'hidden' }}>
-                <div style={{ flex:'41', background:'#1FB26A', borderRadius:3 }} />
-                <div style={{ flex:'89', background:'#6B5BE6', borderRadius:3 }} />
-                <div style={{ flex:'3', background:'#D8DADE', borderRadius:3 }} />
-                <div style={{ flex:'1', background:'#D8DADE', borderRadius:3 }} />
+                <div style={{ flex:'34', background:'#1FB26A', borderRadius:3 }} />
+                <div style={{ flex:'126', background:'#6B5BE6', borderRadius:3 }} />
+                <div style={{ flex:'4', background:'#D8DADE', borderRadius:3 }} />
+                <div style={{ flex:'2', background:'#D8DADE', borderRadius:3 }} />
               </div>
 
               {/* Breakdown */}
               <div style={{ display:'flex', flexWrap:'wrap', gap:'2px 6px', marginTop:10, fontSize:13, lineHeight:'18px' }}>
-                <span style={{ color:'#292929', fontWeight:600 }}>41 DMs</span>
+                <span style={{ color:'#292929', fontWeight:600 }}>34 DMs</span>
                 <span style={{ color:'#9A9A9A' }}>·</span>
-                <span style={{ color:'#292929', fontWeight:600 }}>89 comments</span>
+                <span style={{ color:'#292929', fontWeight:600 }}>126 comments</span>
                 <span style={{ color:'#9A9A9A' }}>·</span>
-                <span style={{ color:'#9A9A9A' }}>3 corrections</span>
+                <span style={{ color:'#9A9A9A' }}>4 corrections</span>
                 <span style={{ color:'#9A9A9A' }}>·</span>
-                <span style={{ color:'#9A9A9A' }}>1 took over</span>
+                <span style={{ color:'#9A9A9A' }}>2 took over</span>
               </div>
             </div>
           </div>
@@ -3089,26 +3401,7 @@ function MenuScreen({ onClose, onOpenChat, onNewChat }) {
 
         {/* Bubbles row — hide while searching */}
         {!q && (
-          <div style={{ display:'flex', gap:16, padding:'20px 0 12px', justifyContent:'flex-start' }}>
-            <div style={bubbleBase} onClick={() => handleBubble('later')}>
-              <div style={bubbleCircle}>
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
-              </div>
-              <span style={bubbleLabel}>Later</span>
-            </div>
-            <div style={bubbleBase} onClick={() => handleBubble('all')}>
-              <div style={bubbleCircle}>
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-              </div>
-              <span style={bubbleLabel}>All</span>
-            </div>
-            <div style={bubbleBase} onClick={() => handleBubble('replied')}>
-              <div style={bubbleCircle}>
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
-              </div>
-              <span style={bubbleLabel}>Replied</span>
-            </div>
-          </div>
+          <InboxTabsList onOpenChat={onOpenChat} onClose={onClose} />
         )}
 
         {/* Recents */}
@@ -3139,6 +3432,7 @@ function MenuScreen({ onClose, onOpenChat, onNewChat }) {
       </div>
 
       {/* Floating new-chat pill */}
+      {false && (
       <div onClick={() => { onNewChat(); onClose(); }}
         style={{ position:'absolute', right:16, bottom:24, zIndex:6,
           background:'#292929', color:'#fff', padding:'14px 20px 14px 18px',
@@ -3148,13 +3442,14 @@ function MenuScreen({ onClose, onOpenChat, onNewChat }) {
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         <span style={{ fontSize:15, fontWeight:600, letterSpacing:'-0.1px' }}>New chat</span>
       </div>
+      )}
     </div>
   );
 }
 
 /* ═══ AGENT CHAT HOME ═══ */
 
-function AgentChatHome({ onOverlayChange }) {
+function AgentChatHome({ onOverlayChange, firstRun }) {
   const [messages, setMessages] = useState([]);
   const [inputVal, setInputVal] = useState('');
   const [openChat, setOpenChat] = useState(null);
@@ -3167,15 +3462,10 @@ function AgentChatHome({ onOverlayChange }) {
   const chatRef = useRef(null);
   const inputRef = useRef(null);
 
-  // Start a fresh chat from a given title (used when tapping a recent in the menu)
+  // Tapping a contact row in the Inbox menu opens that contact's ChatDetail
   const openChatFromMenu = (item) => {
-    setMessages([{
-      type:'agent',
-      content: "Here's the chat: \u201C" + item.title + "\u201D. (Preview — reopening past chats isn't wired up yet.)",
-      id: Date.now(),
-      isNewChat:true,
-    }]);
-    setInputVal('');
+    setOpenChat({ item, label:'', labelColor:'#707070', isSensitive:false });
+    if (onOverlayChange) onOverlayChange(true);
   };
 
   const startNewChat = () => {
@@ -3194,9 +3484,15 @@ function AgentChatHome({ onOverlayChange }) {
   // Seed morning brief on mount
   useEffect(() => {
     const leadsWithDrafts = INTERESTED_ITEMS.filter(i => i.draft).length;
+    const firstMsg = firstRun
+      ? { type:'agent', content: 'Ta-dah! ✨', delay: 200, bigHeadline: true }
+      : { type:'agent', content: 'Morning, Sofia', delay: 300 };
+    const secondContent = firstRun
+      ? "Hey, I have " + INTERESTED_ITEMS.length + " important DMs you should answer.\n\nLet's start with the 3 people ready to buy now — they asked about pricing or signing up."
+      : leadsWithDrafts + ' leads are ready to buy \u2014 ' + INTERESTED_ITEMS[0].name + ' has been following you for 2 years and just asked about the 12-week program. Replies are ready. 3 of them came straight from Tuesday\u2019s Wellness Reset webinar.';
     const initial = [
-      { type:'agent', content:'Morning, Sofia', delay:300 },
-      { type:'agent', content: leadsWithDrafts + ' leads are ready to buy \u2014 ' + INTERESTED_ITEMS[0].name + ' has been following you for 2 years and just asked about the 12-week program. Replies are ready. 3 of them came straight from Tuesday\u2019s Wellness Reset webinar.', delay:800,
+      firstMsg,
+      { type:'agent', content: secondContent, delay: firstRun ? 900 : 800,
         cardLabel: 'ready to buy',
         cardSubtitle: 'They asked about pricing or signing up',
         cards: INTERESTED_ITEMS.slice(0,3).map(item => ({
@@ -3525,11 +3821,11 @@ function AgentChatHome({ onOverlayChange }) {
         <div style={{ padding:'12px 16px 12px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
           {/* Hamburger menu — opens the MenuScreen drawer */}
           <div onClick={() => { setShowMenu(true); if (onOverlayChange) onOverlayChange(true); }} style={{ width:40, height:40, borderRadius:400, border:'1px solid #E0E2E5', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', WebkitTapHighlightColor:'transparent' }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="1.8" strokeLinecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
           </div>
           {/* New chat — resets to generic greeting without suggestions */}
           <div onClick={startNewChat} style={{ width:40, height:40, borderRadius:400, border:'1px solid #E0E2E5', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', WebkitTapHighlightColor:'transparent' }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </div>
         </div>
       </div>
@@ -3574,6 +3870,9 @@ function AgentChatHome({ onOverlayChange }) {
                 {msg.content?.split('\n').map((line, li) => {
                   if (line.startsWith('\u2022')) {
                     return <div key={li} style={{ paddingLeft:8, display:'flex', gap:8 }}><span>{'\u2022'}</span><span>{line.substring(1).trim()}</span></div>;
+                  }
+                  if (li === 0 && msg.bigHeadline) {
+                    return <div key={li} style={{ fontFamily:'"Manychat Gravity", "Gravity", Inter, -apple-system, system-ui, sans-serif', fontSize:24, fontWeight:800, lineHeight:'30px', letterSpacing:'-0.02em', color:'#111' }}>{line}</div>;
                   }
                   if (li === 0 && (msg.content.startsWith('Morning') || msg.isNewChat || msg.content.startsWith('New chat'))) {
                     return <div key={li} style={{ fontFamily:'"Manychat Gravity", "Gravity", Inter, -apple-system, system-ui, sans-serif', fontSize:20, fontWeight:800, lineHeight:'26px', letterSpacing:'-0.02em', color:'#111' }}>{line}</div>;
@@ -3739,7 +4038,7 @@ function AgentChatHome({ onOverlayChange }) {
           </div>
         ) : (
           <div style={{ width:32, height:32, borderRadius:16, background:'#F0F0F0', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, cursor:'pointer' }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="2" strokeLinecap="round"><line x1="4" y1="10" x2="4" y2="14"/><line x1="8" y1="7" x2="8" y2="17"/><line x1="12" y1="4" x2="12" y2="20"/><line x1="16" y1="7" x2="16" y2="17"/><line x1="20" y1="10" x2="20" y2="14"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#292929" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </div>
         )}
       </div>
@@ -3825,7 +4124,14 @@ function AgentChatHome({ onOverlayChange }) {
       {/* Menu Screen — slide-in drawer */}
       {showMenu && (
         <MenuScreen
-          onClose={() => { setShowMenu(false); if (onOverlayChange) onOverlayChange(false); }}
+          onClose={(opts) => {
+            setShowMenu(false);
+            if (onOverlayChange) onOverlayChange(false);
+            if (opts && opts.focusInput) {
+              // Focus the input once the menu finishes closing
+              setTimeout(() => inputRef.current && inputRef.current.focus(), 320);
+            }
+          }}
           onOpenChat={openChatFromMenu}
           onNewChat={startNewChat}
         />
@@ -3903,7 +4209,7 @@ function ObWelcomeV2b({ onNext }) {
   const bullets = [
     { Ill: IllDarts,     title: 'Only what matters',    sub: 'Real conversations, not noise' },
     { Ill: IllMessenger, title: 'Replies in your voice', sub: 'Draft first. You approve.' },
-    { Ill: IllHeart,     title: 'Personal stuff to you', sub: 'I know when to step aside' },
+    { Ill: IllHeart,     title: 'Personal stuff to you', sub: 'Knows when to step aside' },
   ];
 
   return (
@@ -3926,14 +4232,14 @@ function ObWelcomeV2b({ onNext }) {
       {/* Heading */}
       <div style={show(1)}>
         <h1 style={{ fontFamily:'"Manychat Gravity", "Gravity", Inter, -apple-system, system-ui, sans-serif', fontSize:32, fontWeight:800, color:'#111', letterSpacing:'-0.03em', lineHeight:'36px', margin:0 }}>
-          Hey Sofia
+          Hey Sofia, meet your AI clone for DMs
         </h1>
       </div>
 
       {/* Intro paragraph */}
       <div style={{ marginTop:20, ...show(2) }}>
         <p style={{ fontSize:16, fontWeight:400, color:'#303336', lineHeight:'24px', margin:0, maxWidth:320 }}>
-          I'm your inbox agent. I'll read every DM, find the ones that matter, and have replies ready.
+          It reads every DM and shows you what you need:
         </p>
       </div>
 
@@ -3950,6 +4256,13 @@ function ObWelcomeV2b({ onNext }) {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Closing line above button */}
+      <div style={{ marginTop:28, ...show(6) }}>
+        <p style={{ fontSize:16, fontWeight:400, color:'#303336', lineHeight:'24px', margin:0 }}>
+          DM management problem? Consider it handled.
+        </p>
       </div>
 
       {/* Spacer to push button to bottom */}
@@ -3970,7 +4283,7 @@ function ObWelcomeV2b({ onNext }) {
             fontFamily:'inherit',
           }}
         >
-          Let's do it
+          Analyze my Instagram
         </button>
       </div>
       </div>
@@ -4138,7 +4451,8 @@ function ObResultsV2b({ onOpenInbox }) {
 function App() {
   const [screen, setScreen] = useState(window.location.hash === '#inbox' ? 'main' : 'ob-welcome');
   const [hideNav, setHideNav] = useState(false);
-  const onOnboarding = screen === 'ob-welcome' || screen === 'ob-loading' || screen === 'ob-results';
+  const [firstRun, setFirstRun] = useState(false);
+  const onOnboarding = screen === 'ob-welcome' || screen === 'ob-loading';
   return (
     <div style={{ width:'100%', height:'100%', position:'relative', overflow:'hidden' }}>
 
@@ -4151,16 +4465,15 @@ function App() {
             style={{ position:'absolute', inset:0, zIndex:1 }}
           >
             {screen === 'ob-welcome' && <ObWelcomeV2b onNext={() => setScreen('ob-loading')} />}
-            {screen === 'ob-loading' && <ObSorting onNext={() => setScreen('ob-results')} />}
-            {screen === 'ob-results' && <ObResultsV2b onOpenInbox={() => setScreen('main')} />}
+            {screen === 'ob-loading' && <ObSorting onNext={() => { setFirstRun(true); setScreen('main'); }} />}
           </div>
         </div>
       )}
 
       {/* ─── Inbox ─── */}
       {screen === 'main' && (
-        <div style={{ position:'absolute', inset:0, animation:'fadeIn 0.45s ease both' }}>
-          <AgentChatHome onOverlayChange={(open) => setHideNav(open)} />
+        <div style={{ position:'absolute', inset:0, animation:'fadeIn 0.6s ease both' }}>
+          <AgentChatHome onOverlayChange={(open) => setHideNav(open)} firstRun={firstRun} />
         </div>
       )}
 
